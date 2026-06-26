@@ -111,6 +111,9 @@
   .pill:hover{color:var(--text)} .pill.open{color:var(--text); border-color:#3a424f}
   .pill.proj-on{color:#f3d68a; border-color:rgba(245,196,81,.4)}
   .pill.crit-on{color:#f0a6a6; border-color:rgba(239,111,111,.5); background:rgba(239,111,111,.12)}
+  .pill.uredi-pill{font-size:11px; font-weight:700; color:var(--accent); border-color:rgba(90,166,240,.55); background:rgba(90,166,240,.14); padding:4px 11px; letter-spacing:.03em; text-transform:uppercase}
+  .pill.uredi-pill:hover{color:#fff; border-color:var(--accent); background:rgba(90,166,240,.28)}
+  .row[data-proj="true"] .pill.uredi-pill{font-size:12px; padding:5px 13px}
   .row[data-crit="true"]{box-shadow:inset 3px 0 0 #ef6f6f}
   .row[data-crit="true"] .tt::after{content:' ●'; color:#ef6f6f; font-size:9px; vertical-align:middle}
 
@@ -176,6 +179,8 @@
   .ge-table input[type=text]{width:100%;min-width:200px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px}
   .ge-table input[type=date]{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:5px 7px;font-family:var(--mono);font-size:11px;color-scheme:dark;width:140px}
   .ge-table input.over{border-color:rgba(239,111,111,.6)}
+  .ge-table select{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:5px 7px;font-size:11px;color-scheme:dark}
+  .editor select{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;color-scheme:dark}
   .ge-empty{padding:40px;text-align:center;color:var(--faint);font-size:13px}
   @media (max-width:600px){ .grid{grid-template-columns:1fr} .priv-btn,.nudges{opacity:1} }
 </style>
@@ -306,6 +311,8 @@
   var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','Michel':'Michel','Private':'Private'};
   var OWNER_ORDER=['Dom','Ana Trusk','Silva','Ankica','Nataša','Nino','Michel','Private'];
   var ADD_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Private'];
+  var OWNER_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Stefan','Dav','Private'];
+  function ownerOpts(cur){ var arr=OWNER_PREFIXES.slice(); if(cur && arr.indexOf(cur)<0) arr.unshift(cur); return arr.map(function(px){ return '<option value="'+px+'"'+(px===cur?' selected':'')+'>'+escapeHtml(MAP[px]||px)+'</option>'; }).join(''); }
   var PREFIX={'Private':'Private','Dom':'Dom'};
   function ownerOf(title){ var m=title.match(/^\(([^)]+)\)\s*/);
     if(m){ var raw=m[1].trim(); return {prefix:raw, owner:MAP[raw]||raw, clean:title.slice(m[0].length).trim()}; }
@@ -381,7 +388,12 @@
       var crit=open.filter(function(t){return t.critical;}).length;
       var extra=''; if(over) extra+=' <span class="cc over">'+over+' kasni</span>'; if(crit) extra+=' <span class="cc crit">'+crit+' crit</span>';
       var c=document.createElement('div'); c.className='chip'; c.dataset.on=ownerOn[o]; c.innerHTML=o+' <span class="c">'+n+'</span>'+extra;
-      c.addEventListener('click',function(){ ownerOn[o]=!ownerOn[o]; c.dataset.on=ownerOn[o]; render(); }); box.appendChild(c); });
+      c.addEventListener('click',function(){
+        var onCount=0; owners.forEach(function(x){ if(ownerOn[x]) onCount++; });
+        if(ownerOn[o] && onCount===1){ owners.forEach(function(x){ ownerOn[x]=true; }); }
+        else { owners.forEach(function(x){ ownerOn[x]=(x===o); }); }
+        buildOwnerFilters(); render();
+      }); box.appendChild(c); });
   }
   function byOwner(a,b){ var ia=OWNER_ORDER.indexOf(a),ib=OWNER_ORDER.indexOf(b); if(ia<0)ia=99; if(ib<0)ib=99; return ia-ib||a.localeCompare(b); }
   function weekRange(off){ var t=today0(); var day=(t.getDay()+6)%7; var mon=new Date(t); mon.setDate(t.getDate()-day+off*7); mon.setHours(0,0,0,0); var sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999); return {from:mon,to:sun}; }
@@ -466,12 +478,12 @@
       var ex=tbody.querySelector('.notes'); if(ex){ ex.remove(); op.classList.remove('open'); return; }
       tbody.appendChild(notesPanel(t,row)); op.classList.add('open'); });
 
-    ['.ntext','.ndate','.nlabel','.uredi-pill','.rok'].forEach(function(sel){ var e0=row.querySelector(sel); if(e0) e0.addEventListener('click',function(e){ e.stopPropagation(); openEditor(t,row,tbody); }); });
+    ['.tt','.ntext','.ndate','.nlabel','.uredi-pill','.rok'].forEach(function(sel){ var e0=row.querySelector(sel); if(e0) e0.addEventListener('click',function(e){ e.stopPropagation(); openEditor(t,row,tbody); }); });
     Array.prototype.forEach.call(row.querySelectorAll('.nudges .nudge'),function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); nudge(t,row,b.dataset.n); }); });
     Array.prototype.forEach.call(row.querySelectorAll('.rnudges .nudge'),function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); nudgeDue(t,row,b.dataset.rn); }); });
     row.querySelector('.projekt-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleProject(t,row); });
     row.querySelector('.crit-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleCritical(t,row); });
-    row.addEventListener('click',function(e){ if(e.target.closest('.box')||e.target.classList.contains('tt')) toggle(t,row); });
+    row.addEventListener('click',function(e){ if(e.target.closest('.box')) toggle(t,row); });
     row.querySelector('.priv-btn').addEventListener('click',function(e){ e.stopPropagation(); rename(t,row,toPriv?'Private':'Dom'); });
     return row;
   }
@@ -508,6 +520,7 @@
     if(tbody.querySelector('.editor')) return;
     var ed=document.createElement('div'); ed.className='editor';
     ed.innerHTML='<div class="efld grow"><label>Naziv</label><input type="text" class="e-title"></div>'+
+      '<div class="efld"><label>Nositelj</label><select class="e-owner">'+ownerOpts(t.prefix)+'</select></div>'+
       '<div class="efld"><label>Rok</label><input type="date" class="e-due"></div>'+
       '<div class="efld grow"><label>Next step</label><input type="text" class="e-ntext"></div>'+
       '<div class="efld"><label>Next datum</label><input type="date" class="e-ndate"></div>'+
@@ -517,15 +530,16 @@
     ed.querySelector('.e-ntext').value=t.nextText||''; ed.querySelector('.e-ndate').value=dateInputVal(t.nextDate);
     ed.addEventListener('click',function(e){ e.stopPropagation(); });
     ed.querySelector('.cancel').addEventListener('click',function(e){ e.stopPropagation(); ed.remove(); });
-    ed.querySelector('.save').addEventListener('click',function(e){ e.stopPropagation(); saveTask(t,row, ed.querySelector('.e-title').value.trim(), fromInput(ed.querySelector('.e-due').value), ed.querySelector('.e-ntext').value.trim(), fromInput(ed.querySelector('.e-ndate').value)); });
+    ed.querySelector('.save').addEventListener('click',function(e){ e.stopPropagation(); saveTask(t,row, ed.querySelector('.e-title').value.trim(), fromInput(ed.querySelector('.e-due').value), ed.querySelector('.e-ntext').value.trim(), fromInput(ed.querySelector('.e-ndate').value), ed.querySelector('.e-owner').value); });
   }
 
-  function saveTask(t,row,naziv,dueDate,nextText,nextDate){
+  function saveTask(t,row,naziv,dueDate,nextText,nextDate,newPrefix){
+    var px=newPrefix||t.prefix; var ownerChanged=(px!==t.prefix);
     var notes=buildNotes(nextText,nextDate,t.rest,t.critical);
-    var params={action:'update', taskId:t.id, title:makeTitle(t.prefix,naziv,t.isProject), notes:notes};
+    var params={action:'update', taskId:t.id, title:makeTitle(px,naziv,t.isProject), notes:notes};
     if(dueDate) params.due=toISODate(dueDate);
     busy(row,true); api(params).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti: '+((res&&res.error)||'?')); return; }
-      banner(''); t.title=naziv; if(dueDate) t.due=dueDate; t.nextText=nextText; t.nextDate=nextDate; t.notes=notes; render();
+      banner(''); t.title=naziv; t.prefix=px; t.owner=MAP[px]||px; if(dueDate) t.due=dueDate; t.nextText=nextText; t.nextDate=nextDate; t.notes=notes; if(ownerChanged) buildOwnerFilters(); render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); });
   }
   function saveDesc(t,row,newRest,after){
@@ -621,22 +635,22 @@
         var pj=t.isProject?'<span class="pj">A_</span>':''; var cd=t.critical?'<span class="cd">●</span>':'';
         var overD=(whenClass(t.due,false)==='over')?' over':'';
         html+='<tr data-ix="'+ix+'"'+(t.critical?' class="crit"':'')+'>'+
-          '<td class="ge-who">'+escapeHtml(t.owner)+'</td>'+
+          '<td class="ge-who"><select data-f="owner" class="ge-owner">'+ownerOpts(t.prefix)+'</select></td>'+
           '<td class="ge-name">'+cd+pj+escapeHtml(t.title)+'</td>'+
           '<td><input type="text" data-f="ntext" value="'+escapeAttr(t.nextText||'')+'" placeholder="sljedeći korak"></td>'+
           '<td><input type="date" data-f="ndate" value="'+nd+'"></td>'+
           '<td><input type="date" data-f="due" class="rok'+overD+'" value="'+du+'"></td>'+
         '</tr>';
-        geRows.push({t:t, oNtext:(t.nextText||''), oNdate:nd, oDue:du});
+        geRows.push({t:t, oNtext:(t.nextText||''), oNdate:nd, oDue:du, oOwner:t.prefix});
       });
       html+='</tbody></table>'; body.innerHTML=html;
-      Array.prototype.forEach.call(body.querySelectorAll('tr[data-ix]'),function(tr){ tr.addEventListener('input',function(){ markDirty(tr); }); });
+      Array.prototype.forEach.call(body.querySelectorAll('tr[data-ix]'),function(tr){ tr.addEventListener('input',function(){ markDirty(tr); }); tr.addEventListener('change',function(){ markDirty(tr); }); });
     }
     el('ge-sub').textContent=items.length+' '+(items.length===1?'task':'taskova')+' (filtrirano)';
     el('ge-dirty').textContent=''; el('ge-overlay').classList.add('open');
   }
-  function rowVals(tr){ return {ntext:tr.querySelector('[data-f=ntext]').value.trim(), ndate:tr.querySelector('[data-f=ndate]').value, due:tr.querySelector('[data-f=due]').value}; }
-  function rowDirty(tr){ var r=geRows[+tr.dataset.ix]; var v=rowVals(tr); return (v.ntext!==r.oNtext)||(v.ndate!==r.oNdate)||(v.due!==r.oDue); }
+  function rowVals(tr){ return {ntext:tr.querySelector('[data-f=ntext]').value.trim(), ndate:tr.querySelector('[data-f=ndate]').value, due:tr.querySelector('[data-f=due]').value, owner:(tr.querySelector('[data-f=owner]')?tr.querySelector('[data-f=owner]').value:'')}; }
+  function rowDirty(tr){ var r=geRows[+tr.dataset.ix]; var v=rowVals(tr); return (v.ntext!==r.oNtext)||(v.ndate!==r.oNdate)||(v.due!==r.oDue)||(v.owner!==r.oOwner); }
   function markDirty(tr){ tr.classList.toggle('dirty',rowDirty(tr)); var n=el('ge-body').querySelectorAll('tr.dirty').length; el('ge-dirty').textContent=n?(n+' izmijenjeno'):''; }
   function closeGridEdit(){ el('ge-overlay').classList.remove('open'); geRows=[]; }
   function saveGridEdit(){
@@ -646,13 +660,15 @@
     (function step(){
       if(i>=trs.length){ btn.disabled=false; banner('Spremljeno '+ok+'/'+trs.length+'.'); render(); buildOwnerFilters(); el('synced').textContent='sync '+new Date().toLocaleTimeString(); closeGridEdit(); return; }
       var tr=trs[i++]; var r=geRows[+tr.dataset.ix]; var t=r.t; var v=rowVals(tr);
-      var changedNotes=(v.ntext!==r.oNtext)||(v.ndate!==r.oNdate); var changedDue=(v.due!==r.oDue);
+      var changedNotes=(v.ntext!==r.oNtext)||(v.ndate!==r.oNdate); var changedDue=(v.due!==r.oDue); var changedOwner=(v.owner!==r.oOwner);
       var params={action:'update', taskId:t.id}; var newNdate=fromInput(v.ndate); var notes=null;
       if(changedNotes){ notes=buildNotes(v.ntext,newNdate,t.rest,t.critical); params.notes=notes; }
       if(changedDue){ params.due = v.due? toISODate(fromInput(v.due)) : ''; }
+      if(changedOwner){ params.title=makeTitle(v.owner,t.title,t.isProject); }
       api(params).then(function(res){ if(res&&!res.error){ ok++;
           if(changedNotes){ t.nextText=v.ntext; t.nextDate=newNdate; t.notes=notes; }
           if(changedDue){ t.due = v.due? fromInput(v.due):null; }
+          if(changedOwner){ t.prefix=v.owner; t.owner=MAP[v.owner]||v.owner; }
         } step(); }).catch(function(){ step(); });
     })();
   }
