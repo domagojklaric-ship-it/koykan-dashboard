@@ -20,6 +20,8 @@
   .top{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .brand{font:600 12px/1 var(--mono);letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
   h1{font:600 22px/1.1 var(--body);margin:4px 0 0}
+  #proj-title{cursor:pointer} #proj-title:hover{text-decoration:underline dotted; text-underline-offset:3px}
+  input.title-edit{font:600 22px/1.1 var(--body);background:var(--bg);border:1px solid var(--accent);color:var(--text);border-radius:8px;padding:2px 8px;min-width:220px}
   .sub{font:500 11px/1 var(--mono);color:var(--faint);letter-spacing:.04em;margin-top:5px}
   .spacer{flex:1}
   .btn{font:600 12px/1 var(--body);background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 13px;cursor:pointer;white-space:nowrap}
@@ -100,7 +102,7 @@
   <div class="top">
     <div>
       <div class="brand">Koykan · PEP</div>
-      <h1>Ostatak projekta</h1>
+      <h1 id="proj-title" title="Klik za promijeniti naziv">Ostatak projekta</h1>
       <div class="sub" id="sub">učitavam…</div>
     </div>
     <div class="spacer"></div>
@@ -179,7 +181,7 @@
     SECRET = v; el('setup-err').textContent='Provjeravam…';
     api({action:'list'}).then(function(res){
       if(res && res.error==='auth'){ el('setup-err').textContent='Pogrešan kod.'; return; }
-      if(res && res.ok){ localStorage.setItem('pep_secret', SECRET); el('setup').classList.add('hide'); el('app').classList.remove('hide'); TASKS=res.tasks||[]; renderAll(); }
+      if(res && res.ok){ localStorage.setItem('pep_secret', SECRET); el('setup').classList.add('hide'); el('app').classList.remove('hide'); setTasks(res.tasks||[]); renderAll(); }
       else { el('setup-err').textContent='Greška: '+((res&&res.error)||'?'); }
     }).catch(function(e){ el('setup-err').textContent='Greška veze: '+e; });
   });
@@ -190,11 +192,43 @@
     el('sub').textContent='učitavam…';
     api({action:'list'}).then(function(res){
       if(res && res.error==='auth'){ showSetup('Kod više ne vrijedi, unesi ponovno.'); return; }
-      if(res && res.ok){ TASKS=res.tasks||[]; renderAll(); banner('Osvježeno'); }
+      if(res && res.ok){ setTasks(res.tasks||[]); renderAll(); banner('Osvježeno'); }
       else { banner('Greška: '+((res&&res.error)||'?')); }
     }).catch(function(e){ banner('Greška veze: '+e); });
   }
   el('refresh').addEventListener('click', load);
+
+  /* ---------- naziv projekta (sprema se kao skrivena stavka u Sheetu) ---------- */
+  var DEFAULT_TITLE='Ostatak projekta'; var boardTitle=DEFAULT_TITLE; var metaId=null;
+  function setTasks(arr){
+    var meta=arr.filter(function(t){return t.section==='__meta';})[0];
+    metaId = meta ? meta.id : null;
+    boardTitle = (meta && meta.naziv) ? meta.naziv : DEFAULT_TITLE;
+    TASKS = arr.filter(function(t){return t.section!=='__meta';});
+    applyTitle();
+  }
+  function applyTitle(){ var e0=el('proj-title'); if(e0) e0.textContent=boardTitle; document.title='Koykan · PEP — '+boardTitle; }
+  function editTitle(){
+    var h=el('proj-title'); if(!h) return; var cur=boardTitle;
+    var inp=document.createElement('input'); inp.className='title-edit'; inp.value=cur;
+    h.replaceWith(inp); inp.focus(); inp.select();
+    function finish(commit){
+      var v=inp.value.trim();
+      var nh=document.createElement('h1'); nh.id='proj-title'; nh.title='Klik za promijeniti naziv';
+      inp.replaceWith(nh); nh.addEventListener('click', editTitle);
+      if(commit && v && v!==cur){ saveTitle(v); } else { applyTitle(); }
+    }
+    inp.addEventListener('blur', function(){ finish(true); });
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ inp.blur(); } if(e.key==='Escape'){ finish(false); } });
+  }
+  function saveTitle(name){
+    boardTitle=name; applyTitle();
+    if(metaId){
+      api({action:'update', id:metaId, naziv:name}).then(function(res){ if(!res||res.error){ banner('Naziv nije spremljen'); load(); } else banner('Naziv spremljen'); }).catch(function(){ load(); });
+    } else {
+      api({action:'add', section:'__meta', naziv:name, status:'Otvoreno'}).then(function(res){ if(res&&res.ok){ if(res.id) metaId=res.id; banner('Naziv spremljen'); } else { banner('Naziv nije spremljen'); } }).catch(function(){});
+    }
+  }
 
   /* ---------- filters ---------- */
   function buildSectionFilter(){
@@ -347,6 +381,7 @@
 
   /* ---------- boot ---------- */
   fillAddSelects();
+  el('proj-title').addEventListener('click', editTitle);
   if(ENDPOINT.indexOf('PASTE_')===0){
     el('setup').classList.remove('hide');
     el('setup-err').textContent='Postavi ENDPOINT u kodu (Apps Script /exec URL) pa osvježi.';
