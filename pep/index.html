@@ -40,6 +40,7 @@
   .chip.on{background:var(--panel2);color:var(--text);border-color:#3a445a}
   .chip.on[data-acc=good]{color:var(--good);border-color:rgba(90,209,154,.5)}
   .chip.on[data-acc=warn]{color:var(--warn);border-color:rgba(224,175,104,.5)}
+  .chip.on[data-acc=bad]{color:var(--bad);border-color:rgba(239,111,111,.5)}
   #search{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 11px;font-size:13px}
   /* section card */
   .sec{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
@@ -47,28 +48,28 @@
   .sec-h .name{font:600 13px/1 var(--body)}
   .sec-h .count{font:600 10px/1 var(--mono);color:var(--faint);letter-spacing:.06em}
   .sec-h .done{color:var(--good)}
-  /* task row */
-  .task{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  /* task row — single line, ne širi se na 2 reda */
+  .task{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:nowrap}
   .task:last-child{border-bottom:0}
   .task.is-done{opacity:.55}
   .task.is-crit{border-left:3px solid var(--bad)}
   .check{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;color:transparent;font-size:13px}
   .task.is-done .check{background:var(--good);border-color:var(--good);color:#0b1020}
-  .naziv{flex:1;min-width:160px;cursor:text}
+  .naziv{flex:2 1 120px;min-width:90px;cursor:text;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .task.is-done .naziv{text-decoration:line-through}
-  .ctl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  /* inline tekstualni status (jedna linija) */
+  .t-status{flex:1 1 150px;min-width:90px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:6px 8px;font-size:12px;font-family:var(--body)}
+  .t-status::placeholder{color:var(--dim)}
+  .ctl{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:none}
   select,input[type=date],input.inp{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:6px 8px;font-size:12px;font-family:var(--body);color-scheme:dark}
   select.owner{min-width:104px}
   select.status[data-v=Gotovo]{color:var(--good)}
   select.status[data-v="U tijeku"]{color:var(--warn)}
   input[type=date]{font-family:var(--mono);font-size:11px;width:140px}
+  input.t-due.over{border-color:var(--bad);color:var(--bad)}
   .icon{flex:none;background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--faint);cursor:pointer;padding:5px 8px;font-size:12px;line-height:1}
   .icon:hover{color:var(--text);border-color:#3a445a}
   .icon.crit.on{color:var(--bad);border-color:rgba(239,111,111,.5)}
-  .note{flex-basis:100%;margin:2px 0 2px 30px}
-  .note textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:13px/1.4 var(--body);resize:vertical;min-height:54px}
-  .note .row{display:flex;gap:8px;margin-top:6px}
-  .note-preview{flex-basis:100%;margin:0 0 0 30px;font:500 12px/1.4 var(--body);color:var(--faint);white-space:pre-wrap}
   /* add form */
   .addbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
   .addbar.hidden{display:none}
@@ -82,7 +83,7 @@
   .banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 16px;font:600 12px/1 var(--body);box-shadow:0 8px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
   .banner.show{opacity:1}
   .empty{padding:30px 14px;text-align:center;color:var(--faint);font-size:13px}
-  @media (max-width:560px){ h1{font-size:19px} .naziv{min-width:100%} .ctl{width:100%} }
+  @media (max-width:560px){ h1{font-size:19px} .task{flex-wrap:wrap} .naziv{min-width:100%;white-space:normal} .t-status{flex-basis:100%} .ctl{width:100%} }
 </style>
 </head>
 <body>
@@ -131,6 +132,14 @@
       <span class="chip" data-st="Gotovo" data-acc="good">Gotovo</span>
       <input id="search" placeholder="traži…">
     </div>
+    <div class="chips">
+      <span class="klabel">Rok</span>
+      <span class="chip on" data-rk="all">Sve</span>
+      <span class="chip" data-rk="overdue" data-acc="bad">Prekoračeno</span>
+      <span class="chip" data-rk="ontime" data-acc="good">Na vrijeme</span>
+      <span class="klabel" style="margin-left:10px">Hitnost</span>
+      <span class="chip" id="crit-chip" data-acc="bad">Samo critical ⚑</span>
+    </div>
   </div>
 
   <div id="board"></div>
@@ -142,13 +151,13 @@
   /* ====== CONFIG ====== */
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbx3O3N6BUCltyGV_VWpfWMqX5vv326T9wvc1g8q8u1ELomabQZvCUiTKnT6anMpxFeZ/exec';
   var SECTIONS = ['Struja','Ventilacija','Digitalija','Inventar','Ostalo'];
-  var OWNERS   = ['Davor','Nino','Silva','Dom','PEP tim','Neodređeno'];
+  var OWNERS   = ['Davor','Nino','Silva','Dom','Nataša','AnaT','Ankica','PEP tim','Neodređeno'];
   var STATUSES = ['Otvoreno','U tijeku','Gotovo'];
   /* ==================== */
 
   var SECRET = localStorage.getItem('pep_secret') || '';
   var TASKS = [];
-  var fSection = 'all', fStatus = 'all', fOwner = {}, searchQ = '';
+  var fSection = 'all', fStatus = 'all', fOwner = {}, searchQ = '', fRok = 'all', fCrit = false;
   OWNERS.forEach(function(o){ fOwner[o] = true; });
 
   function el(id){ return document.getElementById(id); }
@@ -201,7 +210,15 @@
   Array.prototype.forEach.call(document.querySelectorAll('[data-st]'), function(ch){
     ch.addEventListener('click', function(){ fStatus=ch.getAttribute('data-st'); Array.prototype.forEach.call(document.querySelectorAll('[data-st]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
   });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-rk]'), function(ch){
+    ch.addEventListener('click', function(){ fRok=ch.getAttribute('data-rk'); Array.prototype.forEach.call(document.querySelectorAll('[data-rk]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
+  });
+  el('crit-chip').addEventListener('click', function(){ fCrit=!fCrit; this.classList.toggle('on',fCrit); renderAll(); });
   el('search').addEventListener('input', function(){ searchQ=this.value.toLowerCase().trim(); renderAll(); });
+
+  function todayStr(){ var d=new Date(); var m=('0'+(d.getMonth()+1)).slice(-2), da=('0'+d.getDate()).slice(-2); return d.getFullYear()+'-'+m+'-'+da; }
+  function isOverdue(t){ return !!t.due && t.status!=='Gotovo' && t.due < todayStr(); }
+  function isOnTime(t){ return !!t.due && t.status!=='Gotovo' && t.due >= todayStr(); }
 
   function visible(){
     return TASKS.filter(function(t){
@@ -209,6 +226,9 @@
       if(fStatus!=='all' && t.status!==fStatus) return false;
       var ow = OWNERS.indexOf(t.owner)>=0 ? t.owner : 'Neodređeno';
       if(fOwner[ow]===false) return false;
+      if(fCrit && !t.critical) return false;
+      if(fRok==='overdue' && !isOverdue(t)) return false;
+      if(fRok==='ontime' && !isOnTime(t)) return false;
       if(searchQ && String(t.naziv||'').toLowerCase().indexOf(searchQ)<0) return false;
       return true;
     });
@@ -222,15 +242,15 @@
     el('p-done').textContent=done; el('p-total').textContent=tot;
     el('p-fill').style.width = tot? Math.round(done/tot*100)+'%' : '0%';
     var crit = TASKS.filter(function(t){return t.critical && t.status!=='Gotovo';}).length;
-    el('sub').textContent = tot+' taskova · '+done+' gotovo'+(crit?(' · '+crit+' critical'):'');
+    var od = TASKS.filter(isOverdue).length;
+    el('sub').textContent = tot+' taskova · '+done+' gotovo'+(crit?(' · '+crit+' critical'):'')+(od?(' · '+od+' prekoračeno'):'');
   }
 
   function renderBoard(){
     var board = el('board'); board.innerHTML='';
     var items = visible();
     if(!items.length){ board.innerHTML='<div class="empty">Nema taskova za prikaz. Provjeri filtere ili dodaj novi.</div>'; return; }
-    var order = SECTIONS.slice(); SECTIONS.forEach(function(){});
-    // include any sections not in list at end
+    var order = SECTIONS.slice();
     items.forEach(function(t){ if(order.indexOf(t.section)<0) order.push(t.section); });
     order.forEach(function(sec){
       var arr = items.filter(function(t){return t.section===sec;});
@@ -250,22 +270,24 @@
     row.innerHTML =
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
       '<div class="naziv" title="Klik za uredi naziv">'+esc(t.naziv)+'</div>'+
+      '<input class="t-status" placeholder="status…" value="'+escAttr(t.note||'')+'" title="Tekstualni status">'+
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
-        '<input type="date" class="t-due" value="'+escAttr(t.due||'')+'">'+
+        '<input type="date" class="t-due'+(isOverdue(t)?' over':'')+'" value="'+escAttr(t.due||'')+'">'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
-        '<button class="icon note-btn" title="Bilješka">'+(t.note?'✎*':'✎')+'</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
       '</div>';
 
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
+    var st=row.querySelector('.t-status');
+    st.addEventListener('change', function(){ if(this.value.trim()!==String(t.note||'')) update(t, {note:this.value.trim()}); });
+    st.addEventListener('keydown', function(e){ if(e.key==='Enter'){ this.blur(); } });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     var ss=row.querySelector('.status'); ss.addEventListener('change', function(){ update(t, {status:this.value}); });
     row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
-    row.querySelector('.note-btn').addEventListener('click', function(){ toggleNote(t, row); });
     row.querySelector('.del').addEventListener('click', function(){ if(confirm('Obrisati task "'+t.naziv+'"?')) del(t); });
     return row;
   }
@@ -281,21 +303,11 @@
 
   function editNaziv(t, row){
     var cell=row.querySelector('.naziv');
-    var inp=document.createElement('input'); inp.className='inp'; inp.value=t.naziv; inp.style.flex='1';
+    var inp=document.createElement('input'); inp.className='inp'; inp.value=t.naziv; inp.style.flex='2';
     cell.replaceWith(inp); inp.focus(); inp.select();
     function commit(){ var v=inp.value.trim(); if(v && v!==t.naziv){ update(t,{naziv:v}); } else { renderBoard(); } }
     inp.addEventListener('blur', commit);
     inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ inp.blur(); } if(e.key==='Escape'){ renderBoard(); } });
-  }
-
-  function toggleNote(t, row){
-    var ex=row.querySelector('.note'); if(ex){ ex.remove(); return; }
-    var box=document.createElement('div'); box.className='note';
-    box.innerHTML='<textarea placeholder="Bilješka…">'+esc(t.note||'')+'</textarea><div class="row"><button class="btn primary save">Spremi</button><button class="btn ghost cancel">Zatvori</button></div>';
-    row.appendChild(box);
-    var ta=box.querySelector('textarea'); ta.focus();
-    box.querySelector('.save').addEventListener('click', function(){ update(t, {note: ta.value.trim()}); });
-    box.querySelector('.cancel').addEventListener('click', function(){ box.remove(); });
   }
 
   /* ---------- mutations (optimistic) ---------- */
