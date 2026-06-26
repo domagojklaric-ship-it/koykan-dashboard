@@ -114,6 +114,9 @@
   .pill.uredi-pill{font-size:11px; font-weight:700; color:var(--accent); border-color:rgba(90,166,240,.55); background:rgba(90,166,240,.14); padding:4px 11px; letter-spacing:.03em; text-transform:uppercase}
   .pill.uredi-pill:hover{color:#fff; border-color:var(--accent); background:rgba(90,166,240,.28)}
   .row[data-proj="true"] .pill.uredi-pill{font-size:12px; padding:5px 13px}
+  .pill.link-pill{color:#7ee0b0; border-color:rgba(90,209,154,.55); background:rgba(90,209,154,.14); text-decoration:none; font-weight:700}
+  .pill.link-pill:hover{color:#fff; border-color:#5ad19a; background:rgba(90,209,154,.3)}
+  .row[data-proj="true"] .pill.link-pill{font-size:11px; padding:4px 11px}
   .row[data-crit="true"]{box-shadow:inset 3px 0 0 #ef6f6f}
   .row[data-crit="true"] .tt::after{content:' ●'; color:#ef6f6f; font-size:9px; vertical-align:middle}
 
@@ -339,19 +342,19 @@
   var BUCKET_ORDER=['Prekoračeno','Danas','Ovaj tjedan','Sljedeći tjedan','Kasnije','Bez datuma','Bez next stepa'];
 
   function parseNext(notes){
-    if(!notes) return {date:null,text:'',rest:'',critical:false};
-    var lines=notes.split('\n'); var critical=false;
-    lines=lines.filter(function(l){ if(/^\s*CRITICAL\s*$/i.test(l)){ critical=true; return false; } return true; });
+    if(!notes) return {date:null,text:'',rest:'',critical:false,link:''};
+    var lines=notes.split('\n'); var critical=false; var link='';
+    lines=lines.filter(function(l){ if(/^\s*CRITICAL\s*$/i.test(l)){ critical=true; return false; } if(/^\s*LINK\s*:/i.test(l)){ link=l.replace(/^\s*LINK\s*:\s*/i,'').trim(); return false; } return true; });
     var idx=-1;
     for(var i=0;i<lines.length;i++){ if(/next\s*step/i.test(lines[i])){ idx=i; break; } }
-    if(idx<0) return {date:null,text:'',rest:lines.join('\n').replace(/^\n+/,''),critical:critical};
+    if(idx<0) return {date:null,text:'',rest:lines.join('\n').replace(/^\n+/,''),critical:critical,link:link};
     var line=lines[idx]; var dm=line.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
     var date=dm? new Date(parseInt(dm[3],10),parseInt(dm[2],10)-1,parseInt(dm[1],10)):null;
     var text=line.replace(/next\s*step\s*:?/i,'').replace(/(\d{1,2})\.(\d{1,2})\.(\d{4})\.?/,'').replace(/^\s*[-–—|:]+\s*/,'').replace(/\s*[-–—|:]+\s*$/,'').trim();
     var rest=lines.filter(function(_,i){return i!==idx;}).join('\n').replace(/^\n+/,'');
-    return {date:date,text:text,rest:rest,critical:critical};
+    return {date:date,text:text,rest:rest,critical:critical,link:link};
   }
-  function buildNotes(text,date,rest,critical){ var out=[]; if(critical) out.push('CRITICAL'); var has=(text||date); if(has) out.push('NEXT STEP: '+(text||'')+(date?' - '+fmtFull(date):'')); if(rest) out.push(rest); return out.join('\n'); }
+  function buildNotes(text,date,rest,critical,link){ var out=[]; if(critical) out.push('CRITICAL'); var has=(text||date); if(has) out.push('NEXT STEP: '+(text||'')+(date?' - '+fmtFull(date):'')); if(link) out.push('LINK: '+link); if(rest) out.push(rest); return out.join('\n'); }
 
   function api(params){ params.secret=getSecret(); params.listId=LIST_ID;
     var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
@@ -371,7 +374,7 @@
       RAW=res.tasks||[];
       TASKS=(res.tasks||[]).map(function(t){ var o=ownerOf(t.title); var pj=stripProj(o.clean); var n=parseNext(t.notes||'');
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed',
-                 due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical }; });
+                 due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, link:n.link }; });
       buildOwnerFilters(); render();
       el('bar').style.display='flex'; el('prog').style.display='flex';
       el('synced').textContent='sync '+new Date().toLocaleTimeString();
@@ -465,10 +468,13 @@
     var uredi='<span class="pill uredi-pill">uredi</span>';
     var projp='<span class="pill projekt-pill'+(t.isProject?' proj-on':'')+'">'+(t.isProject?'projekt ✓':'projekt')+'</span>';
     var critp='<span class="pill crit-pill'+(t.critical?' crit-on':'')+'">'+(t.critical?'critical ✓':'critical')+'</span>';
+    var lhref=t.link||''; if(lhref && !/^https?:\/\//i.test(lhref)) lhref='https://'+lhref;
+    var linkp=t.link?'<a class="pill link-pill" href="'+escapeAttr(lhref)+'" target="_blank" rel="noopener">↗ otvori</a>':'';
     row.innerHTML='<span class="selbox"></span><span class="box"><svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.4-5" fill="none" stroke="#0d1014" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
-      '<span class="tbody"><span class="tt">'+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+'</span></span>'+
+      '<span class="tbody"><span class="tt">'+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+linkp+'</span></span>'+
       '<button class="priv-btn">'+btnLbl+'</button>';
     var tbody=row.querySelector('.tbody');
+    var lp=row.querySelector('.link-pill'); if(lp) lp.addEventListener('click',function(e){ e.stopPropagation(); });
     var sb=row.querySelector('.selbox'); if(selected[t.id]) sb.setAttribute('data-sel','1');
     sb.addEventListener('click',function(e){ e.stopPropagation(); toggleSel(t.id,row); });
 
@@ -524,18 +530,21 @@
       '<div class="efld"><label>Rok</label><input type="date" class="e-due"></div>'+
       '<div class="efld grow"><label>Next step</label><input type="text" class="e-ntext"></div>'+
       '<div class="efld"><label>Next datum</label><input type="date" class="e-ndate"></div>'+
+      '<div class="efld grow"><label>Link (zasebna razrada / dokument)</label><input type="text" class="e-link" placeholder="https://..."></div>'+
       '<button class="save">Spremi</button><button class="cancel">Odustani</button>';
     tbody.appendChild(ed);
     ed.querySelector('.e-title').value=t.title; ed.querySelector('.e-due').value=dateInputVal(t.due);
     ed.querySelector('.e-ntext').value=t.nextText||''; ed.querySelector('.e-ndate').value=dateInputVal(t.nextDate);
+    ed.querySelector('.e-link').value=t.link||'';
     ed.addEventListener('click',function(e){ e.stopPropagation(); });
     ed.querySelector('.cancel').addEventListener('click',function(e){ e.stopPropagation(); ed.remove(); });
-    ed.querySelector('.save').addEventListener('click',function(e){ e.stopPropagation(); saveTask(t,row, ed.querySelector('.e-title').value.trim(), fromInput(ed.querySelector('.e-due').value), ed.querySelector('.e-ntext').value.trim(), fromInput(ed.querySelector('.e-ndate').value), ed.querySelector('.e-owner').value); });
+    ed.querySelector('.save').addEventListener('click',function(e){ e.stopPropagation(); saveTask(t,row, ed.querySelector('.e-title').value.trim(), fromInput(ed.querySelector('.e-due').value), ed.querySelector('.e-ntext').value.trim(), fromInput(ed.querySelector('.e-ndate').value), ed.querySelector('.e-owner').value, ed.querySelector('.e-link').value.trim()); });
   }
 
-  function saveTask(t,row,naziv,dueDate,nextText,nextDate,newPrefix){
+  function saveTask(t,row,naziv,dueDate,nextText,nextDate,newPrefix,newLink){
     var px=newPrefix||t.prefix; var ownerChanged=(px!==t.prefix);
-    var notes=buildNotes(nextText,nextDate,t.rest,t.critical);
+    if(newLink!==undefined) t.link=newLink;
+    var notes=buildNotes(nextText,nextDate,t.rest,t.critical,t.link);
     var params={action:'update', taskId:t.id, title:makeTitle(px,naziv,t.isProject), notes:notes};
     if(dueDate) params.due=toISODate(dueDate);
     busy(row,true); api(params).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti: '+((res&&res.error)||'?')); return; }
@@ -543,14 +552,14 @@
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); });
   }
   function saveDesc(t,row,newRest,after){
-    var notes=buildNotes(t.nextText,t.nextDate,newRest,t.critical);
+    var notes=buildNotes(t.nextText,t.nextDate,newRest,t.critical,t.link);
     busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti opis: '+((res&&res.error)||'?')); return; }
       banner(''); t.rest=newRest; t.notes=notes; if(after) after(); else render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); });
   }
   function nudge(t,row,kind){
     var base; if(kind==='today') base=today0(); else { base=t.nextDate? new Date(t.nextDate): today0(); base.setHours(0,0,0,0); if(kind==='d') base.setDate(base.getDate()+1); else if(kind==='w') base.setDate(base.getDate()+7); else if(kind==='md') base.setDate(base.getDate()-1); }
-    var notes=buildNotes(t.nextText, base, t.rest,t.critical);
+    var notes=buildNotes(t.nextText, base, t.rest,t.critical,t.link);
     busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu pomaknuti: '+((res&&res.error)||'?')); return; }
       banner(''); t.nextDate=base; t.notes=notes; render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); });
@@ -573,7 +582,7 @@
     api({action:'update',taskId:t.id,title:makeTitle(t.prefix,t.title,np)}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu označiti projekt: '+((res&&res.error)||'?')); return; }
       banner(''); t.isProject=np; render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
-  function toggleCritical(t,row){ var nc=!t.critical; var notes=buildNotes(t.nextText,t.nextDate,t.rest,nc); busy(row,true);
+  function toggleCritical(t,row){ var nc=!t.critical; var notes=buildNotes(t.nextText,t.nextDate,t.rest,nc,t.link); busy(row,true);
     api({action:'update',taskId:t.id,notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu označiti critical: '+((res&&res.error)||'?')); return; }
       banner(''); t.critical=nc; t.notes=notes; render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
@@ -614,12 +623,12 @@
     (function step(){ if(i>=arr.length){ banner(label+' gotovo: '+ok+'/'+arr.length); render(); updateBulkBar(); return; }
       var t=arr[i++]; var spec=perTask(t); if(!spec){ step(); return; } var params={action:'update',taskId:t.id}; for(var k in spec.params) params[k]=spec.params[k];
       api(params).then(function(res){ if(res&&!res.error){ ok++; spec.commit(); } step(); }).catch(function(){ step(); }); })(); }
-  function bulkNextText(){ var val=el('b-ntext').value.trim(); bulkRun(function(t){ var notes=buildNotes(val,t.nextDate,t.rest,t.critical); return {params:{notes:notes},commit:function(){t.nextText=val;t.notes=notes;}}; },'Opis next stepa'); }
-  function bulkNextRel(kind){ bulkRun(function(t){ var base; if(kind==='today') base=today0(); else { base=t.nextDate?new Date(t.nextDate):today0(); base.setHours(0,0,0,0); base.setDate(base.getDate()+(kind==='d'?1:7)); } var notes=buildNotes(t.nextText,base,t.rest,t.critical); return {params:{notes:notes},commit:function(){t.nextDate=base;t.notes=notes;}}; },'Next datum'); }
-  function bulkNextAbs(){ var d=fromInput(el('b-ndate').value); if(!d){ banner('Odaberi next datum.'); return; } bulkRun(function(t){ var notes=buildNotes(t.nextText,d,t.rest,t.critical); return {params:{notes:notes},commit:function(){t.nextDate=d;t.notes=notes;}}; },'Next datum'); }
+  function bulkNextText(){ var val=el('b-ntext').value.trim(); bulkRun(function(t){ var notes=buildNotes(val,t.nextDate,t.rest,t.critical,t.link); return {params:{notes:notes},commit:function(){t.nextText=val;t.notes=notes;}}; },'Opis next stepa'); }
+  function bulkNextRel(kind){ bulkRun(function(t){ var base; if(kind==='today') base=today0(); else { base=t.nextDate?new Date(t.nextDate):today0(); base.setHours(0,0,0,0); base.setDate(base.getDate()+(kind==='d'?1:7)); } var notes=buildNotes(t.nextText,base,t.rest,t.critical,t.link); return {params:{notes:notes},commit:function(){t.nextDate=base;t.notes=notes;}}; },'Next datum'); }
+  function bulkNextAbs(){ var d=fromInput(el('b-ndate').value); if(!d){ banner('Odaberi next datum.'); return; } bulkRun(function(t){ var notes=buildNotes(t.nextText,d,t.rest,t.critical,t.link); return {params:{notes:notes},commit:function(){t.nextDate=d;t.notes=notes;}}; },'Next datum'); }
   function bulkDueRel(){ bulkRun(function(t){ var base=t.due?new Date(t.due):today0(); base.setHours(0,0,0,0); base.setDate(base.getDate()+7); return {params:{due:toISODate(base)},commit:function(){t.due=base;}}; },'Rok +1tj'); }
   function bulkDueAbs(){ var d=fromInput(el('b-due').value); if(!d){ banner('Odaberi rok.'); return; } bulkRun(function(t){ return {params:{due:toISODate(d)},commit:function(){t.due=d;}}; },'Rok'); }
-  function bulkCritical(val){ bulkRun(function(t){ if(t.critical===val) return null; var notes=buildNotes(t.nextText,t.nextDate,t.rest,val); return {params:{notes:notes},commit:function(){t.critical=val;t.notes=notes;}}; }, val?'Critical ozn.':'Critical skini'); }
+  function bulkCritical(val){ bulkRun(function(t){ if(t.critical===val) return null; var notes=buildNotes(t.nextText,t.nextDate,t.rest,val,t.link); return {params:{notes:notes},commit:function(){t.critical=val;t.notes=notes;}}; }, val?'Critical ozn.':'Critical skini'); }
 
   // ---- Tablica edit (grid bulk) ----
   var geRows=[];
@@ -662,7 +671,7 @@
       var tr=trs[i++]; var r=geRows[+tr.dataset.ix]; var t=r.t; var v=rowVals(tr);
       var changedNotes=(v.ntext!==r.oNtext)||(v.ndate!==r.oNdate); var changedDue=(v.due!==r.oDue); var changedOwner=(v.owner!==r.oOwner);
       var params={action:'update', taskId:t.id}; var newNdate=fromInput(v.ndate); var notes=null;
-      if(changedNotes){ notes=buildNotes(v.ntext,newNdate,t.rest,t.critical); params.notes=notes; }
+      if(changedNotes){ notes=buildNotes(v.ntext,newNdate,t.rest,t.critical,t.link); params.notes=notes; }
       if(changedDue){ params.due = v.due? toISODate(fromInput(v.due)) : ''; }
       if(changedOwner){ params.title=makeTitle(v.owner,t.title,t.isProject); }
       api(params).then(function(res){ if(res&&!res.error){ ok++;
