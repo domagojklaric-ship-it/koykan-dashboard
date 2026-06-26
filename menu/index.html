@@ -37,6 +37,7 @@
   .chip.on{background:var(--panel2);color:var(--text);border-color:#3a445a}
   .chip.on[data-acc=good]{color:var(--good);border-color:rgba(90,209,154,.5)}
   .chip.on[data-acc=warn]{color:var(--warn);border-color:rgba(224,175,104,.5)}
+  .chip.on[data-acc=bad]{color:var(--bad);border-color:rgba(239,111,111,.5)}
   #search{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 11px;font-size:13px}
   .sec{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
   .sec-h{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--panel2)}
@@ -130,6 +131,9 @@
       <span class="chip" data-st="Otvoreno">Otvoreno</span>
       <span class="chip" data-st="U tijeku" data-acc="warn">U tijeku</span>
       <span class="chip" data-st="Gotovo" data-acc="good">Gotovo</span>
+      <span class="klabel" style="margin-left:8px">Prikaz</span>
+      <span class="chip" id="f-overdue" data-acc="warn">Overdue</span>
+      <span class="chip" id="f-crit" data-acc="bad">Critical</span>
       <input id="search" placeholder="traži…">
     </div>
   </div>
@@ -142,10 +146,10 @@
       <span style="width:112px">Nositelj</span>
       <span style="width:104px">Status</span>
       <span style="width:132px">Status rok</span>
-      <span style="width:132px">Rok završetka</span>
       <span style="width:30px">Link</span>
       <span style="width:30px">Crit</span>
       <span style="width:30px">Briši</span>
+      <span style="width:132px">Rok završetka</span>
     </span>
   </div>
   <div id="board"></div>
@@ -165,7 +169,7 @@
 
   var SECRET = localStorage.getItem('menu_secret') || '';
   var TASKS = [];
-  var fSection='all', fStatus='all', fOwner={}, searchQ='';
+  var fSection='all', fStatus='all', fOwner={}, searchQ='', fOverdue=false, fCrit=false;
   OWNERS.forEach(function(o){ fOwner[o]=true; });
 
   function el(id){ return document.getElementById(id); }
@@ -216,11 +220,18 @@
     ch.addEventListener('click', function(){ fStatus=ch.getAttribute('data-st'); Array.prototype.forEach.call(document.querySelectorAll('[data-st]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
   });
   el('search').addEventListener('input', function(){ searchQ=this.value.toLowerCase().trim(); renderAll(); });
+  el('f-overdue').addEventListener('click', function(){ fOverdue=!fOverdue; this.classList.toggle('on',fOverdue); renderAll(); });
+  el('f-crit').addEventListener('click', function(){ fCrit=!fCrit; this.classList.toggle('on',fCrit); renderAll(); });
+
+  function todayStr(){ var d=new Date(); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+  function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
   function visible(){
     return TASKS.filter(function(t){
       if(fSection!=='all' && t.section!==fSection) return false;
       if(fStatus!=='all' && t.status!==fStatus) return false;
+      if(fOverdue && !isOverdue(t)) return false;
+      if(fCrit && !t.critical) return false;
       var ow = OWNERS.indexOf(t.owner)>=0 ? t.owner : 'Neodređeno';
       if(fOwner[ow]===false) return false;
       if(searchQ && String(t.naziv||'').toLowerCase().indexOf(searchQ)<0) return false;
@@ -267,10 +278,10 @@
         ownerSelect(t)+
         statusSelect(t)+
         '<input type="date" class="t-sdue" value="'+escAttr(t.sdue||'')+'" title="Rok trenutnog statusa">'+
-        '<input type="date" class="t-due" value="'+escAttr(t.due||'')+'" title="Rok završetka">'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
+        '<input type="date" class="t-due" value="'+escAttr(t.due||'')+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
@@ -350,4 +361,4 @@
   }
 </script>
 </body>
-    </html>
+</html>
