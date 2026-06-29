@@ -208,7 +208,7 @@
     'E – Podaci (Delivery/Kiosk)','F – Vizuali za storove','G – Upload vizuala','H – Platforme i kiosk',
     'I – Counter & Daily Deal','J – Go-live'
   ];
-  var OWNERS   = ['PM','Domagoj','Nino','Ana','Anči','Silvana','Krešo','Nataša','Vito','Dino','Marketing','Vanjski','Neodređeno'];
+  var OWNERS   = ['Nino','Davor','AnaT','Ankica','Nataša','Silva','Dom','Neodređeno'];
   var STATUSES = ['Otvoreno','U tijeku','Gotovo'];
   /* ==================== */
 
@@ -474,7 +474,7 @@
 
   function fillAddSelects(){
     el('a-section').innerHTML = SECTIONS.map(function(s){return '<option>'+esc(s)+'</option>';}).join('');
-    el('a-owner').innerHTML = OWNERS.map(function(o){return '<option'+(o==='PM'?' selected':'')+'>'+esc(o)+'</option>';}).join('');
+    el('a-owner').innerHTML = OWNERS.map(function(o){return '<option'+(o==='Dom'?' selected':'')+'>'+esc(o)+'</option>';}).join('');
   }
 
   fillAddSelects();
