@@ -214,10 +214,10 @@
     <div class="bgroup">
       <span class="glabel g1">Grupiraj</span>
       <div class="seg" id="group-seg">
-        <button data-g="owner_next" class="on">Osoba ▸ next</button>
+        <button data-g="owner_next">Osoba ▸ next</button>
         <button data-g="owner_due">Osoba ▸ rok</button>
         <button data-g="next">Po next stepu</button>
-        <button data-g="due">Po roku</button>
+        <button data-g="due" class="on">Po roku</button>
         <button data-g="owner">Po nositelju</button>
       </div>
     </div>
@@ -360,7 +360,7 @@
     var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
     return fetch(ENDPOINT+'?'+qs,{method:'GET'}).then(function(r){return r.json();}); }
 
-  var TASKS=[], RAW=[], ownerOn={}, groupMode='owner_next', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={};
+  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={};
   var el=function(id){return document.getElementById(id);};
   function banner(m){ var b=el('banner'); if(!m){b.style.display='none';return;} b.textContent=m; b.style.display='block'; }
   function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -412,7 +412,7 @@
 
   function render(){
     var grid=el('grid'); grid.innerHTML='';
-    var items=visibleTasks();
+    var items=visibleTasks(); grid.className='grid'; var _on=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(_on.length===1){ grid.className='grid solo'; var _c=document.createElement('div'); _c.className='card'; var _l=document.createElement('div'); _l.className='list'; items.sort(function(a,b){ if(a.done!==b.done)return a.done?1:-1; if(a.critical!==b.critical)return a.critical?-1:1; var da=a.due?new Date(a.due).getTime():8e15, db=b.due?new Date(b.due).getTime():8e15; return da-db; }); items.forEach(function(t){ _l.appendChild(rowEl(t)); }); _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; }
     if(groupMode==='owner_next'){ renderOwnerNested(grid, items, 'nextDate'); updateProg(); return; }
     if(groupMode==='owner_due'){ renderOwnerNested(grid, items, 'due'); updateProg(); return; }
     var groups={};
@@ -464,7 +464,7 @@
     var rok=t.due?'<span class="rok '+whenClass(t.due,t.done)+'">rok '+fmtRok(t.due)+'</span>':'<span class="rok">+ rok</span>';
     var rnudges='<span class="rnudges"><button class="nudge" data-rn="md">-1d</button><button class="nudge" data-rn="today">danas</button><button class="nudge" data-rn="d">+1d</button><button class="nudge" data-rn="w">+1tj</button></span>';
     var ochip=(groupMode==='due'||groupMode==='next')?'<span class="ochip'+(t.owner==='Private'?' priv':'')+'">'+t.owner+'</span>':'';
-    var opis='<span class="pill opis-pill">opis</span>';
+    var opis='<span class="pill opis-pill" data-opis="'+escapeAttr(t.notes||'')+'">opis'+((t.notes&&String(t.notes).trim())?' •':'')+'</span>';
     var uredi='<span class="pill uredi-pill">uredi</span>';
     var projp='<span class="pill projekt-pill'+(t.isProject?' proj-on':'')+'">'+(t.isProject?'projekt ✓':'projekt')+'</span>';
     var critp='<span class="pill crit-pill'+(t.critical?' crit-on':'')+'">'+(t.critical?'critical ✓':'critical')+'</span>';
@@ -720,5 +720,18 @@
   el('b-clear').addEventListener('click',clearSel);
 
   if(getSecret()){ fillOwnerSelect(); load(); } else showSetup();
+})();
+</script>
+
+
+<style>
+  .opis-hov{position:fixed;z-index:9999;max-width:380px;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font:400 13px/1.5 var(--body,system-ui);box-shadow:0 10px 34px rgba(0,0,0,.55);display:none;white-space:pre-wrap}
+  .opis-pill[data-opis]:not([data-opis=""]){border-color:var(--accent);color:var(--accent)}
+</style>
+<script>
+(function(){
+  var pop=document.createElement('div'); pop.className='opis-hov'; document.body.appendChild(pop);
+  document.addEventListener('mouseover',function(e){ var p=e.target.closest?e.target.closest('.opis-pill'):null; if(!p)return; var tx=p.getAttribute('data-opis')||''; if(!tx.trim())return; pop.textContent=tx; pop.style.display='block'; var b=p.getBoundingClientRect(); var w=pop.offsetWidth; var left=b.left; if(left+w>window.innerWidth-8) left=window.innerWidth-8-w; if(left<8)left=8; var top=b.bottom+6; if(top+pop.offsetHeight>window.innerHeight-8) top=b.top-pop.offsetHeight-6; pop.style.left=left+'px'; pop.style.top=top+'px'; });
+  document.addEventListener('mouseout',function(e){ var p=e.target.closest?e.target.closest('.opis-pill'):null; if(p) pop.style.display='none'; });
 })();
 </script>
