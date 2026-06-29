@@ -15,7 +15,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%}
   a{color:var(--accent)}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px 14px 80px}
+  .wrap{max-width:min(1880px,98vw);margin:0 auto;padding:16px 18px 80px}
   .top{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
   .brand{font:600 12px/1 var(--mono);letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
   h1{font:600 22px/1.1 var(--body);margin:4px 0 0}
@@ -39,12 +39,12 @@
   .chip.on[data-acc=warn]{color:var(--warn);border-color:rgba(224,175,104,.5)}
   .chip.on[data-acc=bad]{color:var(--bad);border-color:rgba(239,111,111,.5)}
   #search{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 11px;font-size:13px}
-  .sec{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  .sec{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow-x:auto}
   .sec-h{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--panel2)}
   .sec-h .name{font:600 13px/1 var(--body)}
   .sec-h .count{font:600 10px/1 var(--mono);color:var(--faint);letter-spacing:.06em}
   .sec-h .done{color:var(--good)}
-  .task{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:nowrap}
+  .task{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:nowrap;min-width:1180px}
   .task:last-child{border-bottom:0}
   .task.is-done{opacity:.55}
   .task.is-crit{border-left:3px solid var(--bad)}
@@ -55,11 +55,11 @@
   .grip:active{cursor:grabbing}
   .check{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;color:transparent;font-size:13px}
   .task.is-done .check{background:var(--good);border-color:var(--good);color:#0b1020}
-  .naziv{flex:1.6 1 110px;min-width:80px;cursor:text;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .naziv{flex:2 1 240px;min-width:200px;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .task.is-done .naziv{text-decoration:line-through}
   .lnk{color:var(--accent);text-decoration:none;margin-left:6px;font-weight:600}
   .lnk:hover{text-decoration:underline}
-  .t-status,.t-next{flex:1 1 100px;min-width:70px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:6px 8px;font-size:12px;font-family:var(--body)}
+  .t-status,.t-next{flex:1.5 1 160px;min-width:120px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:6px 8px;font-size:12px;font-family:var(--body)}
   .t-status::placeholder,.t-next::placeholder{color:var(--dim)}
   .ctl{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:none}
   select,input[type=date],input.inp{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:6px 8px;font-size:12px;font-family:var(--body);color-scheme:dark}
@@ -72,16 +72,18 @@
   .icon:hover{color:var(--text);border-color:#3a445a}
   .icon.crit.on{color:var(--bad);border-color:rgba(239,111,111,.5)}
   .icon.link.on{color:var(--accent);border-color:rgba(122,162,247,.5)}
+  .icon.opis.has{color:var(--accent);border-color:rgba(122,162,247,.5);background:rgba(122,162,247,.12)}
   .subadd{padding:5px 14px 8px 44px;border-bottom:1px solid var(--line)}
   .subadd span{font:600 11px/1 var(--body);color:var(--dim);cursor:pointer}
   .subadd span:hover{color:var(--accent)}
-  .board-head{display:flex;align-items:center;gap:8px;padding:6px 14px 8px;color:var(--dim);font:600 10px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase}
+  .board-head{display:flex;align-items:center;gap:8px;padding:6px 14px 8px;color:var(--dim);font:600 10px/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;min-width:1180px}
   .board-head .hg{flex:none;width:14px}
   .board-head .hc{flex:none;width:20px}
-  .board-head .hn{flex:1.6 1 110px;min-width:80px}
-  .board-head .hs1,.board-head .hs2{flex:1 1 100px;min-width:70px}
+  .board-head .hn{flex:2 1 240px;min-width:200px}
+  .board-head .hs1,.board-head .hs2{flex:1.5 1 160px;min-width:120px}
   .board-head .hctl{display:flex;align-items:center;gap:6px;flex:none}
   .board-head .hctl span{display:inline-block;text-align:center}
+  .head-scroll{overflow-x:auto}
   .addbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
   .addbar.hidden{display:none}
   .addbar input.inp{flex:1;min-width:180px}
@@ -93,7 +95,16 @@
   .banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 16px;font:600 12px/1 var(--body);box-shadow:0 8px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
   .banner.show{opacity:1}
   .empty{padding:30px 14px;text-align:center;color:var(--faint);font-size:13px}
-  @media (max-width:640px){ h1{font-size:19px} .task{flex-wrap:wrap} .naziv{min-width:100%;white-space:normal} .t-status,.t-next{flex-basis:46%} .ctl{width:100%} .board-head{display:none} }
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:60}
+  .modal.show{display:flex}
+  .modal-box{width:min(520px,92%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .modal-box .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .modal-box .mh .mt{font:500 15px/1.2 var(--body)}
+  .modal-box .mh .ms{font:500 11px/1 var(--mono);color:var(--faint);margin-top:3px}
+  .modal-box textarea{width:100%;min-height:150px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px;font:14px/1.5 var(--body);resize:vertical}
+  .modal-box .mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .opis-pop{position:fixed;z-index:70;max-width:360px;background:var(--panel2);border:1px solid #3a445a;color:var(--text);border-radius:10px;padding:10px 12px;font:400 13px/1.5 var(--body);box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;white-space:pre-wrap}
+  @media (max-width:640px){ h1{font-size:19px} .board-head{display:none} }
 </style>
 </head>
 <body>
@@ -147,25 +158,46 @@
     </div>
   </div>
 
-  <div class="board-head" id="board-head">
-    <span class="hg"></span>
-    <span class="hc"></span>
-    <span class="hn">Task</span>
-    <span class="hs1">Current status</span>
-    <span class="hs2">Next step</span>
-    <span class="hctl">
-      <span style="width:108px">Nositelj</span>
-      <span style="width:100px">Status</span>
-      <span style="width:120px">Status rok</span>
-      <span style="width:28px">Link</span>
-      <span style="width:28px">Crit</span>
-      <span style="width:28px">Briši</span>
-      <span style="width:120px">Rok završetka</span>
-    </span>
+  <div class="head-scroll">
+    <div class="board-head" id="board-head">
+      <span class="hg"></span>
+      <span class="hc"></span>
+      <span class="hn">Task</span>
+      <span class="hs1">Current status</span>
+      <span class="hs2">Next step</span>
+      <span class="hctl">
+        <span style="width:108px">Nositelj</span>
+        <span style="width:100px">Status</span>
+        <span style="width:120px">Status rok</span>
+        <span style="width:30px">Opis</span>
+        <span style="width:28px">Link</span>
+        <span style="width:28px">Crit</span>
+        <span style="width:28px">Briši</span>
+        <span style="width:120px">Rok završetka</span>
+      </span>
+    </div>
   </div>
   <div id="board"></div>
 </div>
 
+<div class="modal" id="opis-modal">
+  <div class="modal-box">
+    <div class="mh">
+      <div>
+        <div class="mt">Opis taska</div>
+        <div class="ms" id="opis-for"></div>
+      </div>
+      <button class="icon" id="opis-x" aria-label="Zatvori">✕</button>
+    </div>
+    <textarea id="opis-text" placeholder="Unesi opis taska…"></textarea>
+    <div class="mrow">
+      <button class="btn ghost" id="opis-cancel">Zatvori</button>
+      <button class="btn primary" id="opis-save">Spremi</button>
+    </div>
+  </div>
+</div>
+
+<div class="opis-pop" id="opis-pop"></div>
 <div class="banner" id="banner"></div>
 
 <script>
@@ -292,7 +324,7 @@
     var s=document.createElement('span'); s.textContent='+ podtask';
     s.addEventListener('click', function(){
       var v=prompt('Naziv podtaska:',''); if(v===null) return; v=v.trim(); if(!v) return;
-      var tmp={id:'tmp'+Date.now(), section:top.section, naziv:v, owner:top.owner||'Davor', status:'Otvoreno', sdue:'', due:'', note:'', nextstep:'', link:'', critical:false, parent:top.id, ord:Date.now()};
+      var tmp={id:'tmp'+Date.now(), section:top.section, naziv:v, owner:top.owner||'Davor', status:'Otvoreno', sdue:'', due:'', note:'', opis:'', nextstep:'', link:'', critical:false, parent:top.id, ord:Date.now()};
       TASKS.push(tmp); renderAll();
       api({action:'add', section:top.section, naziv:v, owner:(top.owner||'Davor'), status:'Otvoreno', parent:top.id, ord:Date.now()}).then(function(res){ if(res&&res.ok){banner('Podtask dodan'); load();} else load(); }).catch(load);
     });
@@ -306,13 +338,14 @@
     row.innerHTML =
       '<span class="grip" draggable="true" title="Povuci za promjenu redoslijeda">⠿</span>'+
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
-      '<div class="naziv" title="Klik za uredi naziv">'+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
+      '<div class="naziv" title="'+escAttr(t.naziv)+'">'+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
       '<input class="t-status" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
       '<input class="t-next" placeholder="next step…" value="'+escAttr(t.nextstep||'')+'" title="Next step">'+
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
         '<input type="date" class="t-sdue" value="'+escAttr(dateVal(t.sdue))+'" title="Status rok">'+
+        '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
@@ -327,11 +360,31 @@
     row.querySelector('.t-sdue').addEventListener('change', function(){ update(t, {sdue:this.value}); });
     row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
+    var ob=row.querySelector('.icon.opis');
+    ob.addEventListener('click', function(){ openOpis(t); });
+    ob.addEventListener('mouseenter', function(){ if(t.opis) showOpisPop(ob, t.opis); });
+    ob.addEventListener('mouseleave', function(){ el('opis-pop').style.display='none'; });
     row.querySelector('.icon.link').addEventListener('click', function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ update(t, {link:v.trim()}); } });
     var lnkA=row.querySelector('.naziv .lnk'); if(lnkA) lnkA.addEventListener('click', function(e){ e.stopPropagation(); });
     row.querySelector('.del').addEventListener('click', function(){ if(confirm('Obrisati task "'+t.naziv+'"?')) del(t); });
     wireDrag(row, t);
     return row;
+  }
+
+  /* ---------- Opis modal + hover ---------- */
+  var opisCur=null;
+  function openOpis(t){ opisCur=t; el('opis-for').textContent=t.naziv; el('opis-text').value=t.opis||''; el('opis-modal').classList.add('show'); el('opis-pop').style.display='none'; setTimeout(function(){el('opis-text').focus();},30); }
+  function closeOpis(){ el('opis-modal').classList.remove('show'); opisCur=null; }
+  el('opis-save').addEventListener('click', function(){ if(opisCur){ update(opisCur, {opis: el('opis-text').value.trim()}); } closeOpis(); });
+  el('opis-cancel').addEventListener('click', closeOpis);
+  el('opis-x').addEventListener('click', closeOpis);
+  el('opis-modal').addEventListener('click', function(e){ if(e.target===this) closeOpis(); });
+  function showOpisPop(btn, text){
+    var pop=el('opis-pop'); pop.textContent=text; pop.style.display='block';
+    var b=btn.getBoundingClientRect();
+    var w=pop.offsetWidth, left=b.left - w + b.width; if(left<8) left=8;
+    var top=b.bottom+6; if(top+pop.offsetHeight>window.innerHeight-8) top=b.top-pop.offsetHeight-6;
+    pop.style.left=left+'px'; pop.style.top=top+'px';
   }
 
   function wireDrag(row, t){
@@ -380,7 +433,7 @@
 
   function editNaziv(t, row){
     var cell=row.querySelector('.naziv');
-    var inp=document.createElement('input'); inp.className='inp'; inp.value=t.naziv; inp.style.flex='1.6';
+    var inp=document.createElement('input'); inp.className='inp'; inp.value=t.naziv; inp.style.flex='2'; inp.style.minWidth='200px';
     cell.replaceWith(inp); inp.focus(); inp.select();
     function commit(){ var v=inp.value.trim(); if(v && v!==t.naziv){ update(t,{naziv:v}); } else { renderBoard(); } }
     inp.addEventListener('blur', commit);
@@ -408,7 +461,7 @@
   el('a-save').addEventListener('click', function(){
     var naziv=el('a-naziv').value.trim(); if(!naziv){ el('a-naziv').focus(); return; }
     var section=el('a-section').value, owner=el('a-owner').value, ord=Date.now();
-    var tmp={id:'tmp'+Date.now(), section:section, naziv:naziv, owner:owner, status:'Otvoreno', sdue:'', due:'', note:'', nextstep:'', link:'', critical:false, parent:'', ord:ord};
+    var tmp={id:'tmp'+Date.now(), section:section, naziv:naziv, owner:owner, status:'Otvoreno', sdue:'', due:'', note:'', opis:'', nextstep:'', link:'', critical:false, parent:'', ord:ord};
     TASKS.push(tmp); renderAll(); el('a-naziv').value='';
     api({action:'add', section:section, naziv:naziv, owner:owner, status:'Otvoreno', ord:ord}).then(function(res){
       if(res&&res.ok){ banner('Dodano'); load(); } else { banner('Dodavanje nije uspjelo'); load(); }
