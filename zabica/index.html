@@ -252,7 +252,7 @@
   function buildSectionFilter(){
     var c=el('f-section'); c.innerHTML='<span class="klabel">Faza</span>';
     c.appendChild(mk('Sve','all', fSection==='all'));
-    SECTIONS.forEach(function(s){ c.appendChild(mk((s.charAt(0)==='('?s.slice(1,s.indexOf(')')):s), s, fSection===s)); });
+    var SHORT={A:'Arhitekti',B:'Kuhinja',C:'Legal',D:'Zapošljavanje',E:'Digital nabava',F:'Građevina',G:'Build-up',H:'Nabava',I:'Remaris/meni',J:'Delivery',K:'Grand opening'}; SECTIONS.forEach(function(s){ var L=(s.charAt(0)==='('?s.slice(1,s.indexOf(')')):s); var lbl=SHORT[L]?(L+' - '+SHORT[L]):L; c.appendChild(mk(lbl, s, fSection===s)); });
     function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.textContent=label; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
   }
   function buildOwnerFilter(){
@@ -269,7 +269,7 @@
   function todayStr(){ var d=new Date(); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
-  function passFilter(t){
+  function passFilter(t){ if(fSection!=='all' && t.section!==fSection) return false;
     if(fStatus!=='all' && t.status!==fStatus) return false;
     if(fOverdue && !isOverdue(t)) return false;
     if(fCrit && !t.critical) return false;
