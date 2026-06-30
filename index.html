@@ -602,7 +602,7 @@
 
   function busy(row,on){ if(on) row.setAttribute('aria-busy','true'); else row.removeAttribute('aria-busy'); }
 
-  function fillOwnerSelect(){ var s=el('a-owner'); s.innerHTML=''; ADD_PREFIXES.forEach(function(px){ var o=document.createElement('option'); o.value=px; o.textContent=MAP[px]||px; s.appendChild(o); }); }
+  function fillOwnerSelect(){ var s=el('a-owner'); var prev=s.value; s.innerHTML=''; var arr=OWNER_PREFIXES.slice(); TASKS.forEach(function(t){ if(t.prefix && arr.indexOf(t.prefix)<0) arr.push(t.prefix); }); arr.forEach(function(px){ var o=document.createElement('option'); o.value=px; o.textContent=MAP[px]||px; s.appendChild(o); }); if(prev) s.value=prev; }
   function addTask(){
     var naziv=el('a-title').value.trim(); if(!naziv){ banner('Upiši naziv taska.'); return; }
     var px=el('a-owner').value; var dueDate=fromInput(el('a-due').value); var ntext=el('a-ntext').value.trim(); var ndate=fromInput(el('a-ndate').value);
@@ -712,7 +712,7 @@
   el('search').addEventListener('input',function(){ searchQ=norm(this.value); render(); });
   el('mark-proj').addEventListener('click',markProjectsBatch);
   el('logout').addEventListener('click',function(){ clearSecret(); showSetup(); });
-  el('new-task').addEventListener('click',function(){ el('addform').classList.toggle('open'); if(el('addform').classList.contains('open')) el('a-title').focus(); });
+  el('new-task').addEventListener('click',function(){ fillOwnerSelect(); el('addform').classList.toggle('open'); if(el('addform').classList.contains('open')) el('a-title').focus(); });
   el('a-cancel').addEventListener('click',function(){ el('addform').classList.remove('open'); });
   el('a-save').addEventListener('click',addTask);
   el('bulk-toggle').addEventListener('click',function(){ selectMode=!selectMode; document.querySelector('.wrap').classList.toggle('selecting',selectMode); this.classList.toggle('on',selectMode); this.textContent=selectMode?'Bulk ✓':'Bulk'; if(!selectMode) selected={}; render(); updateBulkBar(); });
