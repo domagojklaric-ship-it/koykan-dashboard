@@ -261,7 +261,7 @@
   }
   function buildOwnerFilter(){
     var c=el('f-owner'); c.innerHTML='<span class="klabel">Nositelj</span>';
-    OWNERS.forEach(function(o){ var sp=document.createElement('span'); sp.className='chip'+(fOwner[o]?' on':''); sp.textContent=o; sp.addEventListener('click',function(){ fOwner[o]=!fOwner[o]; renderAll(); }); c.appendChild(sp); });
+    OWNERS.forEach(function(o){ var sp=document.createElement('span'); sp.className='chip'+(fOwner[o]?' on':''); sp.textContent=o; sp.addEventListener('click',function(){ var only=OWNERS.every(function(x){return x===o?fOwner[x]:!fOwner[x];}); if(only){OWNERS.forEach(function(x){fOwner[x]=true;});} else {OWNERS.forEach(function(x){fOwner[x]=(x===o);});} renderAll(); }); c.appendChild(sp); });
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-st]'), function(ch){
     ch.addEventListener('click', function(){ fStatus=ch.getAttribute('data-st'); Array.prototype.forEach.call(document.querySelectorAll('[data-st]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
