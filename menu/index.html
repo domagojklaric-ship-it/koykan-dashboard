@@ -256,7 +256,7 @@
   function buildSectionFilter(){
     var c=el('f-section'); c.innerHTML='<span class="klabel">Faza</span>';
     c.appendChild(mk('Sve','all', fSection==='all'));
-    SECTIONS.forEach(function(s){ c.appendChild(mk(s.split(' – ')[0], s, fSection===s)); });
+    SECTIONS.forEach(function(s){ c.appendChild(mk(s, s, fSection===s)); });
     function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.textContent=label; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
   }
   function buildOwnerFilter(){
@@ -273,7 +273,7 @@
   function todayStr(){ var d=new Date(); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
-  function passFilter(t){
+  function passFilter(t){ if(fSection!=='all' && t.section!==fSection) return false;
     if(fStatus!=='all' && t.status!==fStatus) return false;
     if(fOverdue && !isOverdue(t)) return false;
     if(fCrit && !t.critical) return false;
