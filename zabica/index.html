@@ -203,11 +203,7 @@
 <script>
   /* ====== CONFIG ====== */
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbxSbr51gzkTUzVZ7XfqeiJRMMRKIUs-OnQXo5gVc6e2pWUUkwR4MT9zPYMSW8zuyrNVgg/exec';
-  var SECTIONS = [
-    'A – Recepti i meni','B – Priprema za shooting','C – Food shooting','D – Obrada fotografija',
-    'E – Podaci (Delivery/Kiosk)','F – Vizuali za storove','G – Upload vizuala','H – Platforme i kiosk',
-    'I – Counter & Daily Deal','J – Go-live'
-  ];
+  var SECTIONS = ['(A) Arhitekti (Super ured)','(B) Raspored i tehnologija kuhinje (Gastro-tim)','(C) Legal i administrativne operacije (nakon potpisa LA)','(D) Zapošljavanje','(E) Digitalna nabava (Remaris, Samsung)','(F) Građevina','(G) Build-up i nabava (oprema, sustavi)','(H) Nabava (oprema, inventar, ostalo)','(I) Remaris update, meni i cijene','(J) Delivery - postavljanje lokala (delivery platforma)','(K) Grand Opening - operativni plan'];
   var OWNERS   = ['Davor','Silva','Ankica','AnaT','Nataša','Dom','Neodređeno'];
   var STATUSES = ['Otvoreno','U tijeku','Gotovo'];
   /* ==================== */
@@ -256,7 +252,7 @@
   function buildSectionFilter(){
     var c=el('f-section'); c.innerHTML='<span class="klabel">Faza</span>';
     c.appendChild(mk('Sve','all', fSection==='all'));
-    SECTIONS.forEach(function(s){ c.appendChild(mk(s.split(' – ')[0], s, fSection===s)); });
+    SECTIONS.forEach(function(s){ c.appendChild(mk((s.charAt(0)==='('?s.slice(1,s.indexOf(')')):s), s, fSection===s)); });
     function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.textContent=label; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
   }
   function buildOwnerFilter(){
