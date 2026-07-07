@@ -164,11 +164,9 @@
       <span class="hc"></span>
       <span class="hn">Korak</span>
       <span class="hs1">Current status</span>
-      <span class="hs2">Next step</span>
       <span class="hctl">
         <span style="width:108px">Nositelj</span>
         <span style="width:100px">Status</span>
-        <span style="width:120px">Status rok</span>
         <span style="width:30px">Opis</span>
         <span style="width:28px">Link</span>
         <span style="width:28px">Crit</span>
@@ -344,11 +342,9 @@
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
       '<div class="naziv" title="'+escAttr(t.naziv)+'">'+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
       '<input class="t-status" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
-      '<input class="t-next" placeholder="next step…" value="'+escAttr(t.nextstep||'')+'" title="Next step">'+
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
-        '<input type="date" class="t-sdue" value="'+escAttr(dateVal(t.sdue))+'" title="Status rok">'+
         '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
