@@ -354,10 +354,10 @@
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
     row.querySelector('.t-status').addEventListener('change', function(){ if(this.value.trim()!==String(t.note||'')) update(t, {note:this.value.trim()}); });
-    row.querySelector('.t-next').addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
+    row.querySelector('.t-next')?.addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
-    row.querySelector('.t-sdue').addEventListener('change', function(){ update(t, {sdue:this.value}); });
+    row.querySelector('.t-sdue')?.addEventListener('change', function(){ update(t, {sdue:this.value}); });
     row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
     var ob=row.querySelector('.icon.opis');
