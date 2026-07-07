@@ -314,7 +314,7 @@
   var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','Michel':'Michel','Private':'Private'};
   var OWNER_ORDER=['Dom','Ana Trusk','Silva','Ankica','Nataša','Nino','Michel','Private'];
   var ADD_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Private'];
-  var OWNER_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Stefan','Dav','Private'];
+  var OWNER_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Stefan','Davor','Lucija','Private'];
   function ownerOpts(cur){ var arr=OWNER_PREFIXES.slice(); if(cur && arr.indexOf(cur)<0) arr.unshift(cur); return arr.map(function(px){ return '<option value="'+px+'"'+(px===cur?' selected':'')+'>'+escapeHtml(MAP[px]||px)+'</option>'; }).join(''); }
   var PREFIX={'Private':'Private','Dom':'Dom'};
   function ownerOf(title){ var m=title.match(/^\(([^)]+)\)\s*/);
