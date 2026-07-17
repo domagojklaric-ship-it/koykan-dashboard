@@ -360,7 +360,7 @@
     var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
     return fetch(ENDPOINT+'?'+qs,{method:'GET'}).then(function(r){return r.json();}); }
 
-  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={};
+  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false;
   var el=function(id){return document.getElementById(id);};
   function banner(m){ var b=el('banner'); if(!m){b.style.display='none';return;} b.textContent=m; b.style.display='block'; }
   function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -385,6 +385,12 @@
     var owners=[]; TASKS.forEach(function(t){ if(owners.indexOf(t.owner)<0) owners.push(t.owner); }); owners.sort(byOwner);
     owners.forEach(function(o){ if(ownerOn[o]===undefined) ownerOn[o]=true; });
     var box=el('owner-filters'); box.innerHTML=''; box.style.display='flex';
+    var critN_=TASKS.filter(function(t){return t.critical && !t.done;}).length;
+    var cb=document.createElement('div'); cb.className='chip'; cb.dataset.on='true'; cb.style.border='1px solid rgba(255,180,60,.45)'; cb.title='Svi kriticni taskovi svih nositelja';
+    if(critOnly){ cb.style.background='rgba(255,180,60,.14)'; cb.style.color='#ffce85'; }
+    cb.innerHTML='CRITICAL <span class="cc crit">'+critN_+'</span>';
+    cb.addEventListener('click',function(){ critOnly=!critOnly; if(critOnly){ Object.keys(ownerOn).forEach(function(x){ ownerOn[x]=true; }); } buildOwnerFilters(); render(); });
+    box.appendChild(cb);
     owners.forEach(function(o){ var open=TASKS.filter(function(t){return t.owner===o && !t.done;});
       var n=open.length;
       var over=open.filter(isOverdue).length;
@@ -407,7 +413,7 @@
     if(winFilter==='this'){ var rt=weekRange(0); return ds.some(function(d){ return d<=rt.to; }); }
     if(winFilter==='next'){ var rn=weekRange(1); return ds.some(function(d){ return d>=rn.from && d<=rn.to; }); }
     return true; }
-  function visibleTasks(){ return TASKS.filter(function(t){ if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(searchQ && norm(t.title).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
+  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(searchQ && norm(t.title).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
   function render(){
