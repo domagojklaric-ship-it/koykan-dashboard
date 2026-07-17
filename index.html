@@ -1,4 +1,5 @@
 <!--
+
   Koykan – živi pregled v5
   v5: opis na svim taskovima (editabilno), projekti (A_ marker, žuto, prekidač + batch),
       povlači samo otvorene (gumb "Gotovi" učita i dovršene), paginirano.
@@ -312,7 +313,7 @@
   function clearSecret(){ memSecret=''; try{localStorage.removeItem('koykan_secret');}catch(e){} }
 
   var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','Michel':'Michel','Private':'Private'};
-  var OWNER_ORDER=['Dom','Ana Trusk','Silva','Ankica','Nataša','Nino','Michel','Private'];
+  var OWNER_ORDER=['CRITICAL','Dom','Ana Trusk','Silva','Ankica','Nataša','Nino','Michel','Private'];
   var ADD_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Private'];
   var OWNER_PREFIXES=['Dom','AnaT','Silva','Ankica','Nataša','Nino','Michel','Stefan','Davor','Lucija','Private'];
   function ownerOpts(cur){ var arr=OWNER_PREFIXES.slice(); if(cur && arr.indexOf(cur)<0) arr.unshift(cur); return arr.map(function(px){ return '<option value="'+px+'"'+(px===cur?' selected':'')+'>'+escapeHtml(MAP[px]||px)+'</option>'; }).join(''); }
@@ -360,7 +361,7 @@
     var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
     return fetch(ENDPOINT+'?'+qs,{method:'GET'}).then(function(r){return r.json();}); }
 
-  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false;
+  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, tagOwner=false;
   var el=function(id){return document.getElementById(id);};
   function banner(m){ var b=el('banner'); if(!m){b.style.display='none';return;} b.textContent=m; b.style.display='block'; }
   function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -428,23 +429,24 @@
     if(groupMode==='owner_due'){ renderOwnerNested(grid, items, 'due'); updateProg(); return; }
     var groups={};
     items.forEach(function(t){ var key; if(groupMode==='owner') key=t.owner; else if(groupMode==='due') key=bucket(t.due); else key=t.nextDate?bucket(t.nextDate):'Bez next stepa'; (groups[key]=groups[key]||[]).push(t); });
+    if(groupMode==='owner'){ var _ca=items.filter(function(t){return !t.done && t.critical;}); if(_ca.length) groups['CRITICAL']=_ca; }
     var keys=Object.keys(groups);
     if(groupMode==='owner') keys.sort(byOwner); else keys.sort(function(a,b){ var ia=BUCKET_ORDER.indexOf(a),ib=BUCKET_ORDER.indexOf(b); if(ia<0)ia=98; if(ib<0)ib=98; return ia-ib; });
     keys.forEach(function(k){ var arr=groups[k]; arr.sort(function(a,b){ if(a.done!==b.done) return a.done?1:-1; if(a.critical!==b.critical) return a.critical?-1:1; if(a.isProject!==b.isProject) return a.isProject?-1:1; return sortDate(a)-sortDate(b); });
       var card=document.createElement('div'); card.className='card';
-      if(groupMode!=='owner'){ if(k==='Prekoračeno') card.className+=' b-over'; else if(k==='Danas') card.className+=' b-today'; } else if(k==='Private') card.className+=' cat-private';
+      if(groupMode!=='owner'){ if(k==='Prekoračeno') card.className+=' b-over'; else if(k==='Danas') card.className+=' b-today'; } else if(k==='Private') card.className+=' cat-private'; else if(k==='CRITICAL') card.style.border='1px solid rgba(255,180,60,.4)';
       var doneN=arr.filter(function(t){return t.done;}).length;
       var badges='';
       if(groupMode==='owner'){ var oN=arr.filter(isOverdue).length, cN=arr.filter(function(t){return !t.done&&t.critical;}).length; if(cN) badges+='<span class="critb">'+cN+' crit</span>'; if(oN) badges+='<span class="kasni">kasni '+oN+'</span>'; }
       card.innerHTML='<div class="card-h"><div class="gname">'+k+'</div><div style="display:flex;gap:8px;align-items:center">'+badges+'<div class="count">'+(loadCompleted?doneN+'/'+arr.length:arr.length)+'</div></div></div>';
-      var list=document.createElement('div'); list.className='list'; arr.forEach(function(t){ list.appendChild(rowEl(t)); }); card.appendChild(list); grid.appendChild(card); });
+      var list=document.createElement('div'); list.className='list'; tagOwner=(groupMode==='owner' && k==='CRITICAL'); arr.forEach(function(t){ list.appendChild(rowEl(t)); }); tagOwner=false; card.appendChild(list); grid.appendChild(card); });
     updateProg();
   }
   function renderOwnerNested(grid, items, field){
     var emptyLbl = field==='due' ? 'Bez roka' : 'Bez next stepa';
     var owners=[]; items.forEach(function(t){ if(owners.indexOf(t.owner)<0) owners.push(t.owner); }); owners.sort(byOwner); var t0=today0().getTime();
-    owners.forEach(function(o){ var arr=items.filter(function(t){return t.owner===o;});
-      var card=document.createElement('div'); card.className='card'+(o==='Private'?' cat-private':'');
+    ['CRITICAL'].concat(owners).forEach(function(o){ var isCritGrp=(o==='CRITICAL'); tagOwner=isCritGrp; var arr=isCritGrp? items.filter(function(t){return !t.done && t.critical;}) : items.filter(function(t){return t.owner===o;}); if(isCritGrp && !arr.length) return;
+      var card=document.createElement('div'); card.className='card'+(o==='Private'?' cat-private':''); if(isCritGrp){ card.style.border='1px solid rgba(255,180,60,.4)'; }
       var doneN=arr.filter(function(t){return t.done;}).length;
       var overN=arr.filter(isOverdue).length;
       var critN=arr.filter(function(t){return !t.done && t.critical;}).length;
@@ -474,7 +476,7 @@
     var nextHtml='<div class="next'+((t.nextDate||t.nextText)?'':' empty')+'"><span class="nlabel">NEXT</span>'+nextInner+nudges+'</div>';
     var rok=t.due?'<span class="rok '+whenClass(t.due,t.done)+'">rok '+fmtRok(t.due)+'</span>':'<span class="rok">+ rok</span>';
     var rnudges='<span class="rnudges"><button class="nudge" data-rn="md">-1d</button><button class="nudge" data-rn="today">danas</button><button class="nudge" data-rn="d">+1d</button><button class="nudge" data-rn="w">+1tj</button></span>';
-    var ochip=(groupMode==='due'||groupMode==='next')?'<span class="ochip'+(t.owner==='Private'?' priv':'')+'">'+t.owner+'</span>':'';
+    var ochip=(groupMode==='due'||groupMode==='next'||tagOwner)?'<span class="ochip'+(t.owner==='Private'?' priv':'')+'">'+t.owner+'</span>':'';
     var opis='<span class="pill opis-pill" data-opis="'+escapeAttr(t.notes||'')+'">opis'+((t.notes&&String(t.notes).trim())?' •':'')+'</span>';
     var uredi='<span class="pill uredi-pill">uredi</span>';
     var projp='<span class="pill projekt-pill'+(t.isProject?' proj-on':'')+'">'+(t.isProject?'projekt ✓':'projekt')+'</span>';
