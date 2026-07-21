@@ -109,6 +109,11 @@
   .rok.soon{background:rgba(245,196,81,.14); color:#f3d68a; border-color:rgba(245,196,81,.3)}
   .ochip{font:500 10px/1 var(--body); color:var(--muted); background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:3px 8px}
   .ochip.priv{color:#f0a6a6; border-color:rgba(239,111,111,.3)}
+  .wpill{display:inline-block; font:700 9.5px/1.35 var(--body); letter-spacing:.03em; border-radius:999px; padding:2px 7px; margin-right:6px; vertical-align:middle; white-space:nowrap}
+  .wp-act{color:#ffb15c; background:rgba(255,150,60,.14); border:1px solid rgba(255,150,60,.38)}
+  .wp-pend{color:#7db4ff; background:rgba(90,150,255,.13); border:1px solid rgba(90,150,255,.34)}
+  #wait-seg button[data-a="action"].on{background:rgba(255,150,60,.16); color:#ffb15c}
+  #wait-seg button[data-a="pending"].on{background:rgba(90,150,255,.16); color:#7db4ff}
   .pill{font:500 10px/1 var(--mono); color:var(--faint); border:1px solid var(--line); border-radius:5px; padding:3px 6px; cursor:pointer}
   .pill:hover{color:var(--text)} .pill.open{color:var(--text); border-color:#3a424f}
   .pill.proj-on{color:#f3d68a; border-color:rgba(245,196,81,.4)}
@@ -243,6 +248,14 @@
       </div>
     </div>
     <div class="bgroup">
+      <span class="glabel">Status</span>
+      <div class="seg" id="wait-seg">
+        <button data-a="all" class="on">Sve</button>
+        <button data-a="action">🟠 Na meni</button>
+        <button data-a="pending">🔵 Čekam</button>
+      </div>
+    </div>
+    <div class="bgroup">
       <span class="glabel g4">Akcije</span>
       <button class="btn proj" id="mark-proj" title="Dodaj A_ poznatim projektima">Označi projekte (A_)</button>
       <button class="btn" id="grid-edit" title="Uredi next step, next datum i rok za sve filtrirane odjednom">Tablica</button>
@@ -362,7 +375,7 @@
     var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
     return fetch(ENDPOINT+'?'+qs,{method:'GET'}).then(function(r){return r.json();}); }
 
-  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, tagOwner=false;
+  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', waitFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, tagOwner=false;
   var el=function(id){return document.getElementById(id);};
   function banner(m){ var b=el('banner'); if(!m){b.style.display='none';return;} b.textContent=m; b.style.display='block'; }
   function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -375,7 +388,8 @@
       if(!res||res.error){ banner('Greška: '+((res&&res.error)||'nema odgovora')); if(res&&res.error==='unauthorized'){clearSecret();showSetup();} return; }
       RAW=res.tasks||[];
       TASKS=(res.tasks||[]).map(function(t){ var o=ownerOf(t.title); var pj=stripProj(o.clean); var n=parseNext(t.notes||'');
-        return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed',
+        var _wt=(n.text||'').replace(/^[\s\-–—|:]+/,''); var wait=''; if(/^action\b/i.test(_wt)) wait='action'; else if(/^pending\b/i.test(_wt)) wait='pending';
+        return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
                  due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, link:n.link }; });
       buildOwnerFilters(); render();
       el('bar').style.display='flex'; el('prog').style.display='flex';
@@ -415,7 +429,7 @@
     if(winFilter==='this'){ var rt=weekRange(0); return ds.some(function(d){ return d<=rt.to; }); }
     if(winFilter==='next'){ var rn=weekRange(1); return ds.some(function(d){ return d>=rn.from && d<=rn.to; }); }
     return true; }
-  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(searchQ && norm(t.title).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
+  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(searchQ && norm(t.title).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
   function render(){
@@ -423,7 +437,7 @@
     var items=visibleTasks(); grid.className='grid'; var _on=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(_on.length===1 || critOnly){ grid.className='grid solo'; var _c=document.createElement('div'); _c.className='card'; var _l=document.createElement('div'); _l.className='list'; items.sort(function(a,b){ if(a.done!==b.done)return a.done?1:-1; if(a.critical!==b.critical)return a.critical?-1:1; var da=a.due?new Date(a.due).getTime():8e15, db=b.due?new Date(b.due).getTime():8e15; return da-db; }); var _saveAll=function(t,row,f){ var nx=('nx' in f)?f.nx:t.nextText, nd=('nd' in f)?f.nd:t.nextDate, rest=('rest' in f)?f.rest:t.rest, crit=('crit' in f)?f.crit:t.critical, link=('link' in f)?f.link:t.link; var notes=buildNotes(nx,nd,rest,crit,link); if(typeof busy==='function')busy(row,true); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(typeof busy==='function')busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti: '+((res&&res.error)||'?')); load(); return; } t.nextText=nx; t.nextDate=nd; t.rest=rest; t.critical=crit; t.link=link; t.notes=notes; render(); }).catch(function(e){ banner('Greska: '+e); load(); }); };
  if(!window._soInit){ window._soInit=true; var mw=document.createElement('div'); mw.className='so-modal'; mw.innerHTML='<div class="so-box"><div class="so-hd"><b>Opis</b><button class="so-x" aria-label="Zatvori">\u2715</button></div><textarea class="so-ta" placeholder="Unesi opis\u2026"></textarea><div class="so-row"><button class="so-cancel">Zatvori</button><button class="so-save">Spremi</button></div></div>'; document.body.appendChild(mw); window._soMW=mw; var cl=function(){ mw.classList.remove('show'); }; mw.querySelector('.so-x').addEventListener('click',cl); mw.querySelector('.so-cancel').addEventListener('click',cl); mw.addEventListener('click',function(e){ if(e.target===mw) cl(); }); mw.querySelector('.so-save').addEventListener('click',function(){ var c=window._soCur; if(c){ _saveAll(c.t,c.row,{rest:mw.querySelector('.so-ta').value.trim()}); } cl(); }); }
  var openOpis=function(t,row){ window._soCur={t:t,row:row}; window._soMW.querySelector('.so-ta').value=t.rest||''; window._soMW.classList.add('show'); setTimeout(function(){window._soMW.querySelector('.so-ta').focus();},30); };
- var soloRow=function(t){ var row=document.createElement('div'); row.className='srow'+(t.done?' is-done':'')+(t.critical?' is-crit':''); var lnk=t.link||''; if(lnk && lnk.indexOf('http')!==0) lnk='https://'+lnk; var _t0=today0().getTime(); var _ndO=(!t.done&&t.nextDate&&new Date(new Date(t.nextDate).setHours(0,0,0,0)).getTime()<_t0)?' od':''; var _duO=(!t.done&&t.due&&new Date(new Date(t.due).setHours(0,0,0,0)).getTime()<_t0)?' od':''; row.innerHTML='<span class="sbox" title="gotovo">'+(t.done?'\u2713':'')+'</span><div class="stitle" title="'+escapeAttr(t.title)+'">'+escapeHtml(t.title)+(t.isProject?' <span class="sproj">projekt</span>':'')+(t.link?(' <a class="slink" href="'+escapeAttr(lnk)+'" target="_blank" rel="noopener" title="Otvori link">\u2197</a>'):'')+'</div><input class="s-next" placeholder="next step\u2026" value="'+escapeAttr(t.nextText||'')+'">'+(t.isProject?'<input type="date" class="s-ndate'+_ndO+'" value="'+escapeAttr(dateInputVal(t.nextDate))+'" title="Rok za next step">':'')+'<input type="date" class="s-due'+_duO+'" value="'+escapeAttr(dateInputVal(t.due))+'" title="Rok zavrsetka taska"><button class="icon opis-pill s-icn'+((t.rest&&t.rest.trim())?' has':'')+'" data-opis="'+escapeAttr(t.rest||'')+'" title="Opis (klik za uredi, hover za pregled)">\u270E</button><button class="icon s-icn s-link'+(t.link?' on':'')+'" title="Link">\uD83D\uDD17</button><button class="icon s-icn s-crit'+(t.critical?' on':'')+'" title="Critical">\u2691</button><span class="sowner">'+escapeHtml(t.owner||'')+'</span>'; row.querySelector('.sbox').addEventListener('click',function(){ toggle(t,row); }); row.querySelector('.s-next').addEventListener('change',function(){ var v=this.value.trim(); if(v!==(t.nextText||'')) _saveAll(t,row,{nx:v}); }); row.querySelector('.s-ndate')?.addEventListener('change',function(){ _saveAll(t,row,{nd:this.value?fromInput(this.value):null}); }); row.querySelector('.s-due').addEventListener('change',function(){ var dd=this.value?fromInput(this.value):null; if(typeof busy==='function')busy(row,true); api({action:'update',taskId:t.id,due:dd?toISODate(dd):''}).then(function(res){ if(typeof busy==='function')busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti rok'); load(); return; } t.due=dd; render(); }).catch(function(){ load(); }); }); row.querySelector('.opis-pill').addEventListener('click',function(){ openOpis(t,row); }); row.querySelector('.s-link').addEventListener('click',function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ _saveAll(t,row,{link:v.trim()}); } }); row.querySelector('.s-crit').addEventListener('click',function(){ _saveAll(t,row,{crit:!t.critical}); }); var la=row.querySelector('.slink'); if(la) la.addEventListener('click',function(e){ e.stopPropagation(); }); var _wrap=document.createElement('div'); _wrap.className='solo-wrap'; _wrap.appendChild(row); var _st=row.querySelector('.stitle'); if(_st){ _st.addEventListener('click',function(e){ if(e.target.closest('.slink'))return; e.stopPropagation(); openEditor(t,row,_wrap); }); } return _wrap; };
+ var soloRow=function(t){ var row=document.createElement('div'); row.className='srow'+(t.done?' is-done':'')+(t.critical?' is-crit':''); var lnk=t.link||''; if(lnk && lnk.indexOf('http')!==0) lnk='https://'+lnk; var _t0=today0().getTime(); var _ndO=(!t.done&&t.nextDate&&new Date(new Date(t.nextDate).setHours(0,0,0,0)).getTime()<_t0)?' od':''; var _duO=(!t.done&&t.due&&new Date(new Date(t.due).setHours(0,0,0,0)).getTime()<_t0)?' od':''; row.innerHTML='<span class="sbox" title="gotovo">'+(t.done?'\u2713':'')+'</span><div class="stitle" title="'+escapeAttr(t.title)+'">'+waitBadge(t)+escapeHtml(t.title)+(t.isProject?' <span class="sproj">projekt</span>':'')+(t.link?(' <a class="slink" href="'+escapeAttr(lnk)+'" target="_blank" rel="noopener" title="Otvori link">\u2197</a>'):'')+'</div><input class="s-next" placeholder="next step\u2026" value="'+escapeAttr(t.nextText||'')+'">'+(t.isProject?'<input type="date" class="s-ndate'+_ndO+'" value="'+escapeAttr(dateInputVal(t.nextDate))+'" title="Rok za next step">':'')+'<input type="date" class="s-due'+_duO+'" value="'+escapeAttr(dateInputVal(t.due))+'" title="Rok zavrsetka taska"><button class="icon opis-pill s-icn'+((t.rest&&t.rest.trim())?' has':'')+'" data-opis="'+escapeAttr(t.rest||'')+'" title="Opis (klik za uredi, hover za pregled)">\u270E</button><button class="icon s-icn s-link'+(t.link?' on':'')+'" title="Link">\uD83D\uDD17</button><button class="icon s-icn s-crit'+(t.critical?' on':'')+'" title="Critical">\u2691</button><span class="sowner">'+escapeHtml(t.owner||'')+'</span>'; row.querySelector('.sbox').addEventListener('click',function(){ toggle(t,row); }); row.querySelector('.s-next').addEventListener('change',function(){ var v=this.value.trim(); if(v!==(t.nextText||'')) _saveAll(t,row,{nx:v}); }); row.querySelector('.s-ndate')?.addEventListener('change',function(){ _saveAll(t,row,{nd:this.value?fromInput(this.value):null}); }); row.querySelector('.s-due').addEventListener('change',function(){ var dd=this.value?fromInput(this.value):null; if(typeof busy==='function')busy(row,true); api({action:'update',taskId:t.id,due:dd?toISODate(dd):''}).then(function(res){ if(typeof busy==='function')busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti rok'); load(); return; } t.due=dd; render(); }).catch(function(){ load(); }); }); row.querySelector('.opis-pill').addEventListener('click',function(){ openOpis(t,row); }); row.querySelector('.s-link').addEventListener('click',function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ _saveAll(t,row,{link:v.trim()}); } }); row.querySelector('.s-crit').addEventListener('click',function(){ _saveAll(t,row,{crit:!t.critical}); }); var la=row.querySelector('.slink'); if(la) la.addEventListener('click',function(e){ e.stopPropagation(); }); var _wrap=document.createElement('div'); _wrap.className='solo-wrap'; _wrap.appendChild(row); var _st=row.querySelector('.stitle'); if(_st){ _st.addEventListener('click',function(e){ if(e.target.closest('.slink'))return; e.stopPropagation(); openEditor(t,row,_wrap); }); } return _wrap; };
  var sh=document.createElement('div'); sh.className='srowhead'; sh.innerHTML='<span class="hsbox"></span><span class="hst">Task</span><span class="hsn">Next step</span><span class="hsd">Rok next stepa</span><span class="hsd">Rok zavrsetka</span><span class="hsi">Opis</span><span class="hsi">Link</span><span class="hsi">Crit</span><span class="hso">Nositelj</span>'; _c.appendChild(sh);
  items.forEach(function(t){ _l.appendChild(soloRow(t)); }); _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; }
     if(groupMode==='owner_next'){ renderOwnerNested(grid, items, 'nextDate'); updateProg(); return; }
@@ -468,6 +482,7 @@
   }
   function sortDate(t){ var d=(groupMode==='due')? t.due : (groupMode==='owner'? (t.nextDate||t.due) : t.nextDate); return d? new Date(d).getTime():Infinity; }
 
+  function waitBadge(t){ if(t.wait==='action') return '<span class="wpill wp-act" title="Na tebi je akcija">🟠 NA MENI</span> '; if(t.wait==='pending') return '<span class="wpill wp-pend" title="Čekaš nekog drugog">🔵 ČEKAM</span> '; return ''; }
   function rowEl(t){
     var row=document.createElement('div'); row.className='row'; row.dataset.done=t.done; row.dataset.id=t.id;
     row.dataset.cat=(t.owner==='Private')?'private':''; row.dataset.proj=t.isProject?'true':'false'; row.dataset.crit=t.critical?'true':'false';
@@ -485,7 +500,7 @@
     var lhref=t.link||''; if(lhref && !/^https?:\/\//i.test(lhref)) lhref='https://'+lhref;
     var linkp=t.link?'<a class="pill link-pill" href="'+escapeAttr(lhref)+'" target="_blank" rel="noopener">↗ otvori</a>':'';
     row.innerHTML='<span class="selbox"></span><span class="box"><svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.4-5" fill="none" stroke="#0d1014" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
-      '<span class="tbody"><span class="tt">'+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+linkp+'</span></span>'+
+      '<span class="tbody"><span class="tt">'+waitBadge(t)+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+linkp+'</span></span>'+
       '<button class="priv-btn">'+btnLbl+'</button>';
     var tbody=row.querySelector('.tbody');
     var lp=row.querySelector('.link-pill'); if(lp) lp.addEventListener('click',function(e){ e.stopPropagation(); });
@@ -718,6 +733,7 @@
   el('load-completed').addEventListener('click',function(){ loadCompleted=!loadCompleted; this.textContent=loadCompleted?'Gotovi: učitani':'Gotovi: skriveni'; this.classList.toggle('on',loadCompleted); load(); });
   el('type-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; typeFilter=b.dataset.t; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('win-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; winFilter=b.dataset.w; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
+  el('wait-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; waitFilter=b.dataset.a; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('search').addEventListener('input',function(){ searchQ=norm(this.value); render(); });
   el('mark-proj').addEventListener('click',markProjectsBatch);
   el('logout').addEventListener('click',function(){ clearSecret(); showSetup(); });
