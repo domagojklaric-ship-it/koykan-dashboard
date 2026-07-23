@@ -247,6 +247,7 @@
         <button data-w="all" class="on">Bilo kad</button>
         <button data-w="overdue">Overdue</button>
         <button data-w="today">Danas</button>
+        <button data-w="tilltoday">Do danas</button>
         <button data-w="this">Ovaj tjedan</button>
         <button data-w="next">Sljedeći tjedan</button>
       </div>
@@ -255,8 +256,8 @@
       <span class="glabel">Status</span>
       <div class="seg" id="wait-seg">
         <button data-a="all" class="on">Sve</button>
-        <button data-a="action">🟠 Na meni</button>
-        <button data-a="pending">🔵 Čekam</button>
+        <button data-a="action">🟠 ACTION</button>
+        <button data-a="pending">🔵 PENDING</button>
       </div>
     </div>
     <div class="bgroup">
@@ -429,7 +430,8 @@
   function winRange(){ if(winFilter==='today'){ var t=today0(); var e=new Date(t); e.setHours(23,59,59,999); return {from:t,to:e}; } if(winFilter==='this') return weekRange(0); if(winFilter==='next') return weekRange(1); return null; }
   function inWin(t){ if(winFilter==='all') return true; var ds=[]; if(t.nextDate) ds.push(new Date(t.nextDate)); if(t.due) ds.push(new Date(t.due)); if(!ds.length) return false;
     if(winFilter==='overdue'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x<t0; }); }
-    if(winFilter==='today'){ var e=today0(); e.setHours(23,59,59,999); return ds.some(function(d){ return d<=e; }); }
+    if(winFilter==='tilltoday'){ var e=today0(); e.setHours(23,59,59,999); return ds.some(function(d){ return d<=e; }); }
+    if(winFilter==='today'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===t0.getTime(); }); }
     if(winFilter==='this'){ var rt=weekRange(0); return ds.some(function(d){ return d<=rt.to; }); }
     if(winFilter==='next'){ var rn=weekRange(1); return ds.some(function(d){ return d>=rn.from && d<=rn.to; }); }
     return true; }
@@ -486,7 +488,7 @@
   }
   function sortDate(t){ var d=(groupMode==='due')? t.due : (groupMode==='owner'? (t.nextDate||t.due) : t.nextDate); return d? new Date(d).getTime():Infinity; }
 
-  function waitBadge(t){ if(t.wait==='action') return '<span class="wpill wp-act" title="Na tebi je akcija">🟠 NA MENI</span> '; if(t.wait==='pending') return '<span class="wpill wp-pend" title="Čekaš nekog drugog">🔵 ČEKAM</span> '; return ''; }
+  function waitBadge(t){ if(t.wait==='action') return '<span class="wpill wp-act" title="Na tebi je akcija">🟠 ACTION</span> '; if(t.wait==='pending') return '<span class="wpill wp-pend" title="Čekaš nekog drugog">🔵 PENDING</span> '; return ''; }
   function rowEl(t){
     var row=document.createElement('div'); row.className='row'; row.dataset.done=t.done; row.dataset.id=t.id;
     row.dataset.cat=(t.owner==='Private')?'private':''; row.dataset.proj=t.isProject?'true':'false'; row.dataset.crit=t.critical?'true':'false';
@@ -503,7 +505,7 @@
     var critp='<span class="pill crit-pill'+(t.critical?' crit-on':'')+'">'+(t.critical?'critical ✓':'critical')+'</span>';
     var lhref=t.link||''; if(lhref && !/^https?:\/\//i.test(lhref)) lhref='https://'+lhref;
     var linkp=t.link?'<a class="pill link-pill" href="'+escapeAttr(lhref)+'" target="_blank" rel="noopener">↗ otvori</a>':'';
-    var waitp='<span class="pill wait-pill'+(t.wait?' w-on-'+t.wait:'')+'" title="Klik: Na meni \u2192 Cekam \u2192 nista">'+(t.wait==='action'?'\uD83D\uDFE0 na meni':(t.wait==='pending'?'\uD83D\uDD35 cekam':'status'))+'</span>';
+    var waitp='<span class="pill wait-pill'+(t.wait?' w-on-'+t.wait:'')+'" title="Klik: ACTION \u2192 PENDING \u2192 nista">'+(t.wait==='action'?'\uD83D\uDFE0 ACTION':(t.wait==='pending'?'\uD83D\uDD35 PENDING':'status'))+'</span>';
     row.innerHTML='<span class="selbox"></span><span class="box"><svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.4-5" fill="none" stroke="#0d1014" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
       '<span class="tbody"><span class="tt">'+waitBadge(t)+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+waitp+linkp+'</span></span>'+
       '<button class="priv-btn">'+btnLbl+'</button>';
