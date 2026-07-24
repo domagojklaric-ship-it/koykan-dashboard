@@ -109,6 +109,9 @@
   .wpill{display:inline-block;font:700 9px/1.35 var(--body,inherit);letter-spacing:.03em;border-radius:999px;padding:1px 6px;margin-right:5px;vertical-align:middle;white-space:nowrap}
   .wp-act{color:#ffb15c;background:rgba(255,150,60,.14);border:1px solid rgba(255,150,60,.38)}
   .wp-pend{color:#7db4ff;background:rgba(90,150,255,.13);border:1px solid rgba(90,150,255,.34)}
+
+  .wpill{cursor:pointer}
+  .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
 </style>
 </head>
 <body>
@@ -337,7 +340,7 @@
     d.appendChild(s); return d;
   }
 
-  function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend">🔵 PENDING</span> ';return '';}
+  function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act" title="Klik: cikliraj status">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> ';return '<span class="wpill wp-none" title="Klik: postavi status">status</span> ';}
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
     var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
@@ -359,6 +362,7 @@
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
     row.querySelector('.t-status').addEventListener('change', function(){ if(this.value.trim()!==String(t.note||'')) update(t, {note:this.value.trim()}); });
+    row.querySelector('.wpill')?.addEventListener('click', function(e){ e.stopPropagation(); var base=(t.note||'').replace(/^\s*(action|pending)\b\s*[-–—|:]*\s*/i,''); var raw=(t.note||'').replace(/^[\s\-–—|:]+/,''); var w=/^action\b/i.test(raw)?'action':(/^pending\b/i.test(raw)?'pending':''); var nw=({'':'action','action':'pending','pending':''})[w]; var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var nn=kw?(base?(kw+' - '+base):kw):base; update(t,{note:nn}); });
     row.querySelector('.t-next')?.addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
