@@ -105,6 +105,10 @@
   .modal-box .mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
   .opis-pop{position:fixed;z-index:70;max-width:360px;background:var(--panel2);border:1px solid #3a445a;color:var(--text);border-radius:10px;padding:10px 12px;font:400 13px/1.5 var(--body);box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;white-space:pre-wrap}
   @media (max-width:640px){ h1{font-size:19px} .board-head{display:none} }
+
+  .wpill{display:inline-block;font:700 9px/1.35 var(--body,inherit);letter-spacing:.03em;border-radius:999px;padding:1px 6px;margin-right:5px;vertical-align:middle;white-space:nowrap}
+  .wp-act{color:#ffb15c;background:rgba(255,150,60,.14);border:1px solid rgba(255,150,60,.38)}
+  .wp-pend{color:#7db4ff;background:rgba(90,150,255,.13);border:1px solid rgba(90,150,255,.34)}
 </style>
 </head>
 <body>
@@ -331,6 +335,7 @@
     d.appendChild(s); return d;
   }
 
+  function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend">🔵 PENDING</span> ';return '';}
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
     var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
@@ -338,7 +343,7 @@
     row.innerHTML =
       '<span class="grip" draggable="true" title="Povuci za promjenu redoslijeda">⠿</span>'+
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
-      '<div class="naziv" title="'+escAttr(t.naziv)+'">'+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
+      '<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
       '<input class="t-status" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
       '<input class="t-next" placeholder="next step…" value="'+escAttr(t.nextstep||'')+'" title="Next step">'+
       '<div class="ctl">'+
