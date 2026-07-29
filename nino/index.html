@@ -252,6 +252,7 @@
 
   function save(t,row,fields){
     Object.keys(fields).forEach(function(k){ t[k]=fields[k]; });
+    if(fields.status!==undefined) t.done=(fields.status==='Gotovo');
     render();
     var p={action:'update', id:t.id};
     Object.keys(fields).forEach(function(k){ p[k]= (k==='critical')? (fields[k]?'true':'false') : fields[k]; });
