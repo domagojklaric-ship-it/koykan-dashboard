@@ -434,7 +434,7 @@
   function byOwner(a,b){ var ia=OWNER_ORDER.indexOf(a),ib=OWNER_ORDER.indexOf(b); if(ia<0)ia=99; if(ib<0)ib=99; return ia-ib||a.localeCompare(b); }
   function weekRange(off){ var t=today0(); var day=(t.getDay()+6)%7; var mon=new Date(t); mon.setDate(t.getDate()-day+off*7); mon.setHours(0,0,0,0); var sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999); return {from:mon,to:sun}; }
   function winRange(){ if(winFilter==='today'){ var t=today0(); var e=new Date(t); e.setHours(23,59,59,999); return {from:t,to:e}; } if(winFilter==='this') return weekRange(0); if(winFilter==='next') return weekRange(1); return null; }
-  function inWin(t){ if(winFilter==='all') return true; var ds=[]; if(t.nextDate) ds.push(new Date(t.nextDate)); if(t.due) ds.push(new Date(t.due)); if(!ds.length) return false;
+  function inWin(t){ if(winFilter==='all') return true; var ds=[]; if(t.isProject && t.nextDate) ds.push(new Date(t.nextDate)); if(t.due) ds.push(new Date(t.due)); if(!ds.length) return false;
     if(winFilter==='overdue'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x<t0; }); }
     if(winFilter==='tilltoday'){ var e=today0(); e.setHours(23,59,59,999); return ds.some(function(d){ return d<=e; }); }
     if(winFilter==='today'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===t0.getTime(); }); }
@@ -442,7 +442,7 @@
     if(winFilter==='next'){ var rn=weekRange(1); return ds.some(function(d){ return d>=rn.from && d<=rn.to; }); }
     return true; }
   function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(searchQ && norm(t.title).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
-  function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
+  function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.isProject && t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
   function render(){
     var grid=el('grid'); grid.innerHTML='';
