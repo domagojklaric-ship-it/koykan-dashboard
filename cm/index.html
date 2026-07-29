@@ -175,7 +175,6 @@
       <span class="hctl">
         <span style="width:108px">Nositelj</span>
         <span style="width:100px">Status</span>
-        <span style="width:120px">Status rok</span>
         <span style="width:30px">Opis</span>
         <span style="width:28px">Link</span>
         <span style="width:28px">Crit</span>
@@ -352,7 +351,6 @@
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
-        (isSub?'':'<input type="date" class="t-sdue" value="'+escAttr(dateVal(t.sdue))+'" title="Status rok">')+
         '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
@@ -366,7 +364,6 @@
     row.querySelector('.t-next')?.addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
-    row.querySelector('.t-sdue')?.addEventListener('change', function(){ update(t, {sdue:this.value}); });
     row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
     var ob=row.querySelector('.icon.opis');
