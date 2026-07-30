@@ -66,7 +66,6 @@
   select.owner{width:108px}
   select.status{width:100px}
   select.status[data-v=Gotovo]{color:var(--good)}
-  select.status[data-v="U tijeku"]{color:var(--warn)}
   input[type=date]{font-family:var(--mono);font-size:11px;width:120px}
   .icon{flex:none;background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--faint);cursor:pointer;padding:5px 7px;font-size:12px;line-height:1}
   .icon:hover{color:var(--text);border-color:#3a445a}
@@ -112,6 +111,8 @@
 
   .wpill{cursor:pointer}
   .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
+
+  .t-due.over{border-color:rgba(239,111,111,.65) !important; color:#f3a0a0 !important}
 </style>
 </head>
 <body>
@@ -156,7 +157,6 @@
       <span class="klabel">Status</span>
       <span class="chip on" data-st="all">Sve</span>
       <span class="chip" data-st="Otvoreno">Otvoreno</span>
-      <span class="chip" data-st="U tijeku" data-acc="warn">U tijeku</span>
       <span class="chip" data-st="Gotovo" data-acc="good">Gotovo</span>
       <span class="klabel" style="margin-left:8px">Prikaz</span>
       <span class="chip" id="f-overdue" data-acc="warn">Overdue</span>
@@ -175,7 +175,6 @@
       <span class="hctl">
         <span style="width:108px">Nositelj</span>
         <span style="width:100px">Status</span>
-        <span style="width:120px">Status rok</span>
         <span style="width:30px">Opis</span>
         <span style="width:28px">Link</span>
         <span style="width:28px">Crit</span>
@@ -212,7 +211,7 @@
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbx3O3N6BUCltyGV_VWpfWMqX5vv326T9wvc1g8q8u1ELomabQZvCUiTKnT6anMpxFeZ/exec';
   var SECTIONS = ['Struja','Ventilacija','Digitalija','Inventar','Ostalo'];
   var OWNERS   = ['Davor','Nino','Silva','AnaT','Ankica','Nataša','Dom','PEP tim','Neodređeno'];
-  var STATUSES = ['Otvoreno','U tijeku','Gotovo'];
+  var STATUSES = ['Otvoreno','Gotovo'];
   /* ==================== */
 
   var SECRET = localStorage.getItem('pep_secret') || '';
@@ -274,7 +273,7 @@
   el('f-crit').addEventListener('click', function(){ fCrit=!fCrit; this.classList.toggle('on',fCrit); renderAll(); });
 
   function todayStr(){ var d=new Date(); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
-  function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
+  function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.due && t.due<td); }
 
   function passFilter(t){
     if(fStatus!=='all' && t.status!==fStatus) return false;
@@ -320,7 +319,6 @@
         card.appendChild(taskRow(top,false));
         var subs=sortSibs(secTasks.filter(function(s){return s.parent===top.id;}));
         subs.forEach(function(s){ if(passFilter(s)||passFilter(top)) card.appendChild(taskRow(s,true)); });
-        card.appendChild(subAddRow(top));
       });
       board.appendChild(card);
     });
@@ -339,6 +337,7 @@
   }
 
   function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act" title="Klik: cikliraj status">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> ';return '<span class="wpill wp-none" title="Klik: postavi status">status</span> ';}
+  function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
     var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
@@ -352,12 +351,11 @@
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
-        '<input type="date" class="t-sdue" value="'+escAttr(dateVal(t.sdue))+'" title="Status rok">'+
         '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
-        '<input type="date" class="t-due" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
+        '<input type="date" class="t-due'+dueCls(t.due,t.status)+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
@@ -366,7 +364,6 @@
     row.querySelector('.t-next').addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
-    row.querySelector('.t-sdue').addEventListener('change', function(){ update(t, {sdue:this.value}); });
     row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
     var ob=row.querySelector('.icon.opis');
