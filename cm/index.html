@@ -112,6 +112,8 @@
 
   .wpill{cursor:pointer}
   .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
+
+  .t-due.over{border-color:rgba(239,111,111,.65) !important; color:#f3a0a0 !important}
 </style>
 </head>
 <body>
@@ -209,9 +211,9 @@
 <script>
   /* ====== CONFIG ====== */
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbzENg-nMuPcatUPIcsO91pX9OLGm4RL7bxYlG3AFPMO4iBOuLhCqPie_mikMT16YQgFRA/exec';
-  var SECTIONS = ['(A) Pravni prijenosi & entiteti','(B) Najam, prostor & oprema','(C) Financije & dugovanja','(D) Gašenje Koykan CM','(E) HR','(F) Roba & knjigovodstvo','(G) Ostalo / franšiza'];
+  var SECTIONS = ['(A) Pravni prijenosi, entiteti & gašenje','(B) Najam, prostor & oprema','(C) Financije, roba & knjigovodstvo','(D) HR','(E) Ostalo / franšiza'];
   var OWNERS = ['Dom','Tom','Sandra','Neodređeno'];
-  var STATUSES = ['Otvoreno','U tijeku','Gotovo'];
+  var STATUSES = ['Otvoreno','Gotovo'];
   /* ==================== */
 
   var SECRET = localStorage.getItem('cm_secret') || '';
@@ -258,7 +260,7 @@
   function buildSectionFilter(){
     var c=el('f-section'); c.innerHTML='<span class="klabel">Faza</span>';
     c.appendChild(mk('Sve','all', fSection==='all'));
-    var SHORT={A:'Pravno',B:'Najam/oprema',C:'Financije',D:'Gašenje',E:'HR',F:'Roba/knjig.',G:'Ostalo'}; SECTIONS.forEach(function(s){ var L=(s.charAt(0)==='('?s.slice(1,s.indexOf(')')):s); var lbl=SHORT[L]?(L+' - '+SHORT[L]):L; c.appendChild(mk(lbl, s, fSection===s)); });
+    var SHORT={A:'Pravno/gašenje',B:'Najam/oprema',C:'Financije/roba',D:'HR',E:'Ostalo'}; SECTIONS.forEach(function(s){ var L=(s.charAt(0)==='('?s.slice(1,s.indexOf(')')):s); var lbl=SHORT[L]?(L+' - '+SHORT[L]):L; c.appendChild(mk(lbl, s, fSection===s)); });
     function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.textContent=label; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
   }
   function buildOwnerFilter(){
@@ -319,7 +321,6 @@
         card.appendChild(taskRow(top,false));
         var subs=sortSibs(secTasks.filter(function(s){return s.parent===top.id;}));
         subs.forEach(function(s){ if(passFilter(s)) card.appendChild(taskRow(s,true)); });
-        card.appendChild(subAddRow(top));
       });
       board.appendChild(card);
     });
@@ -338,6 +339,7 @@
   }
 
   function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act" title="Klik: cikliraj status">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> ';return '<span class="wpill wp-none" title="Klik: postavi status">status</span> ';}
+  function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
     var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
@@ -355,7 +357,7 @@
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
-        '<input type="date" class="t-due" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
+        '<input type="date" class="t-due'+dueCls(t.due,t.status)+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
