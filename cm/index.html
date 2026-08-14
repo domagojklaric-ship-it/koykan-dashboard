@@ -109,6 +109,10 @@
   .wp-act{color:#ffb15c;background:rgba(255,150,60,.14);border:1px solid rgba(255,150,60,.38)}
   .wp-pend{color:#7db4ff;background:rgba(90,150,255,.13);border:1px solid rgba(90,150,255,.34)}
 
+  .wp-hold{color:#c9c2b6;background:rgba(200,190,175,.12);border:1px solid rgba(200,190,175,.30)}
+  .s-comm.con{color:#ffce85}
+  .t-due.due-comm{border-color:rgba(255,206,133,.55)}
+  .t-due.no-due{border-color:rgba(255,120,120,.45)}
   .wpill{cursor:pointer}
   .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
 
@@ -336,35 +340,42 @@
     d.appendChild(s); return d;
   }
 
-  function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act" title="Klik: cikliraj status">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> ';return '<span class="wpill wp-none" title="Klik: postavi status">status</span> ';}
+  function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act" title="Klik: cikliraj status">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> ';if(/^on hold\b/i.test(n))return '<span class="wpill wp-hold" title="Klik: cikliraj status">⏸ ON HOLD</span> ';if(/^treba status\b/i.test(n))return '<span class="wpill wp-none" title="Klik: cikliraj status">TREBA STATUS</span> ';return '<span class="wpill wp-none" title="Klik: postavi status">status</span> ';}
   function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
+  function isComm(t){ return /^\s*COMMITTED\s*$/im.test(t.opis||''); }
+  function toggleComm(t){ var was=isComm(t); var ls=(t.opis||'').split('\n').filter(function(l){ return !/^\s*COMMITTED\s*$/i.test(l); });
+    var no = was ? ls.join('\n').replace(/^\n+/,'') : ('COMMITTED\n'+ls.join('\n')).replace(/\n+$/,''); update(t, {opis:no}); }
+  function dm(){ var d=new Date(); return d.getDate()+'.'+(d.getMonth()+1)+'.'; }
+  function auditOpis(t, sto, staro, novo){ var l='- '+dm()+' '+sto+' promijenjen'+(staro?(' s '+staro):'')+' na '+(novo||'(prazno)'); return (l+'\n'+(t.opis||'')).replace(/\n+$/,''); }
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
-    var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
+    var row=document.createElement('div'); row.className='task srow'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
     row.setAttribute('data-id', t.id);
     row.innerHTML =
       '<span class="grip" draggable="true" title="Povuci za promjenu redoslijeda">⠿</span>'+
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
-      '<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
-      '<input class="t-status" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
+      '<div class="naziv stitle" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
+      '<input class="t-status s-next" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
       ''+
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
-        '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
+        '<button class="icon opis opis-pill'+(t.opis?' has':'')+'" data-opis="'+escAttr(t.opis||'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
-        '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
+        '<button class="icon crit s-crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
+        '<button class="icon comm s-comm'+(isComm(t)?' con':'')+'" title="Obećan rok — klik za zaključati">'+(isComm(t)?'🔒':'○')+'</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
-        '<input type="date" class="t-due'+dueCls(t.due,t.status)+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
+        '<input type="date" class="t-due s-due'+dueCls(t.due,t.status)+(t.due?'':' no-due')+(isComm(t)?' due-comm':'')+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
     row.querySelector('.t-status').addEventListener('change', function(){ if(this.value.trim()!==String(t.note||'')) update(t, {note:this.value.trim()}); });
-    row.querySelector('.wpill')?.addEventListener('click', function(e){ e.stopPropagation(); var base=(t.note||'').replace(/^\s*(action|pending)\b\s*[-–—|:]*\s*/i,''); var raw=(t.note||'').replace(/^[\s\-–—|:]+/,''); var w=/^action\b/i.test(raw)?'action':(/^pending\b/i.test(raw)?'pending':''); var nw=({'':'action','action':'pending','pending':''})[w]; var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var nn=kw?(base?(kw+' - '+base):kw):base; update(t,{note:nn}); });
+    row.querySelector('.wpill')?.addEventListener('click', function(e){ e.stopPropagation(); var base=(t.note||'').replace(/^\s*(action|pending|on hold|treba status)\b\s*[-–—|:]*\s*/i,''); var raw=(t.note||'').replace(/^[\s\-–—|:]+/,''); var w=/^action\b/i.test(raw)?'action':(/^pending\b/i.test(raw)?'pending':(/^on hold\b/i.test(raw)?'hold':(/^treba status\b/i.test(raw)?'treba':''))); var nw=({'':'action','action':'pending','pending':'hold','hold':'treba','treba':''})[w]; var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':(nw==='hold'?'ON HOLD':(nw==='treba'?'TREBA STATUS':''))); var nn=kw?(base?(kw+' - '+base):kw):base; update(t,{note:nn}); });
     row.querySelector('.t-next')?.addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
-    row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
+    row.querySelector('.t-due').addEventListener('change', function(){ var _o=t.due||''; update(t, {due:this.value, opis:auditOpis(t,'rok',_o,this.value)}); });
+    var _cb=row.querySelector('.s-comm'); if(_cb) _cb.addEventListener('click', function(){ toggleComm(t); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
     var ob=row.querySelector('.icon.opis');
     ob.addEventListener('click', function(){ openOpis(t); });
@@ -431,7 +442,7 @@
   function ownerSelect(t){
     var cur = OWNERS.indexOf(t.owner)>=0 ? t.owner : (t.owner||'Neodređeno');
     var opts = OWNERS.slice(); if(opts.indexOf(cur)<0) opts.unshift(cur);
-    return '<select class="owner">'+opts.map(function(o){return '<option'+(o===cur?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';
+    return '<select class="owner sowner">'+opts.map(function(o){return '<option'+(o===cur?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';
   }
   function statusSelect(t){
     return '<select class="status" data-v="'+escAttr(t.status)+'">'+STATUSES.map(function(s){return '<option'+(s===t.status?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
