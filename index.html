@@ -114,8 +114,6 @@
   .ochip.priv{color:#f0a6a6; border-color:rgba(239,111,111,.3)}
   .wpill{display:inline-block; font:700 9.5px/1.35 var(--body); letter-spacing:.03em; border-radius:999px; padding:2px 7px; margin-right:6px; vertical-align:middle; white-space:nowrap}
   .wp-act{color:#ffb15c; background:rgba(255,150,60,.14); border:1px solid rgba(255,150,60,.38)}
-  .wpill{cursor:pointer}
-  .wp-none{color:var(--faint); background:transparent; border:1px solid var(--line)}
   .wp-pend{color:#7db4ff; background:rgba(90,150,255,.13); border:1px solid rgba(90,150,255,.34)}
   #wait-seg button[data-a="action"].on{background:rgba(255,150,60,.16); color:#ffb15c}
   #wait-seg button[data-a="pending"].on{background:rgba(90,150,255,.16); color:#7db4ff}
@@ -503,7 +501,7 @@
   }
   function sortDate(t){ var d=(groupMode==='due')? t.due : (groupMode==='owner'? (t.nextDate||t.due) : t.nextDate); return d? new Date(d).getTime():Infinity; }
 
-  function waitBadge(t){ if(t.wait==='action') return '<span class="wpill wp-act" title="Na tebi je akcija">🟠 ACTION</span> '; if(t.wait==='pending') return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> '; return '<span class="wpill wp-none" title="Klik: postavi status">status</span> '; }
+  function waitBadge(t){ if(t.wait==='action') return '<span class="wpill wp-act" title="Na tebi je akcija">🟠 ACTION</span> '; if(t.wait==='pending') return '<span class="wpill wp-pend" title="Čekaš nekog drugog">🔵 PENDING</span> '; return ''; }
   function rowEl(t){
     var row=document.createElement('div'); row.className='row'; row.dataset.done=t.done; row.dataset.id=t.id;
     row.dataset.cat=(t.owner==='Private')?'private':''; row.dataset.proj=t.isProject?'true':'false'; row.dataset.crit=t.critical?'true':'false';
@@ -546,7 +544,7 @@
     Array.prototype.forEach.call(row.querySelectorAll('.rnudges .nudge'),function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); nudgeDue(t,row,b.dataset.rn); }); });
     row.querySelector('.projekt-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleProject(t,row); });
     row.querySelector('.crit-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleCritical(t,row); });
-    row.querySelector('.wpill').addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row); });
+    row.querySelector('.wait-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row); });
     row.addEventListener('click',function(e){ if(e.target.closest('.box')) toggle(t,row); });
     row.querySelector('.priv-btn').addEventListener('click',function(e){ e.stopPropagation(); rename(t,row,toPriv?'Private':'Dom'); });
     return row;
@@ -645,7 +643,7 @@
       banner(''); t.critical=nc; t.notes=notes; render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
 
-  function toggleWait(t,row){ var order={'':'action','action':'pending','pending':''}; var nw=order[t.wait||'']||''; var base=(t.nextText||'').replace(/^\s*(action|pending)\b\s*[-\u2013\u2014|:]*\s*/i,''); var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var ntext=kw?(base?(kw+' - '+base):kw):base; var notes=buildNotes(ntext,t.nextDate,t.rest,t.critical,t.link); var prev={nextText:t.nextText, wait:t.wait, notes:t.notes}; t.nextText=ntext; t.wait=nw; t.notes=notes; render(); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(!res||res.error){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; render(); banner('Nije spremljeno: '+((res&&res.error)||'?')); } else banner(''); }).catch(function(err){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; render(); banner('Greska: '+err); }); }
+  function toggleWait(t,row){ var order={'':'action','action':'pending','pending':''}; var nw=order[t.wait||'']||''; var base=(t.nextText||'').replace(/^\s*(action|pending)\b\s*[-\u2013\u2014|:]*\s*/i,''); var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var ntext=kw?(base?(kw+' - '+base):kw):base; var notes=buildNotes(ntext,t.nextDate,t.rest,t.critical,t.link); var prev={nextText:t.nextText, wait:t.wait, notes:t.notes}; t.nextText=ntext; t.wait=nw; t.notes=notes; function paint(w,txt){ var p=row.querySelector('.wpill'); if(p){ p.className='wpill '+(w==='action'?'wp-act':(w==='pending'?'wp-pend':'wp-none')); p.textContent=(w==='action'?'\uD83D\uDFE0 ACTION':(w==='pending'?'\uD83D\uDD35 PENDING':'status')); } var ni=row.querySelector('.ntext-in'); if(ni) ni.value=txt; } paint(nw,ntext); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(!res||res.error){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Nije spremljeno: '+((res&&res.error)||'?')); } else banner(''); }).catch(function(err){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Greska: '+err); }); }
 
   function markProjectsBatch(){
     var cand=TASKS.filter(function(t){ if(t.isProject||t.done) return false; var nt=norm(t.title); return PROJECT_HINTS.some(function(h){ return nt.indexOf(norm(h))>=0; }); });
