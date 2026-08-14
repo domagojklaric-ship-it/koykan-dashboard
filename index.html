@@ -503,6 +503,10 @@
   }
   function sortDate(t){ var d=(groupMode==='due')? t.due : (groupMode==='owner'? (t.nextDate||t.due) : t.nextDate); return d? new Date(d).getTime():Infinity; }
 
+  function waitOf(txt){ var n=String(txt||'').replace(/^[\s\-\u2013\u2014|:]+/,''); if(/^action\b/i.test(n)) return 'action'; if(/^pending\b/i.test(n)) return 'pending'; return ''; }
+  function paintWait(row,w){ if(!row) return;
+    var p=row.querySelector('.wpill'); if(p){ p.className='wpill '+(w==='action'?'wp-act':(w==='pending'?'wp-pend':'wp-none')); p.textContent=(w==='action'?'\uD83D\uDFE0 ACTION':(w==='pending'?'\uD83D\uDD35 PENDING':'status')); }
+    var sw=row.querySelector('.s-wait'); if(sw){ sw.className='icon s-icn s-wait'+(w?' won-'+w:''); sw.textContent=(w==='action'?'\uD83D\uDFE0':(w==='pending'?'\uD83D\uDD35':'\u25CB')); } }
   function waitBadge(t){ if(t.wait==='action') return '<span class="wpill wp-act" title="Na tebi je akcija">🟠 ACTION</span> '; if(t.wait==='pending') return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> '; return '<span class="wpill wp-none" title="Klik: postavi status">status</span> '; }
   function rowEl(t){
     var row=document.createElement('div'); row.className='row'; row.dataset.done=t.done; row.dataset.id=t.id;
@@ -533,7 +537,7 @@
     if(nin){ nin.addEventListener('click',function(e){ e.stopPropagation(); });
       nin.addEventListener('change',function(){ var v=this.value.trim(); if(v===(t.nextText||'')) return;
         var notes=buildNotes(v, t.nextDate, t.rest, t.critical, t.link);
-        busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti next step'); load(); return; } banner(''); t.nextText=v; t.notes=notes; render(); }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }); }
+        busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti next step'); load(); return; } banner(''); t.nextText=v; t.notes=notes; t.wait=waitOf(v); paintWait(row,t.wait); }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }); }
 
     // opis (uvijek), otklopiv + editabilan
     var op=row.querySelector('.opis-pill');
@@ -645,7 +649,7 @@
       banner(''); t.critical=nc; t.notes=notes; render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
 
-  function toggleWait(t,row){ var order={'':'action','action':'pending','pending':''}; var nw=order[t.wait||'']||''; var base=(t.nextText||'').replace(/^\s*(action|pending)\b\s*[-\u2013\u2014|:]*\s*/i,''); var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var ntext=kw?(base?(kw+' - '+base):kw):base; var notes=buildNotes(ntext,t.nextDate,t.rest,t.critical,t.link); var prev={nextText:t.nextText, wait:t.wait, notes:t.notes}; t.nextText=ntext; t.wait=nw; t.notes=notes; function paint(w,txt){ var p=row.querySelector('.wpill'); if(p){ p.className='wpill '+(w==='action'?'wp-act':(w==='pending'?'wp-pend':'wp-none')); p.textContent=(w==='action'?'\uD83D\uDFE0 ACTION':(w==='pending'?'\uD83D\uDD35 PENDING':'status')); } var ni=row.querySelector('.ntext-in'); if(ni) ni.value=txt; } paint(nw,ntext); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(!res||res.error){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Nije spremljeno: '+((res&&res.error)||'?')); } else banner(''); }).catch(function(err){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Greska: '+err); }); }
+  function toggleWait(t,row){ var order={'':'action','action':'pending','pending':''}; var nw=order[t.wait||'']||''; var base=(t.nextText||'').replace(/^\s*(action|pending)\b\s*[-\u2013\u2014|:]*\s*/i,''); var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var ntext=kw?(base?(kw+' - '+base):kw):base; var notes=buildNotes(ntext,t.nextDate,t.rest,t.critical,t.link); var prev={nextText:t.nextText, wait:t.wait, notes:t.notes}; t.nextText=ntext; t.wait=nw; t.notes=notes; function paint(w,txt){ paintWait(row,w); var ni=row.querySelector('.ntext-in'); if(ni) ni.value=txt; } paint(nw,ntext); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(!res||res.error){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Nije spremljeno: '+((res&&res.error)||'?')); } else banner(''); }).catch(function(err){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Greska: '+err); }); }
 
   function markProjectsBatch(){
     var cand=TASKS.filter(function(t){ if(t.isProject||t.done) return false; var nt=norm(t.title); return PROJECT_HINTS.some(function(h){ return nt.indexOf(norm(h))>=0; }); });
