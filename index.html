@@ -97,6 +97,9 @@
   .next .nlabel{font:500 9px/1 var(--mono); letter-spacing:.1em; color:var(--faint); border:1px solid var(--line); border-radius:4px; padding:3px 5px; flex:none; cursor:pointer}
   .next .ndate{font-family:var(--mono); font-size:11px; color:var(--muted); flex:none; cursor:pointer}
   .next .ndate.over{color:#f3a0a0} .next .ndate.soon{color:#f3d68a}
+  .next .ntext-in{flex:1; min-width:180px; background:var(--bg); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:4px 7px; font:400 12px/1.4 var(--body)}
+  .next .ntext-in:focus{outline:none; border-color:#3a424f}
+  .next .ntext-in::placeholder{color:var(--faint)}
   .next .ntext{font-size:12px; color:var(--text); cursor:pointer} .next.empty .ntext{color:var(--faint)}
   .nudges{display:inline-flex; gap:4px; opacity:0; transition:.12s} .row:hover .nudges{opacity:1}
   .nudge{font:500 9.5px/1 var(--mono); color:var(--faint); background:transparent; border:1px solid var(--line); border-radius:4px; padding:3px 5px; cursor:pointer}
@@ -503,7 +506,7 @@
     var row=document.createElement('div'); row.className='row'; row.dataset.done=t.done; row.dataset.id=t.id;
     row.dataset.cat=(t.owner==='Private')?'private':''; row.dataset.proj=t.isProject?'true':'false'; row.dataset.crit=t.critical?'true':'false';
     var toPriv=(t.owner!=='Private'); var btnLbl=toPriv?'→ Private':'→ Dom';
-    var nextInner=(t.nextDate?'<span class="ndate '+whenClass(t.nextDate,t.done)+'">'+fmtShort(t.nextDate)+'</span>':'')+'<span class="ntext">'+(t.nextText?escapeHtml(t.nextText):'+ dodaj next step')+'</span>';
+    var nextInner=(t.nextDate?'<span class="ndate '+whenClass(t.nextDate,t.done)+'">'+fmtShort(t.nextDate)+'</span>':'')+'<input class="ntext-in" placeholder="next step…" value="'+escapeAttr(t.nextText||'')+'">';
     var nudges='<span class="nudges"><button class="nudge" data-n="md">-1d</button><button class="nudge" data-n="today">danas</button><button class="nudge" data-n="d">+1d</button><button class="nudge" data-n="w">+1tj</button></span>';
     var nextHtml='<div class="next'+((t.nextDate||t.nextText)?'':' empty')+'"><span class="nlabel">NEXT</span>'+nextInner+nudges+'</div>';
     var rok=t.due?'<span class="rok '+whenClass(t.due,t.done)+'">rok '+fmtRok(t.due)+'</span>':'<span class="rok">+ rok</span>';
@@ -524,13 +527,19 @@
     var sb=row.querySelector('.selbox'); if(selected[t.id]) sb.setAttribute('data-sel','1');
     sb.addEventListener('click',function(e){ e.stopPropagation(); toggleSel(t.id,row); });
 
+    var nin=row.querySelector('.ntext-in');
+    if(nin){ nin.addEventListener('click',function(e){ e.stopPropagation(); });
+      nin.addEventListener('change',function(){ var v=this.value.trim(); if(v===(t.nextText||'')) return;
+        var notes=buildNotes(v, t.nextDate, t.rest, t.critical, t.link);
+        busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti next step'); load(); return; } banner(''); t.nextText=v; t.notes=notes; render(); }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }); }
+
     // opis (uvijek), otklopiv + editabilan
     var op=row.querySelector('.opis-pill');
     op.addEventListener('click',function(e){ e.stopPropagation();
       var ex=tbody.querySelector('.notes'); if(ex){ ex.remove(); op.classList.remove('open'); return; }
       tbody.appendChild(notesPanel(t,row)); op.classList.add('open'); });
 
-    ['.tt','.ntext','.ndate','.nlabel','.uredi-pill','.rok'].forEach(function(sel){ var e0=row.querySelector(sel); if(e0) e0.addEventListener('click',function(e){ e.stopPropagation(); openEditor(t,row,tbody); }); });
+    ['.tt','.ndate','.nlabel','.uredi-pill','.rok'].forEach(function(sel){ var e0=row.querySelector(sel); if(e0) e0.addEventListener('click',function(e){ e.stopPropagation(); openEditor(t,row,tbody); }); });
     Array.prototype.forEach.call(row.querySelectorAll('.nudges .nudge'),function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); nudge(t,row,b.dataset.n); }); });
     Array.prototype.forEach.call(row.querySelectorAll('.rnudges .nudge'),function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); nudgeDue(t,row,b.dataset.rn); }); });
     row.querySelector('.projekt-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleProject(t,row); });
