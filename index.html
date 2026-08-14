@@ -546,6 +546,7 @@
     Array.prototype.forEach.call(row.querySelectorAll('.rnudges .nudge'),function(b){ b.addEventListener('click',function(e){ e.stopPropagation(); nudgeDue(t,row,b.dataset.rn); }); });
     row.querySelector('.projekt-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleProject(t,row); });
     row.querySelector('.crit-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleCritical(t,row); });
+    var wp_=row.querySelector('.wpill'); if(wp_) wp_.addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row); });
     row.addEventListener('click',function(e){ if(e.target.closest('.box')) toggle(t,row); });
     row.querySelector('.priv-btn').addEventListener('click',function(e){ e.stopPropagation(); rename(t,row,toPriv?'Private':'Dom'); });
     return row;
