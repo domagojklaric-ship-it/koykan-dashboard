@@ -222,7 +222,8 @@
     <div class="bgroup nb">
       <button class="btn add" id="new-task">+ Novi task</button>
     </div>
-    <div class="bgroup">
+    <div id="adv" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
+    <div class="bgroup nb">
       <span class="glabel g1">Grupiraj</span>
       <div class="seg" id="group-seg">
         <button data-g="owner_next">Osoba ▸ next</button>
@@ -241,7 +242,8 @@
         <button data-t="critical">Critical</button>
       </div>
     </div>
-    <div class="bgroup">
+    </div>
+    <div class="bgroup nb">
       <span class="glabel g3">Vrijeme</span>
       <div class="seg" id="win-seg">
         <button data-w="all" class="on">Bilo kad</button>
@@ -260,13 +262,16 @@
         <button data-a="pending">🔵 PENDING</button>
       </div>
     </div>
-    <div class="bgroup">
+    <div class="bgroup" id="adv2" style="display:none">
       <span class="glabel g4">Akcije</span>
       <button class="btn proj" id="mark-proj" title="Dodaj A_ poznatim projektima">Označi projekte (A_)</button>
       <button class="btn" id="grid-edit" title="Uredi next step, next datum i rok za sve filtrirane odjednom">Tablica</button>
       <button class="btn" id="bulk-toggle">Bulk</button>
     </div>
-    <div class="bgroup">
+    <div class="bgroup nb">
+      <button class="btn" id="more-btn" title="Napredne opcije: grupiranje, tip, tablica, bulk">⋯ Više</button>
+    </div>
+    <div class="bgroup nb">
       <span class="glabel">Traži</span>
       <input type="text" id="search" class="searchbox" placeholder="naziv taska...">
     </div>
@@ -274,7 +279,6 @@
     <div class="bgroup">
       <span class="synced" id="synced"></span>
       <button class="btn" id="load-completed">Gotovi: skriveni</button>
-      <button class="btn" id="copy-json" title="Kopiraj trenutno stanje (s opisima) za analizu">Kopiraj JSON</button>
       <button class="btn" id="refresh">Osvježi</button>
       <button class="btn" id="logout" title="Makni spremljeni secret">Secret</button>
     </div>
@@ -737,7 +741,7 @@
   el('ge-save').addEventListener('click',saveGridEdit);
   el('ge-overlay').addEventListener('click',function(e){ if(e.target===this) closeGridEdit(); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape' && el('ge-overlay').classList.contains('open')) closeGridEdit(); });
-  el('copy-json').addEventListener('click',function(){ var self=this;
+  el('copy-json')&&el('copy-json').addEventListener('click',function(){ var self=this;
     if(!RAW||!RAW.length){ banner('Nema učitanih taskova za kopiranje.'); return; }
     var payload=JSON.stringify({ exported:new Date().toISOString(), count:RAW.length, tasks:RAW }, null, 2);
     var done=function(){ var old=self.textContent; self.textContent='Kopirano ✓'; setTimeout(function(){ self.textContent=old; },1500); };
@@ -748,6 +752,7 @@
     document.body.removeChild(ta); }
   el('load-completed').addEventListener('click',function(){ loadCompleted=!loadCompleted; this.textContent=loadCompleted?'Gotovi: učitani':'Gotovi: skriveni'; this.classList.toggle('on',loadCompleted); load(); });
   el('type-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; typeFilter=b.dataset.t; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
+  el('more-btn').addEventListener('click',function(){ var a=el('adv'), b=el('adv2'); var open=a.style.display==='none'; a.style.display=open?'flex':'none'; b.style.display=open?'flex':'none'; this.classList.toggle('on',open); this.textContent=open?'⋯ Manje':'⋯ Više'; });
   el('win-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; winFilter=b.dataset.w; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('wait-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; waitFilter=b.dataset.a; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('search').addEventListener('input',function(){ searchQ=norm(this.value); render(); });
