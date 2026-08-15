@@ -507,7 +507,9 @@
         sarr.forEach(function(t){ list.appendChild(rowEl(t)); }); });
       card.appendChild(list); grid.appendChild(card); });
   }
-  function sortDate(t){ var d=(groupMode==='due')? t.due : (groupMode==='owner'? (t.nextDate||t.due) : t.nextDate); return d? new Date(d).getTime():Infinity; }
+  function sortDate(t){ var c=[]; if(t.due) c.push(new Date(t.due).getTime()); if(t.nextDate) c.push(new Date(t.nextDate).getTime());
+    c=c.filter(function(x){ return !isNaN(x); });
+    return c.length? Math.min.apply(null,c) : Infinity; }
 
   function waitOf(txt){ var n=String(txt||'').replace(/^[\s\-\u2013\u2014|:]+/,''); if(/^action\b/i.test(n)) return 'action'; if(/^pending\b/i.test(n)) return 'pending'; return ''; }
   function isCommitted(t){ return /^\s*COMMITTED\s*$/im.test(t.rest||''); }
