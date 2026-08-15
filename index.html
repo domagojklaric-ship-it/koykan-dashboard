@@ -278,7 +278,7 @@
     </div>
     <div class="bgroup nb">
       <span class="glabel">Traži</span>
-      <input type="text" id="search" class="searchbox" placeholder="naziv taska...">
+      <input type="text" id="search" class="searchbox" placeholder="naziv, status ili nositelj...">
     </div>
     <div class="spacer"></div>
     <div class="bgroup">
@@ -450,7 +450,7 @@
     if(winFilter==='this'){ var rt=weekRange(0); return ds.some(function(d){ return d<=rt.to; }); }
     if(winFilter==='next'){ var rn=weekRange(1); return ds.some(function(d){ return d>=rn.from && d<=rn.to; }); }
     return true; }
-  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(searchQ && norm(t.title).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
+  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(searchQ && norm(t.title+' '+(t.nextText||'')+' '+(t.owner||'')).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.isProject && t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
   function render(){
