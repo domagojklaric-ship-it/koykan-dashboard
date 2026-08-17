@@ -112,7 +112,8 @@
   .sproj{font-size:10px;color:#ffce85;border:1px solid rgba(255,206,133,.5);border-radius:99px;padding:1px 6px;margin-left:6px}
   .s-proj.on{color:#ffce85;border-color:rgba(255,206,133,.5);background:rgba(255,206,133,.10)}
   .ctl .icon{flex:none;width:28px;min-width:28px;box-sizing:border-box;padding-left:0;padding-right:0;text-align:center}
-  .s-ndate{flex:none;width:120px}
+  .s-ndate{flex:none;width:120px;margin-right:10px}
+  .board-head .hnd{flex:none;width:120px;margin-right:10px}
   .s-ndate.ghost{visibility:hidden}
   .wp-hold{color:#c9c2b6;background:rgba(200,190,175,.12);border:1px solid rgba(200,190,175,.30)}
   .s-comm.con{color:#ffce85}
@@ -179,8 +180,8 @@
       <span class="hg"></span>
       <span class="hc"></span>
       <span class="hn">Korak</span>
-      <span class="hs1">Current status</span>
-      
+      <span class="hs1">Current status / Next step</span>
+      <span class="hnd">Rok next stepa</span>
       <span class="hctl">
         <span style="width:108px">Nositelj</span>
         <span style="width:100px">Status</span>
@@ -190,7 +191,6 @@
         <span style="width:28px">Fiks</span>
         <span style="width:28px">Proj</span>
         <span style="width:28px">Briši</span>
-        <span style="width:120px">Rok next stepa</span>
         <span style="width:120px">Rok završetka</span>
       </span>
     </div>
@@ -367,7 +367,7 @@
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
       '<div class="naziv stitle" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(isProj(t)?' <span class="sproj">projekt</span>':'')+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
       '<input class="t-status s-next" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
-      ''+
+      '<input type="date" class="s-ndate'+dueCls(t.sdue,t.status)+'" value="'+escAttr(dateVal(t.sdue))+'" title="Rok next stepa">'+
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
@@ -377,7 +377,6 @@
         '<button class="icon comm s-comm'+(isComm(t)?' con':'')+'" title="Obećan rok — klik za zaključati">'+(isComm(t)?'🔒':'○')+'</button>'+
         '<button class="icon proj s-proj'+(isProj(t)?' on':'')+'" title="'+(isProj(t)?'Projekt — klik da vise nije':'Oznaci kao projekt')+'">'+(isProj(t)?'▣':'▢')+'</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
-        (isProj(t)?('<input type="date" class="s-ndate'+dueCls(t.sdue,t.status)+'" value="'+escAttr(dateVal(t.sdue))+'" title="Rok next stepa">'):'<span class="s-ndate ghost" aria-hidden="true"></span>')+
         '<input type="date" class="t-due s-due'+dueCls(t.due,t.status)+(t.due?'':' no-due')+(isComm(t)?' due-comm':'')+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
