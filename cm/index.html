@@ -356,6 +356,9 @@
   function isProj(t){ return /^\s*PROJEKT\s*$/im.test(t.opis||''); }
   function toggleProj(t){ var was=isProj(t); var ls=(t.opis||'').split('\n').filter(function(l){ return !/^\s*PROJEKT\s*$/i.test(l); });
     var no = was ? ls.join('\n').replace(/^\n+/,'') : ('PROJEKT\n'+ls.join('\n')).replace(/\n+$/,''); update(t, {opis:no}); }
+  function stampStatus(t){ var st=String(t.note||'').trim(); var ls=String(t.opis||'').split('\n');
+    var l='STATUS: '+dm()+(st?(' prethodno: "'+st+'"'):' prethodno: (prazno)');
+    return (l+'\n'+ls.join('\n')).replace(/\n+$/,''); }
   function dm(){ var d=new Date(); return d.getDate()+'.'+(d.getMonth()+1)+'.'; }
   function auditOpis(t, sto, staro, novo){ var l='- '+dm()+' '+sto+' promijenjen'+(staro?(' s '+staro):'')+' na '+(novo||'(prazno)'); return (l+'\n'+(t.opis||'')).replace(/\n+$/,''); }
   function taskRow(t, isSub){
@@ -381,8 +384,8 @@
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
-    row.querySelector('.t-status').addEventListener('change', function(){ if(this.value.trim()!==String(t.note||'')) update(t, {note:this.value.trim()}); });
-    row.querySelector('.wpill')?.addEventListener('click', function(e){ e.stopPropagation(); var base=(t.note||'').replace(/^\s*(action|pending|on hold|treba status)\b\s*[-–—|:]*\s*/i,''); var raw=(t.note||'').replace(/^[\s\-–—|:]+/,''); var w=/^action\b/i.test(raw)?'action':(/^pending\b/i.test(raw)?'pending':(/^on hold\b/i.test(raw)?'hold':(/^treba status\b/i.test(raw)?'treba':''))); var nw=({'':'action','action':'pending','pending':'hold','hold':'treba','treba':''})[w]; var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':(nw==='hold'?'ON HOLD':(nw==='treba'?'TREBA STATUS':''))); var nn=kw?(base?(kw+' - '+base):kw):base; update(t,{note:nn}); });
+    row.querySelector('.t-status').addEventListener('change', function(){ var nv=this.value.trim(); if(nv!==String(t.note||'')) update(t, {note:nv, opis:stampStatus(t)}); });
+    row.querySelector('.wpill')?.addEventListener('click', function(e){ e.stopPropagation(); var base=(t.note||'').replace(/^\s*(action|pending|on hold|treba status)\b\s*[-–—|:]*\s*/i,''); var raw=(t.note||'').replace(/^[\s\-–—|:]+/,''); var w=/^action\b/i.test(raw)?'action':(/^pending\b/i.test(raw)?'pending':(/^on hold\b/i.test(raw)?'hold':(/^treba status\b/i.test(raw)?'treba':''))); var nw=({'':'action','action':'pending','pending':'hold','hold':'treba','treba':''})[w]; var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':(nw==='hold'?'ON HOLD':(nw==='treba'?'TREBA STATUS':''))); var nn=kw?(base?(kw+' - '+base):kw):base; update(t,{note:nn, opis:stampStatus(t)}); });
     row.querySelector('.t-next')?.addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
     row.querySelector('.owner').addEventListener('change', function(){ update(t, {owner:this.value}); });
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
