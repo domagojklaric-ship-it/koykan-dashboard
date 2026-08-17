@@ -253,9 +253,8 @@
         <button data-w="all" class="on">Bilo kad</button>
         <button data-w="overdue">Overdue</button>
         <button data-w="today">Danas</button>
+        <button data-w="tomorrow">Sutra</button>
         <button data-w="tilltoday">Do danas</button>
-        <button data-w="this">Ovaj tjedan</button>
-        <button data-w="next">Sljedeći tjedan</button>
       </div>
     </div>
     <div class="bgroup">
@@ -447,8 +446,7 @@
     if(winFilter==='overdue'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x<t0; }); }
     if(winFilter==='tilltoday'){ var e=today0(); e.setHours(23,59,59,999); return ds.some(function(d){ return d<=e; }); }
     if(winFilter==='today'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===t0.getTime(); }); }
-    if(winFilter==='this'){ var rt=weekRange(0); return ds.some(function(d){ return d<=rt.to; }); }
-    if(winFilter==='next'){ var rn=weekRange(1); return ds.some(function(d){ return d>=rn.from && d<=rn.to; }); }
+    if(winFilter==='tomorrow'){ var tm=today0(); tm.setDate(tm.getDate()+1); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===tm.getTime(); }); }
     return true; }
   function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(searchQ && norm(t.title+' '+(t.nextText||'')+' '+(t.owner||'')).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.isProject && t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
