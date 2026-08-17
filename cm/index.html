@@ -367,7 +367,7 @@
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
       '<div class="naziv stitle" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(isProj(t)?' <span class="sproj">projekt</span>':'')+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
       '<input class="t-status s-next" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
-      '<input type="date" class="s-ndate'+dueCls(t.sdue,t.status)+'" value="'+escAttr(dateVal(t.sdue))+'" title="Rok next stepa">'+
+      (isProj(t)?('<input type="date" class="s-ndate'+dueCls(t.sdue,t.status)+'" value="'+escAttr(dateVal(t.sdue))+'" title="Rok next stepa">'):'<span class="s-ndate ghost" aria-hidden="true"></span>')+
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
