@@ -403,7 +403,7 @@
       if(!res||res.error){ banner('Greška: '+((res&&res.error)||'nema odgovora')); if(res&&res.error==='unauthorized'){clearSecret();showSetup();} return; }
       RAW=res.tasks||[];
       TASKS=(res.tasks||[]).map(function(t){ var o=ownerOf(t.title); var pj=stripProj(o.clean); var n=parseNext(t.notes||'');
-        var _wt=(n.text||'').replace(/^[\s\-–—|:]+/,''); var wait=''; if(/^action\b/i.test(_wt)) wait='action'; else if(/^pending\b/i.test(_wt)) wait='pending';
+        var _wt=(n.text||'').replace(/^[\s\-–—|:]+/,''); var wait=''; if(/^action\b/i.test(_wt)) wait='action'; else if(/^pending\b/i.test(_wt)) wait='pending'; else if(/^on hold\b/i.test(_wt)) wait='hold';
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
                  due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, link:n.link }; });
       buildOwnerFilters(); render();
