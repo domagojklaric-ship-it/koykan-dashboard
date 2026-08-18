@@ -66,7 +66,6 @@
   select.owner{width:108px}
   select.status{width:100px}
   select.status[data-v=Gotovo]{color:var(--good)}
-  select.status[data-v="U tijeku"]{color:var(--warn)}
   input[type=date]{font-family:var(--mono);font-size:11px;width:120px}
   .icon{flex:none;background:transparent;border:1px solid var(--line);border-radius:7px;color:var(--faint);cursor:pointer;padding:5px 7px;font-size:12px;line-height:1}
   .icon:hover{color:var(--text);border-color:#3a445a}
@@ -154,9 +153,8 @@
     <div class="chips" id="f-owner"></div>
     <div class="chips">
       <span class="klabel">Status</span>
-      <span class="chip on" data-st="all">Sve</span>
-      <span class="chip" data-st="Otvoreno">Otvoreno</span>
-      <span class="chip" data-st="U tijeku" data-acc="warn">U tijeku</span>
+      <span class="chip" data-st="all">Sve</span>
+      <span class="chip on" data-st="Otvoreno">Otvoreno</span>
       <span class="chip" data-st="Gotovo" data-acc="good">Gotovo</span>
       <span class="klabel" style="margin-left:8px">Prikaz</span>
       <span class="chip" id="f-overdue" data-acc="warn">Overdue</span>
@@ -211,13 +209,13 @@
   /* ====== CONFIG ====== */
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbxSbr51gzkTUzVZ7XfqeiJRMMRKIUs-OnQXo5gVc6e2pWUUkwR4MT9zPYMSW8zuyrNVgg/exec';
   var SECTIONS = ['(A) Arhitekti (Super ured)','(B) Raspored i tehnologija kuhinje (Gastro-tim)','(C) Legal i administrativne operacije (nakon potpisa LA)','(D) Zapošljavanje','(E) Digitalna nabava (Remaris, Samsung)','(F) Građevina','(G) Build-up i nabava (oprema, sustavi)','(H) Nabava (oprema, inventar, ostalo)','(I) Remaris update, meni i cijene','(J) Delivery - postavljanje lokala (delivery platforma)','(K) Grand Opening - operativni plan'];
-  var OWNERS   = ['Davor','Silva','Ankica','AnaT','Nataša','Dom','Neodređeno'];
-  var STATUSES = ['Otvoreno','U tijeku','Gotovo'];
+  var OWNERS   = ['Davor','Silva','Ankica','AnaT','Nataša','Lucija','Dom','Neodređeno'];
+  var STATUSES = ['Otvoreno','Gotovo'];
   /* ==================== */
 
   var SECRET = localStorage.getItem('zabica_secret') || '';
   var TASKS = [];
-  var fSection='all', fStatus='all', fOwner={}, searchQ='', fOverdue=false, fCrit=false;
+  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false;
   OWNERS.forEach(function(o){ fOwner[o]=true; });
 
   function el(id){ return document.getElementById(id); }
