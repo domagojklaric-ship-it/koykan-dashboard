@@ -210,6 +210,9 @@
   .pill.comm-pill{cursor:pointer}
   .pill.comm-pill.comm-on{color:#ffce85; border-color:rgba(255,180,60,.5); background:rgba(255,180,60,.13)}
   .rok.rok-comm{font-weight:700; box-shadow:inset 0 -2px 0 rgba(255,180,60,.75)}
+  body.scoped #owner-filters{display:none !important}
+  body.scoped .srow select.sowner{pointer-events:none; opacity:.55}
+  body.scoped .e-owner{display:none}
   .s-comm.con{color:#ffce85; border-color:rgba(255,180,60,.5); background:rgba(255,180,60,.13)}
   .s-due.due-comm{border-color:rgba(255,180,60,.7) !important; font-weight:700}
 </style>
@@ -401,7 +404,7 @@
     api(params).then(function(res){
       el('loading').style.display='none';
       if(!res||res.error){ banner('Greška: '+((res&&res.error)||'nema odgovora')); if(res&&res.error==='unauthorized'){clearSecret();showSetup();} return; }
-      RAW=res.tasks||[];
+      RAW=res.tasks||[]; document.body.classList.toggle('scoped', (res.scope||'full')!=='full');
       TASKS=(res.tasks||[]).map(function(t){ var o=ownerOf(t.title); var pj=stripProj(o.clean); var n=parseNext(t.notes||'');
         var _wt=(n.text||'').replace(/^[\s\-–—|:]+/,''); var wait=''; if(/^action\b/i.test(_wt)) wait='action'; else if(/^pending\b/i.test(_wt)) wait='pending'; else if(/^on hold\b/i.test(_wt)) wait='hold';
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
