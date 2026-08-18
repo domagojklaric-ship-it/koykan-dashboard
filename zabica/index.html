@@ -111,6 +111,16 @@
 
   .wpill{cursor:pointer}
   .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
+
+  /* --- podtaskovi: jasna hijerarhija --- */
+  .task:not(.sub) .naziv{font-weight:600}
+  .task.sub{background:rgba(122,162,247,.055);padding-left:46px;border-left:3px solid rgba(122,162,247,.32)}
+  .task.sub:hover{background:rgba(122,162,247,.10)}
+  .task.sub.is-crit{border-left-color:var(--bad)}
+  .task.sub .naziv{color:#c3cfdd;font-weight:500}
+  .task.sub .naziv:before{content:'\21B3';color:var(--accent);opacity:.8;font-weight:700;margin-right:7px}
+  .task.sub .check{width:17px;height:17px;border-radius:5px}
+  .subadd{padding-left:50px}
 </style>
 </head>
 <body>
