@@ -113,6 +113,16 @@
   .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
 
   .t-due.over{border-color:rgba(239,111,111,.65) !important; color:#f3a0a0 !important}
+
+  /* --- podtaskovi: jasna hijerarhija --- */
+  .task:not(.sub) .naziv{font-weight:600}
+  .task.sub{background:rgba(122,162,247,.055);padding-left:46px;border-left:3px solid rgba(122,162,247,.32)}
+  .task.sub:hover{background:rgba(122,162,247,.10)}
+  .task.sub.is-crit{border-left-color:var(--bad)}
+  .task.sub .naziv{color:#c3cfdd;font-weight:500}
+  .task.sub .naziv:before{content:'\21B3';color:var(--accent);opacity:.8;font-weight:700;margin-right:7px}
+  .task.sub .check{width:17px;height:17px;border-radius:5px}
+  .subadd{padding-left:50px}
 </style>
 </head>
 <body>
@@ -155,8 +165,8 @@
     <div class="chips" id="f-owner"></div>
     <div class="chips">
       <span class="klabel">Status</span>
-      <span class="chip on" data-st="all">Sve</span>
-      <span class="chip" data-st="Otvoreno">Otvoreno</span>
+      <span class="chip" data-st="all">Sve</span>
+      <span class="chip on" data-st="Otvoreno">Otvoreno</span>
       <span class="chip" data-st="Gotovo" data-acc="good">Gotovo</span>
       <span class="klabel" style="margin-left:8px">Prikaz</span>
       <span class="chip" id="f-overdue" data-acc="warn">Overdue</span>
@@ -216,7 +226,7 @@
 
   var SECRET = localStorage.getItem('bbt_secret') || '';
   var TASKS = [];
-  var fSection='all', fStatus='all', fOwner={}, searchQ='', fOverdue=false, fCrit=false;
+  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false;
   OWNERS.forEach(function(o){ fOwner[o]=true; });
 
   function el(id){ return document.getElementById(id); }
