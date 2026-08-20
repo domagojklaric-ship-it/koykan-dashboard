@@ -129,6 +129,9 @@
   .task.quick .naziv{color:#8fe3ba}
   .task.quick .naziv:before{content:'+';color:var(--good);font-weight:700;margin-right:7px}
   .subadd span{color:var(--good)}
+
+  .chip .ocnt{display:inline-block;min-width:16px;margin-left:4px;padding:0 4px;border-radius:99px;background:rgba(255,255,255,.08);color:var(--faint);font:700 10px/1.6 var(--mono);vertical-align:baseline}
+  .chip.on .ocnt{background:rgba(122,162,247,.20);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -274,15 +277,17 @@
   }
   el('refresh').addEventListener('click', load);
 
+  function secCount(v){ return TASKS.filter(function(t){ return t.status!=='Gotovo' && (v==='all' || t.section===v); }).length; }
   function buildSectionFilter(){
     var c=el('f-section'); c.innerHTML='<span class="klabel">Faza</span>';
     c.appendChild(mk('Sve','all', fSection==='all'));
     SECTIONS.forEach(function(s){ c.appendChild(mk(s, s, fSection===s)); });
-    function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.textContent=label; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
+    function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.innerHTML=esc(label)+' <b class="ocnt">'+secCount(val)+'</b>'; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
   }
   function buildOwnerFilter(){
     var c=el('f-owner'); c.innerHTML='<span class="klabel">Nositelj</span>';
-    OWNERS.forEach(function(o){ var sp=document.createElement('span'); sp.className='chip'+(fOwner[o]?' on':''); sp.textContent=o; sp.addEventListener('click',function(){ var only=OWNERS.every(function(x){return x===o?fOwner[x]:!fOwner[x];}); if(only){OWNERS.forEach(function(x){fOwner[x]=true;});} else {OWNERS.forEach(function(x){fOwner[x]=(x===o);});} renderAll(); }); c.appendChild(sp); });
+    var cnt={}; TASKS.forEach(function(t){ if(t.status==='Gotovo') return; var ow=(OWNERS.indexOf(t.owner)>=0)?t.owner:'Neodređeno'; cnt[ow]=(cnt[ow]||0)+1; });
+    OWNERS.forEach(function(o){ var sp=document.createElement('span'); sp.className='chip'+(fOwner[o]?' on':''); sp.innerHTML=esc(o)+' <b class="ocnt">'+(cnt[o]||0)+'</b>'; sp.title=o+': '+(cnt[o]||0)+' otvorenih'; sp.addEventListener('click',function(){ var only=OWNERS.every(function(x){return x===o?fOwner[x]:!fOwner[x];}); if(only){OWNERS.forEach(function(x){fOwner[x]=true;});} else {OWNERS.forEach(function(x){fOwner[x]=(x===o);});} renderAll(); }); c.appendChild(sp); });
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-st]'), function(ch){
     ch.addEventListener('click', function(){ fStatus=ch.getAttribute('data-st'); Array.prototype.forEach.call(document.querySelectorAll('[data-st]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
@@ -307,7 +312,14 @@
   function ordKey(t){ var o=t.ord; return (typeof o==='number' && !isNaN(o)) ? o : (100000 + TASKS.indexOf(t)); }
   function sortSibs(arr){ return arr.slice().sort(function(a,b){ return ordKey(a)-ordKey(b); }); }
 
-  function renderAll(){ buildSectionFilter(); buildOwnerFilter(); renderProgress(); renderBoard(); }
+  function chipCounts(){
+    var ov=TASKS.filter(function(t){ return isOverdue(t); }).length;
+    var cr=TASKS.filter(function(t){ return t.critical && t.status!=='Gotovo'; }).length;
+    var a=el('f-overdue'), b=el('f-crit');
+    if(a){ a.innerHTML='Overdue <b class="ocnt">'+ov+'</b>'; a.title=ov+' probijenih rokova'; }
+    if(b){ b.innerHTML='Critical <b class="ocnt">'+cr+'</b>'; b.title=cr+' kriticnih'; }
+  }
+  function renderAll(){ buildSectionFilter(); buildOwnerFilter(); chipCounts(); renderProgress(); renderBoard(); }
 
   function renderProgress(){
     var done=TASKS.filter(function(t){return t.status==='Gotovo';}).length, tot=TASKS.length;
