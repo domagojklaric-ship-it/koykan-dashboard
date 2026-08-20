@@ -159,6 +159,7 @@
   </div>
 
   <div class="filters">
+    <div class="chips" id="f-list"></div>
     <div class="chips" id="f-section"></div>
     <div class="chips" id="f-owner"></div>
     <div class="chips">
@@ -218,14 +219,15 @@
 <script>
   /* ====== CONFIG ====== */
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbzDmxkszY2_DErgtwQ3g35BNn4S0MyFoq7zb5lg4-TF5FjdvnLn3rMEP6vNlegjPozRgA/exec';
-  var SECTIONS = ['(D0) Preduvjeti, Xela dokumenti i DE osnivanja','(D1) PEP u prinosni perimetar','(D2) Njemačka strana hrvatskog prijeboja','(D3) Njemački kapitalni kanal','(D4) Partnerstvo i prvi njemački batch'];
+  var SECTIONS = ['HR · (0) Ljuske u pogon i obveznički program','HR · (1) Cap table i Chill Cantina','HR · (2) Hrvatski portfelj u njemačke HoldCo-e','HR · (3) Transformacija i prijeboj','HR · (4) Konverzija i uvrštenje','HR · (5) Preustroj TopCo-a i zatvaranje repova','DE · (D0) Preduvjeti, Xela dokumenti i DE osnivanja','DE · (D1) PEP u prinosni perimetar','DE · (D2) Njemačka strana hrvatskog prijeboja','DE · (D3) Njemački kapitalni kanal','DE · (D4) Partnerstvo i prvi njemački batch'];
+  var LISTS = [['all','Ukupni projekt'],['HR','Hrvatska'],['DE','Njemačka']];
   var OWNERS   = ['Dom','Boro','Tamara','Sandra','Edin','Andrej','DE savjetnik','BDO','Xela','Neodređeno'];
   var STATUSES = ['Otvoreno','Gotovo'];
   /* ==================== */
 
   var SECRET = localStorage.getItem('kcep_secret') || '';
   var TASKS = [];
-  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false;
+  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false, fList='all';
   OWNERS.forEach(function(o){ fOwner[o]=true; });
 
   function el(id){ return document.getElementById(id); }
@@ -267,8 +269,14 @@
   function buildSectionFilter(){
     var c=el('f-section'); c.innerHTML='<span class="klabel">Faza</span>';
     c.appendChild(mk('Sve','all', fSection==='all'));
-    var SHORT={D0:'Preduvjeti + osnivanja',D1:'PEP u prinos',D2:'HR prijeboj',D3:'Kapitalni kanal',D4:'Partner + batch'}; SECTIONS.forEach(function(s){ var L=(s.charAt(0)==='('?s.slice(1,s.indexOf(')')):s); var lbl=SHORT[L]?(L+' - '+SHORT[L]):L; c.appendChild(mk(lbl, s, fSection===s)); });
+    var SHORT={D0:'Preduvjeti + osnivanja',D1:'PEP u prinos',D2:'HR prijeboj',D3:'Kapitalni kanal',D4:'Partner + batch','0':'Ljuske + obveznice','1':'Cap table','2':'Portfelj u HoldCo','3':'Prijeboj','4':'Konverzija','5':'Preustroj TopCo'};
+    SECTIONS.forEach(function(s){ if(fList!=='all' && s.indexOf(fList+' · ')!==0) return; var i1=s.indexOf('('), i2=s.indexOf(')'); var L=(i1>=0&&i2>i1)? s.slice(i1+1,i2) : s; var pre=(fList==='all')? (s.slice(0,2)+' ') : ''; var lbl=pre+(SHORT[L]?(L+' - '+SHORT[L]):L); c.appendChild(mk(lbl, s, fSection===s)); });
     function mk(label,val,on){ var sp=document.createElement('span'); sp.className='chip'+(on?' on':''); sp.textContent=label; sp.title=val; sp.addEventListener('click',function(){ fSection=val; renderAll(); }); return sp; }
+  }
+  function buildListFilter(){
+    var c=el('f-list'); c.innerHTML='<span class="klabel">Lista</span>';
+    LISTS.forEach(function(p){ var sp=document.createElement('span'); sp.className='chip'+(fList===p[0]?' on':''); sp.textContent=p[1];
+      sp.addEventListener('click',function(){ if(fList===p[0]) return; fList=p[0]; fSection='all'; renderAll(); }); c.appendChild(sp); });
   }
   function buildOwnerFilter(){
     var c=el('f-owner'); c.innerHTML='<span class="klabel">Nositelj</span>';
@@ -284,7 +292,8 @@
   function todayStr(){ var d=new Date(); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
-  function passFilter(t){ if(fSection!=='all' && t.section!==fSection) return false;
+  function passFilter(t){ if(fList!=='all' && String(t.section||'').indexOf(fList+' · ')!==0) return false;
+    if(fSection!=='all' && t.section!==fSection) return false;
     if(fStatus!=='all' && t.status!==fStatus) return false;
     if(fOverdue && !isOverdue(t)) return false;
     if(fCrit && !t.critical) return false;
@@ -297,14 +306,19 @@
   function ordKey(t){ var o=t.ord; return (typeof o==='number' && !isNaN(o)) ? o : (100000 + TASKS.indexOf(t)); }
   function sortSibs(arr){ return arr.slice().sort(function(a,b){ return ordKey(a)-ordKey(b); }); }
 
-  function renderAll(){ buildSectionFilter(); buildOwnerFilter(); renderProgress(); renderBoard(); }
+  function renderAll(){ buildListFilter(); buildSectionFilter(); buildOwnerFilter(); renderProgress(); renderBoard(); }
 
   function renderProgress(){
     var done=TASKS.filter(function(t){return t.status==='Gotovo';}).length, tot=TASKS.length;
     el('p-done').textContent=done; el('p-total').textContent=tot;
     el('p-fill').style.width = tot? Math.round(done/tot*100)+'%' : '0%';
     var crit=TASKS.filter(function(t){return t.critical && t.status!=='Gotovo';}).length;
-    el('sub').textContent = tot+' koraka · '+done+' gotovo'+(crit?(' · '+crit+' critical'):'');
+    var inView=TASKS.filter(function(t){ return fList==='all' || String(t.section||'').indexOf(fList+' · ')===0; });
+    var vDone=inView.filter(function(t){return t.status==='Gotovo';}).length;
+    var vCrit=inView.filter(function(t){return t.critical && t.status!=='Gotovo';}).length;
+    var hr=TASKS.filter(function(t){return String(t.section||'').indexOf('HR · ')===0;}).length;
+    var de=TASKS.filter(function(t){return String(t.section||'').indexOf('DE · ')===0;}).length;
+    el('sub').textContent = inView.length+' koraka · '+vDone+' gotovo'+(vCrit?(' · '+vCrit+' critical'):'')+'   |   HR '+hr+' · DE '+de;
   }
 
   function renderBoard(){
