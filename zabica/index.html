@@ -130,8 +130,6 @@
 
   .chip .ocnt{display:inline-block;min-width:16px;margin-left:4px;padding:0 4px;border-radius:99px;background:rgba(255,255,255,.08);color:var(--faint);font:700 10px/1.6 var(--mono);vertical-align:baseline}
   .chip.on .ocnt{background:rgba(122,162,247,.20);color:var(--accent)}
-
-  .t-due.over, .t-sdue.over{border-color:rgba(239,111,111,.65) !important; color:#f3a0a0 !important}
 </style>
 </head>
 <body>
@@ -294,7 +292,6 @@
   el('f-crit').addEventListener('click', function(){ fCrit=!fCrit; this.classList.toggle('on',fCrit); renderAll(); });
 
   function todayStr(){ var d=new Date(); function p(n){return (n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
-  function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
   function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
   function passFilter(t){ if(fSection!=='all' && t.section!==fSection) return false;
@@ -310,7 +307,14 @@
   function ordKey(t){ var o=t.ord; return (typeof o==='number' && !isNaN(o)) ? o : (100000 + TASKS.indexOf(t)); }
   function sortSibs(arr){ return arr.slice().sort(function(a,b){ return ordKey(a)-ordKey(b); }); }
 
-  function renderAll(){ buildSectionFilter(); buildOwnerFilter(); renderProgress(); renderBoard(); }
+  function chipCounts(){
+    var ov=TASKS.filter(function(t){ return isOverdue(t); }).length;
+    var cr=TASKS.filter(function(t){ return t.critical && t.status!=='Gotovo'; }).length;
+    var a=el('f-overdue'), b=el('f-crit');
+    if(a){ a.innerHTML='Overdue <b class="ocnt">'+ov+'</b>'; a.title=ov+' probijenih rokova (otvoreni taskovi i podtaskovi)'; }
+    if(b){ b.innerHTML='Critical <b class="ocnt">'+cr+'</b>'; b.title=cr+' kritičnih (otvoreni taskovi i podtaskovi)'; }
+  }
+  function renderAll(){ buildSectionFilter(); buildOwnerFilter(); chipCounts(); renderProgress(); renderBoard(); }
 
   function renderProgress(){
     var done=TASKS.filter(function(t){return t.status==='Gotovo';}).length, tot=TASKS.length;
@@ -374,12 +378,12 @@
       '<div class="ctl">'+
         ownerSelect(t)+
         statusSelect(t)+
-        (isSub?'':'<input type="date" class="t-sdue'+dueCls(t.sdue,t.status)+'" value="'+escAttr(dateVal(t.sdue))+'" title="Status rok">')+
+        (isSub?'':'<input type="date" class="t-sdue" value="'+escAttr(dateVal(t.sdue))+'" title="Status rok">')+
         '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
-        '<input type="date" class="t-due'+dueCls(t.due,t.status)+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
+        '<input type="date" class="t-due" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
