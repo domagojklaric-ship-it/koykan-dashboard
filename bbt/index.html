@@ -123,6 +123,12 @@
   .task.sub .naziv:before{content:'\21B3';color:var(--accent);opacity:.8;font-weight:700;margin-right:7px}
   .task.sub .check{width:17px;height:17px;border-radius:5px}
   .subadd{padding-left:50px}
+
+  /* --- Brza operativa --- */
+  .task.quick{background:rgba(90,209,154,.07);border-left:3px solid rgba(90,209,154,.55)}
+  .task.quick .naziv{color:#8fe3ba}
+  .task.quick .naziv:before{content:'+';color:var(--good);font-weight:700;margin-right:7px}
+  .subadd span{color:var(--good)}
 </style>
 </head>
 <body>
@@ -329,11 +335,13 @@
         card.appendChild(taskRow(top,false));
         var subs=sortSibs(secTasks.filter(function(s){return s.parent===top.id;}));
         subs.forEach(function(s){ if(passFilter(s)) card.appendChild(taskRow(s,true)); });
+        if(isQuick(top)) card.appendChild(subAddRow(top));
       });
       board.appendChild(card);
     });
   }
 
+  function isQuick(t){ return /brza operativa/i.test(String(t.naziv||'')); }
   function subAddRow(top){
     var d=document.createElement('div'); d.className='subadd';
     var s=document.createElement('span'); s.textContent='+ podtask';
@@ -350,7 +358,7 @@
   function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
-    var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'');
+    var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'')+((!isSub&&isQuick(t))?' quick':'');
     row.setAttribute('data-id', t.id);
     row.innerHTML =
       '<span class="grip" draggable="true" title="Povuci za promjenu redoslijeda">⠿</span>'+
