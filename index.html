@@ -390,9 +390,20 @@
   }
   function buildNotes(text,date,rest,critical,link){ var out=[]; if(critical) out.push('CRITICAL'); var has=(text||date); if(has) out.push('NEXT STEP: '+(text||'')+(date?' - '+fmtFull(date):'')); if(link) out.push('LINK: '+link); if(rest) out.push(rest); return out.join('\n'); }
 
+  function fetchRetry_(url, tries){
+    return fetch(url,{method:'GET'}).then(function(r){ return r.text(); }).then(function(txt){
+      var s=String(txt).trim();
+      if(s.charAt(0)==='{' || s.charAt(0)==='[') return JSON.parse(s);
+      throw new Error('Google trenutno ne odgovara');
+    }).catch(function(e){
+      if(tries>1) return new Promise(function(res){ setTimeout(res,1500); }).then(function(){ return fetchRetry_(url, tries-1); });
+      throw e;
+    });
+  }
   function api(params){ params.secret=getSecret(); params.listId=LIST_ID;
     var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-    return fetch(ENDPOINT+'?'+qs,{method:'GET'}).then(function(r){return r.json();}); }
+    var _tries = /(^|&)action=(tasks|get|lists)(&|$)/.test(qs) ? 3 : 1;
+    return fetchRetry_(ENDPOINT+'?'+qs, _tries); }
 
   var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', waitFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, ovrOnly=false, commOnly=false, tagOwner=false;
   var el=function(id){return document.getElementById(id);};
