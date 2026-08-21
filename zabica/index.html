@@ -280,7 +280,7 @@
     el('sub').textContent='učitavam…';
     api({action:'list'}).then(function(res){
       if(res && res.error==='auth'){ showSetup('Kod više ne vrijedi, unesi ponovno.'); return; }
-      if(res && res.ok){ TASKS=res.tasks||[]; renderAll(); banner('Osvježeno'); }
+      if(res && res.ok){ TASKS=res.tasks||[]; autoFlip(); renderAll(); banner('Osvježeno'); }
       else { banner('Greška: '+((res&&res.error)||'?')); }
     }).catch(function(e){ banner('Greška veze: '+e); });
   }
@@ -328,6 +328,18 @@
     var a=el('f-overdue'), b=el('f-crit');
     if(a){ a.innerHTML='Overdue <b class="ocnt">'+ov+'</b>'; a.title=ov+' probijenih rokova (otvoreni taskovi i podtaskovi)'; }
     if(b){ b.innerHTML='Critical <b class="ocnt">'+cr+'</b>'; b.title=cr+' kritičnih (otvoreni taskovi i podtaskovi)'; }
+  }
+  function autoFlip(){
+    var todo = TASKS.filter(function(t){ return t.status!=='Gotovo' && /^\s*pending\b/i.test(String(t.note||'')) && isOverdue(t); });
+    if(!todo.length) return;
+    var d=new Date(), dm=d.getDate()+'.'+(d.getMonth()+1)+'.';
+    todo.forEach(function(t){
+      var nn=String(t.note||'').replace(/^\s*pending\b/i,'ACTION');
+      var op=('AUTO: '+dm+' PENDING -> ACTION, rok probijen\n'+String(t.opis||'')).replace(/\n+$/,'');
+      t.note=nn; t.opis=op;
+      api({action:'update', id:t.id, note:nn, opis:op}).catch(function(){});
+    });
+    setTimeout(function(){ banner(todo.length+' tema prebacena iz PENDING u ACTION (rok probijen)'); }, 400);
   }
   function renderAll(){ buildSectionFilter(); buildOwnerFilter(); chipCounts(); renderProgress(); renderBoard(); }
 
