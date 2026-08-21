@@ -246,11 +246,22 @@
   function dateVal(d){ if(!d) return ''; var s=String(d); if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10); var x=new Date(s); if(isNaN(x.getTime())) return ''; function p(n){return (n<10?'0':'')+n;} return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate()); }
   function banner(m){ var b=el('banner'); b.textContent=m; b.classList.add('show'); clearTimeout(banner._t); banner._t=setTimeout(function(){b.classList.remove('show');},1700); }
 
+  function fetchRetry_(url, tries){
+    return fetch(url, {method:'GET'}).then(function(r){ return r.text(); }).then(function(txt){
+      var s = String(txt).trim();
+      if (s.charAt(0)==='{' || s.charAt(0)==='[') return JSON.parse(s);
+      throw new Error('Google trenutno ne odgovara');
+    }).catch(function(e){
+      if (tries > 1) return new Promise(function(res){ setTimeout(res, 1500); }).then(function(){ return fetchRetry_(url, tries-1); });
+      throw e;
+    });
+  }
   function api(params){
     if(ENDPOINT.indexOf('PASTE_')===0){ return Promise.reject('ENDPOINT nije postavljen'); }
     params.secret = SECRET;
     var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
-    return fetch(ENDPOINT+'?'+qs, {method:'GET'}).then(function(r){ return r.json(); });
+    var _tries = /(^|&)action=(list|get)(&|$)/.test(qs) ? 3 : 1;
+    return fetchRetry_(ENDPOINT+'?'+qs, _tries);
   }
 
   function showSetup(msg){ el('setup').classList.remove('hide'); el('app').classList.add('hide'); if(msg) el('setup-err').textContent=msg; }
