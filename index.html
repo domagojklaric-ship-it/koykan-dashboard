@@ -421,7 +421,7 @@
         var _wt=(n.text||'').replace(/^[\s\-–—|:]+/,''); var wait=''; if(/^action\b/i.test(_wt)) wait='action'; else if(/^pending\b/i.test(_wt)) wait='pending'; else if(/^on hold\b/i.test(_wt)) wait='hold';
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
                  due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, link:n.link }; });
-      buildOwnerFilters(); render();
+      autoFlip(); buildOwnerFilters(); render();
       el('bar').style.display='flex'; el('prog').style.display='flex';
       el('synced').textContent='sync '+new Date().toLocaleTimeString();
     }).catch(function(err){ el('loading').style.display='none'; banner('Ne mogu dohvatiti endpoint ('+err+').'); });
@@ -453,7 +453,7 @@
         var onCount=0; owners.forEach(function(x){ if(ownerOn[x]) onCount++; });
         if(ownerOn[o] && onCount===1){ owners.forEach(function(x){ ownerOn[x]=true; }); }
         else { owners.forEach(function(x){ ownerOn[x]=(x===o); }); }
-        buildOwnerFilters(); render();
+        autoFlip(); buildOwnerFilters(); render();
       }); box.appendChild(c); });
   }
   function byOwner(a,b){ var ia=OWNER_ORDER.indexOf(a),ib=OWNER_ORDER.indexOf(b); if(ia<0)ia=99; if(ib<0)ib=99; return ia-ib||a.localeCompare(b); }
@@ -466,6 +466,20 @@
     if(winFilter==='tomorrow'){ var tm=today0(); tm.setDate(tm.getDate()+1); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===tm.getTime(); }); }
     return true; }
   function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(typeFilter==='week'&&!isWeek(t)) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(searchQ && norm(t.title+' '+(t.nextText||'')+' '+(t.owner||'')).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
+  function autoFlip(){
+    var todo=TASKS.filter(function(t){ return !t.done && /^\s*pending\b/i.test(String(t.nextText||'')) && isOverdue(t); });
+    if(!todo.length) return;
+    var d=new Date(), dm=d.getDate()+'.'+(d.getMonth()+1)+'.';
+    todo.forEach(function(t){
+      var nx=String(t.nextText||'').replace(/^\s*pending\b/i,'ACTION');
+      var rest=('AUTO: '+dm+' PENDING -> ACTION, rok probijen\n'+String(t.rest||'')).replace(/\n+$/,'');
+      t.nextText=nx; t.rest=rest;
+      var notes=buildNotes(nx, t.nextDate, rest, t.critical, t.link);
+      t.notes=notes;
+      api({action:'update', taskId:t.id, notes:notes}).catch(function(){});
+    });
+    setTimeout(function(){ banner(todo.length+' tema prebačena iz PENDING u ACTION (rok probijen)'); }, 500);
+  }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.isProject && t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
   function render(){
