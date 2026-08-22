@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="hr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Koykan · Registar obveza (RECC)</title>
+<style>
+:root{--bg:#13161b;--panel:#1a1a25;--panel2:#212732;--line:#2c3340;--text:#e8ebef;--muted:#98a1ac;--faint:#677081;
+--accent:#5aa6f0;--ok:#4fd089;--over:#ef6f6f;--soon:#f5c451;--none:#39414f;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:400 13.5px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1400px;margin:0 auto;padding:20px 18px 80px}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+h1{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:12.5px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
+button,select,input{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.pri{background:var(--accent);border-color:var(--accent);color:#0b1016;font-weight:600}
+.chip{padding:6px 11px;border-radius:99px;font-size:12.5px}
+.chip.on{border-color:var(--accent);color:var(--accent)}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+th{text-align:left;font:600 10.5px/1 ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);padding:0 8px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.off td{opacity:.42}
+td input,td select{padding:5px 7px;border-radius:6px;width:100%}
+td.naziv{min-width:250px}
+td.w80{width:110px}
+td.w70{width:92px}
+td.w60{width:74px}
+.grid{display:flex;gap:3px}
+.cell{width:26px;height:24px;border-radius:5px;background:var(--none);display:flex;align-items:center;justify-content:center;font:600 9px/1 ui-monospace,monospace;color:#0b1016}
+.cell.isporuceno{background:var(--ok)}
+.cell.kasnilo{background:var(--soon)}
+.cell.propusteno{background:var(--over)}
+.cell.ceka{background:var(--accent)}
+.cell.none{color:var(--faint);background:transparent;border:1px dashed var(--line)}
+.legend{display:flex;gap:14px;color:var(--muted);font-size:12px;margin-top:14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.gate{max-width:340px;margin:14vh auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px}
+.gate h2{font-size:16px;margin-bottom:6px}
+.gate p{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+.gate input{width:100%;margin-bottom:10px}
+.gate button{width:100%}
+#banner{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--accent);border-radius:8px;padding:9px 16px;display:none;z-index:9;font-size:13px}
+.del{color:var(--faint);background:none;border:none;padding:4px 6px;cursor:pointer}
+.del:hover{color:var(--over)}
+.addbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:16px;display:none;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.addbox.show{display:flex}
+.addbox label{display:block;font:600 10px/1 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.foot{color:var(--faint);font-size:11.5px;margin-top:22px}
+</style></head><body>
+<div id="banner"></div>
+
+<div id="gate" class="gate">
+  <h2>Registar obveza</h2>
+  <p>Ova stranica je samo za Doma. Upisi kod.</p>
+  <input id="gate-input" type="password" placeholder="kod" autocomplete="off">
+  <button class="pri" id="gate-go">Udi</button>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <header>
+    <h1>Registar ponavljajucih obveza</h1>
+    <span class="sub" id="sub"></span>
+  </header>
+
+  <div class="bar">
+    <button class="chip on" data-f="all">Sve</button>
+    <button class="chip" data-f="on">Aktivne</button>
+    <button class="chip" data-f="off">Neaktivne</button>
+    <span style="flex:1"></span>
+    <button id="toggle-add">+ Nova obveza</button>
+    <button id="run">Pokreni provjeru sada</button>
+    <button id="reload">Osvjezi</button>
+  </div>
+
+  <div class="addbox" id="addbox">
+    <div style="flex:2;min-width:220px"><label>Naziv</label><input id="n-naziv" placeholder="npr. Analiza placa SK i CZ"></div>
+    <div><label>Nositelj</label><select id="n-owner"></select></div>
+    <div><label>Ritam</label><select id="n-ritam"></select></div>
+    <div><label>Rok (dan)</label><input id="n-rok" type="number" min="1" max="31" value="5" style="width:80px"></div>
+    <div><label>Aktivna</label><select id="n-akt"><option value="NE">NE</option><option value="DA">DA</option></select></div>
+    <div style="flex:1;min-width:160px"><label>Napomena</label><input id="n-nap"></div>
+    <button class="pri" id="n-save">Dodaj</button>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Obveza</th><th>Nositelj</th><th>Ritam</th><th>Rok</th><th>Aktivna</th>
+      <th>Zadnjih 12 perioda &rarr;</th><th></th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
+
+  <div class="legend">
+    <span><i style="background:#4fd089"></i>isporuceno</span>
+    <span><i style="background:#f5c451"></i>kasnilo</span>
+    <span><i style="background:#ef6f6f"></i>propusteno</span>
+    <span><i style="background:#5aa6f0"></i>u tijeku</span>
+    <span><i style="background:#39414f"></i>nije bilo obveze</span>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+(function(){
+var ENDPOINT = 'https://script.google.com/macros/s/AKfycbz0F81jPd8rl9PnO9hwbpXd0R49YESIA2iQHqSGytqK1l9PqEXNvAWrwOSfhjXq3kd51Q/exec';
+var OWNERS = ['Dom','Lucija','Stefan','Silva','Davor','Ankica','Natasa','Nino','AnaT','Tamara','Private'];
+var RITAM_LBL = {dnevno:'dnevno',tjedno:'tjedno',mjesecno:'mjesecno',kvartalno:'kvartalno',polugodisnje:'polugodisnje',godisnje:'godisnje'};
+var DATA = {registar:[],povijest:[],ritmovi:[]};
+var filter = 'all';
+
+function el(id){return document.getElementById(id);}
+function banner(t){var b=el('banner');b.textContent=t;b.style.display='block';setTimeout(function(){b.style.display='none';},2600);}
+function getSecret(){return localStorage.getItem('obveze_secret')||'';}
+
+function fetchRetry_(url,tries){
+  return fetch(url,{method:'GET'}).then(function(r){return r.text();}).then(function(txt){
+    var s=String(txt).trim();
+    if(s.charAt(0)==='{'||s.charAt(0)==='[') return JSON.parse(s);
+    throw new Error('Google trenutno ne odgovara');
+  }).catch(function(e){
+    if(tries>1) return new Promise(function(res){setTimeout(res,1500);}).then(function(){return fetchRetry_(url,tries-1);});
+    throw e;
+  });
+}
+function api(p){
+  p.secret=getSecret();
+  var qs=Object.keys(p).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(p[k]);}).join('&');
+  return fetchRetry_(ENDPOINT+'?'+qs, 3);
+}
+
+function pad(n){return ('0'+n).slice(-2);}
+function periodKeys(ritam,n){
+  var out=[],now=new Date(),y=now.getFullYear(),m=now.getMonth();
+  var i;
+  if(ritam==='mjesecno'){for(i=n-1;i>=0;i--){var d=new Date(y,m-i,1);out.push({k:d.getFullYear()+'-'+pad(d.getMonth()+1),l:pad(d.getMonth()+1)});}}
+  else if(ritam==='kvartalno'){var q=Math.floor(m/3);for(i=n-1;i>=0;i--){var qq=q-i,yy=y;while(qq<0){qq+=4;yy--;}out.push({k:yy+'-Q'+(qq+1),l:'Q'+(qq+1)});}}
+  else if(ritam==='polugodisnje'){var h=m<6?0:1;for(i=n-1;i>=0;i--){var hh=h-i,yh=y;while(hh<0){hh+=2;yh--;}out.push({k:yh+'-H'+(hh+1),l:'H'+(hh+1)});}}
+  else if(ritam==='godisnje'){for(i=n-1;i>=0;i--){out.push({k:String(y-i),l:String(y-i).slice(2)});}}
+  else if(ritam==='tjedno'){for(i=n-1;i>=0;i--){var dt=new Date(y,m,now.getDate()-i*7);var j1=new Date(dt.getFullYear(),0,1);var tj=Math.ceil((((dt-j1)/86400000)+j1.getDay()+1)/7);out.push({k:dt.getFullYear()+'-T'+pad(tj),l:'T'+tj});}}
+  else {for(i=n-1;i>=0;i--){var dd=new Date(y,m,now.getDate()-i);out.push({k:dd.getFullYear()+'-'+pad(dd.getMonth()+1)+'-'+pad(dd.getDate()),l:String(dd.getDate())});}}
+  return out;
+}
+
+function povFor(id){
+  var m={};
+  DATA.povijest.forEach(function(h){ if(String(h.obvezaId)===String(id)) m[String(h.period)]=String(h.status||''); });
+  return m;
+}
+
+function render(){
+  var tb=el('tb'); tb.innerHTML='';
+  var list=DATA.registar.filter(function(o){
+    var on=String(o.aktivna).toUpperCase().indexOf('D')===0;
+    if(filter==='on') return on;
+    if(filter==='off') return !on;
+    return true;
+  });
+
+  list.forEach(function(o){
+    var on=String(o.aktivna).toUpperCase().indexOf('D')===0;
+    var tr=document.createElement('tr'); if(!on) tr.className='off';
+    var hist=povFor(o.id);
+    var keys=periodKeys(String(o.ritam),12);
+    var cells=keys.map(function(p){
+      var st=hist[p.k]||'';
+      var cls=st==='isporuceno'?'isporuceno':st==='kasnilo'?'kasnilo':st==='propusteno'?'propusteno':st==='ceka'?'ceka':'none';
+      return '<div class="cell '+cls+'" title="'+p.k+' - '+(st||'nema')+'">'+p.l+'</div>';
+    }).join('');
+
+    var ritOpts=Object.keys(RITAM_LBL).map(function(r){return '<option value="'+r+'"'+(String(o.ritam)===r?' selected':'')+'>'+RITAM_LBL[r]+'</option>';}).join('');
+    var ownOpts=OWNERS.map(function(w){return '<option'+(String(o.owner)===w?' selected':'')+'>'+w+'</option>';}).join('');
+
+    tr.innerHTML =
+      '<td class="naziv"><input class="f-naziv" value="'+String(o.naziv||'').replace(/"/g,'&quot;')+'"></td>'+
+      '<td class="w80"><select class="f-owner">'+ownOpts+'</select></td>'+
+      '<td class="w80"><select class="f-ritam">'+ritOpts+'</select></td>'+
+      '<td class="w60"><input class="f-rok" type="number" min="1" max="31" value="'+(o.rokDan||1)+'"></td>'+
+      '<td class="w70"><select class="f-akt"><option value="DA"'+(on?' selected':'')+'>DA</option><option value="NE"'+(!on?' selected':'')+'>NE</option></select></td>'+
+      '<td><div class="grid">'+cells+'</div></td>'+
+      '<td><button class="del" title="Obrisi">&#10005;</button></td>';
+
+    tr.querySelectorAll('.f-naziv,.f-owner,.f-ritam,.f-rok,.f-akt').forEach(function(inp){
+      inp.addEventListener('change',function(){
+        api({action:'update',id:o.id,
+          naziv:tr.querySelector('.f-naziv').value,
+          owner:tr.querySelector('.f-owner').value,
+          ritam:tr.querySelector('.f-ritam').value,
+          rokDan:tr.querySelector('.f-rok').value,
+          aktivna:tr.querySelector('.f-akt').value
+        }).then(function(){banner('Spremljeno');load();}).catch(function(){banner('Ne mogu spremiti');});
+      });
+    });
+    tr.querySelector('.del').addEventListener('click',function(){
+      if(!confirm('Obrisati obvezu "'+o.naziv+'"? Povijest ostaje.')) return;
+      api({action:'delete',id:o.id}).then(function(){banner('Obrisano');load();});
+    });
+    tb.appendChild(tr);
+  });
+
+  var akt=DATA.registar.filter(function(o){return String(o.aktivna).toUpperCase().indexOf('D')===0;}).length;
+  var prop=DATA.povijest.filter(function(h){return String(h.status)==='propusteno';}).length;
+  var ceka=DATA.povijest.filter(function(h){return String(h.status)==='ceka';}).length;
+  el('sub').textContent=DATA.registar.length+' obveza · '+akt+' aktivnih · '+ceka+' u tijeku · '+prop+' propusteno ukupno';
+  el('foot').textContent=DATA.lastRun?('Zadnja provjera: '+DATA.lastRun):'Dnevna provjera jos nije odradena.';
+}
+
+function load(){
+  api({action:'list'}).then(function(res){
+    if(res.error){ banner(res.error); if(/kod/i.test(res.error)){localStorage.removeItem('obveze_secret');location.reload();} return; }
+    DATA=res; render();
+  }).catch(function(){ banner('Ne mogu ucitati registar'); });
+}
+
+function boot(){
+  el('app').style.display='block'; el('gate').style.display='none';
+  var os=el('n-owner'); OWNERS.forEach(function(w){var o=document.createElement('option');o.textContent=w;os.appendChild(o);});
+  var rs=el('n-ritam'); Object.keys(RITAM_LBL).forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=RITAM_LBL[r];rs.appendChild(o);});
+  rs.value='mjesecno';
+  load();
+}
+el('gate-go').addEventListener('click',function(){
+  var v=el('gate-input').value.trim(); if(!v) return;
+  localStorage.setItem('obveze_secret',v); boot();
+});
+el('gate-input').addEventListener('keydown',function(e){ if(e.key==='Enter') el('gate-go').click(); });
+
+document.querySelectorAll('.chip').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on'); filter=b.dataset.f; render();
+  });
+});
+el('toggle-add').addEventListener('click',function(){ el('addbox').classList.toggle('show'); });
+el('reload').addEventListener('click',load);
+el('run').addEventListener('click',function(){
+  banner('Provjera pokrenuta, moze potrajati...');
+  api({action:'run'}).then(function(r){ banner(r.error?r.error:'Gotovo'); load(); }).catch(function(){banner('Nije proslo, probaj opet');});
+});
+el('n-save').addEventListener('click',function(){
+  var naziv=el('n-naziv').value.trim(); if(!naziv){banner('Upisi naziv');return;}
+  api({action:'add',naziv:naziv,owner:el('n-owner').value,ritam:el('n-ritam').value,
+       rokDan:el('n-rok').value,aktivna:el('n-akt').value,napomena:el('n-nap').value})
+   .then(function(){ el('n-naziv').value=''; el('n-nap').value=''; banner('Dodano'); load(); });
+});
+
+if(getSecret()) boot();
+})();
+</script>
+</body></html>
