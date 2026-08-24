@@ -131,6 +131,8 @@
   .chip .ocnt{display:inline-block;min-width:16px;margin-left:4px;padding:0 4px;border-radius:99px;background:rgba(255,255,255,.08);color:var(--faint);font:700 10px/1.6 var(--mono);vertical-align:baseline}
   .chip.on .ocnt{background:rgba(122,162,247,.20);color:var(--accent)}
 
+  .icon.comm.con{color:#ffce85}
+  .t-due.due-comm{border-color:rgba(255,206,133,.60) !important; color:#ffce85 !important}
   .t-due.over, .t-sdue.over{border-color:rgba(239,111,111,.65) !important; color:#f3a0a0 !important}
 </style>
 </head>
@@ -329,6 +331,9 @@
   function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
   function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
+  function isComm(t){ return /^\s*COMMITTED\s*$/im.test(t.opis||""); }
+  function toggleComm(t){ var was=isComm(t); var ls=(t.opis||"").split("\n").filter(function(l){ return !/^\s*COMMITTED\s*$/i.test(l); });
+    var no = was ? ls.join("\n").replace(/^\n+/,"") : ("COMMITTED\n"+ls.join("\n")).replace(/\n+$/,""); update(t, {opis:no}); }
   function effDue(t){ var a=t.due||"", b=t.sdue||""; if(a&&b) return a<b?a:b; return a||b||""; }
   function offStr(n){ var d=new Date(); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
   function weekEndStr(){ var d=new Date(); var wd=d.getDay()===0?7:d.getDay(); return offStr(7-wd); }
@@ -449,8 +454,9 @@
         '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
         '<button class="icon link'+(t.link?' on':'')+'" title="Link (Google Drive doc)">🔗</button>'+
         '<button class="icon crit'+(t.critical?' on':'')+'" title="Critical">⚑</button>'+
+        '<button class="icon comm'+(isComm(t)?' con':'')+'" title="Fiks rok — klik za zaključati">'+(isComm(t)?'🔒':'○')+'</button>'+
         '<button class="icon del" title="Obriši">✕</button>'+
-        '<input type="date" class="t-due'+dueCls(t.due,t.status)+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
+        '<input type="date" class="t-due'+dueCls(t.due,t.status)+(isComm(t)?' due-comm':'')+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
     row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
@@ -461,6 +467,7 @@
     row.querySelector('.status').addEventListener('change', function(){ update(t, {status:this.value}); });
     row.querySelector('.t-sdue')?.addEventListener('change', function(){ update(t, {sdue:this.value}); });
     row.querySelector('.t-due').addEventListener('change', function(){ update(t, {due:this.value}); });
+    var _cb=row.querySelector('.comm'); if(_cb) _cb.addEventListener('click', function(){ toggleComm(t); });
     row.querySelector('.crit').addEventListener('click', function(){ update(t, {critical: t.critical?'false':'true'}); });
     var ob=row.querySelector('.icon.opis');
     ob.addEventListener('click', function(){ openOpis(t); });
