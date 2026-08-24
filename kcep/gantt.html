@@ -96,7 +96,7 @@ function el(h){var d=document.createElement("div");d.innerHTML=h;return d.firstE
 function api(p){var q=Object.keys(p).map(function(k){return k+"="+encodeURIComponent(p[k]);}).join("&");
  return fetch(ENDPOINT+"?secret="+encodeURIComponent(SECRET)+"&"+q).then(function(r){return r.json();});}
 
-function codeOf(t){var m=(t.naziv||"").match(/^(HR|DE|KD|K)-(\d+)/);return m?m[0]:null;}
+function codeOf(t){var m=(t.naziv||"").match(/^(HR|DE|KD|K)-\d+(?:[.\-]\d+)?/);return m?m[0]:null;}
 function streamOf(c){return c?c.split("-")[0]:null;}
 function depsOf(t){var m=(t.opis||"").match(/Ovisi o:\s*([^\n]+)/);if(!m)return[];
  return m[1].split(/[,;]/).map(function(s){var x=s.trim().match(/^(HR|DE|KD|K)-\d+/);return x?x[0]:null;}).filter(Boolean);}
