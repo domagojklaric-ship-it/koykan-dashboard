@@ -174,6 +174,15 @@
     <div class="chips" id="f-section"></div>
     <div class="chips" id="f-owner"></div>
     <div class="chips">
+      <span class="klabel">Vrijeme</span>
+      <span class="chip on" data-tm="all">Bilo kad</span>
+      <span class="chip" data-tm="dated">Ima rok</span>
+      <span class="chip" data-tm="today">Danas</span>
+      <span class="chip" data-tm="tomorrow">Sutra</span>
+      <span class="chip" data-tm="week">Do kraja tjedna</span>
+      <span class="chip" data-tm="none">Bez roka</span>
+    </div>
+    <div class="chips">
       <span class="klabel">Status</span>
       <span class="chip" data-st="all">Sve</span>
       <span class="chip on" data-st="Otvoreno">Otvoreno</span>
@@ -238,7 +247,7 @@
 
   var SECRET = localStorage.getItem('kcep_secret') || '';
   var TASKS = [];
-  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false, fList='all';
+  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false, fList='all', fTime='all';
   OWNERS.forEach(function(o){ fOwner[o]=true; });
 
   function el(id){ return document.getElementById(id); }
@@ -309,6 +318,9 @@
   Array.prototype.forEach.call(document.querySelectorAll('[data-st]'), function(ch){
     ch.addEventListener('click', function(){ fStatus=ch.getAttribute('data-st'); Array.prototype.forEach.call(document.querySelectorAll('[data-st]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
   });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tm]'), function(ch){
+    ch.addEventListener('click', function(){ fTime=ch.getAttribute('data-tm'); Array.prototype.forEach.call(document.querySelectorAll('[data-tm]'),function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
+  });
   el('search').addEventListener('input', function(){ searchQ=this.value.toLowerCase().trim(); renderAll(); });
   el('f-overdue').addEventListener('click', function(){ fOverdue=!fOverdue; this.classList.toggle('on',fOverdue); renderAll(); });
   el('f-crit').addEventListener('click', function(){ fCrit=!fCrit; this.classList.toggle('on',fCrit); renderAll(); });
@@ -317,7 +329,21 @@
   function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
   function isOverdue(t){ if(t.status==='Gotovo') return false; var td=todayStr(); return (!!t.sdue && t.sdue<td) || (!!t.due && t.due<td); }
 
-  function passFilter(t){ if(fList!=='all' && String(t.section||'').indexOf(fList+' · ')!==0) return false;
+  function effDue(t){ var a=t.due||"", b=t.sdue||""; if(a&&b) return a<b?a:b; return a||b||""; }
+  function offStr(n){ var d=new Date(); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+  function weekEndStr(){ var d=new Date(); var wd=d.getDay()===0?7:d.getDay(); return offStr(7-wd); }
+  function passTime(t){
+    if(fTime==="all") return true;
+    var dd=effDue(t);
+    if(fTime==="none") return !dd;
+    if(!dd) return false;
+    if(fTime==="dated") return true;
+    if(fTime==="today") return dd===offStr(0);
+    if(fTime==="tomorrow") return dd===offStr(1);
+    if(fTime==="week") return dd<=weekEndStr();
+    return true;
+  }
+  function passFilter(t){ if(!passTime(t)) return false; if(fList!=='all' && String(t.section||'').indexOf(fList+' · ')!==0) return false;
     if(fSection!=='all' && t.section!==fSection) return false;
     if(fStatus!=='all' && t.status!==fStatus) return false;
     if(fOverdue && !isOverdue(t)) return false;
