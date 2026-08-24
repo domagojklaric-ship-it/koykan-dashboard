@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="hr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Koykan · KCEP vremenski pogled</title>
+<style>
+:root{--bg:#0e1116;--panel:#161b22;--panel2:#1b2230;--line:#283041;--text:#e6edf3;--faint:#8b97a7;--dim:#5b6472;
+--accent:#7aa2f7;--good:#5ad19a;--warn:#e0af68;--bad:#ef6f6f;--hr:#7aa2f7;--de:#e0af68;--k:#b48ead;--gold:#8B6914;
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 var(--body)}
+.wrap{max-width:1720px;margin:0 auto;padding:18px 20px 80px}
+h1{font-size:19px;margin:0 0 2px;letter-spacing:.2px}
+.brand{font-size:10px;letter-spacing:2.4px;color:var(--gold);text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.sub{color:var(--faint);font-size:12.5px;margin-bottom:16px}
+.sub b{color:var(--text);font-weight:600}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);
+border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.bar .lbl{font-size:10px;letter-spacing:1.6px;color:var(--dim);text-transform:uppercase;margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--faint);border-radius:999px;
+padding:4px 11px;font-size:12px;cursor:pointer;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#0e1116;font-weight:600}
+input[type=date],input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--text);
+border-radius:6px;padding:4px 7px;font:12px var(--body)}
+.sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+/* ---- koraci ---- */
+.lane-hd{display:grid;grid-template-columns:70px 1fr 1fr;gap:10px;position:sticky;top:0;z-index:5;
+background:var(--bg);padding:6px 0 8px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.lane-hd div{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--dim);font-weight:700}
+.lane-hd .hHR{color:var(--hr)}.lane-hd .hDE{color:var(--de)}
+.stage{display:grid;grid-template-columns:70px 1fr 1fr;gap:10px;border-bottom:1px solid var(--line);padding:9px 0}
+.stage:hover{background:#12161d}
+.snum{font:600 11px/1.3 var(--mono);color:var(--faint);padding-top:3px}
+.snum b{display:block;font-size:16px;color:var(--text);font-weight:700}
+.snum span{color:var(--dim);font-size:10px}
+.cell{display:flex;flex-direction:column;gap:5px;min-width:0}
+.card{border-left:3px solid var(--dim);background:var(--panel);border-radius:0 7px 7px 0;padding:6px 9px;cursor:pointer}
+.card:hover{background:var(--panel2)}
+.card.HR{border-left-color:var(--hr)}.card.DE{border-left-color:var(--de)}
+.card.K,.card.KD{border-left-color:var(--k)}
+.card.crit{box-shadow:inset 2px 0 0 var(--bad)}
+.code{font:700 11px var(--mono);color:var(--accent)}
+.card.DE .code{color:var(--de)}.card.K .code,.card.KD .code{color:var(--k)}
+.ttl{font-size:12.5px;color:var(--text);margin-top:1px}
+.meta{font-size:10.5px;color:var(--dim);margin-top:2px;font-family:var(--mono)}
+.flag{display:inline-block;font:700 9px var(--mono);color:var(--bad);border:1px solid var(--bad);
+border-radius:3px;padding:0 3px;margin-left:5px;vertical-align:1px}
+.flag.fix{color:var(--good);border-color:var(--good)}
+.done{opacity:.42}
+.empty{color:var(--dim);font-size:11.5px;font-style:italic;padding:3px 2px}
+/* ---- gantt ---- */
+#gantt{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table.g{border-collapse:collapse;font-size:12px;min-width:100%}
+table.g th,table.g td{border-bottom:1px solid var(--line);padding:0;height:26px}
+table.g th{position:sticky;top:0;background:var(--panel2);z-index:3;font-size:10px;letter-spacing:.5px;
+color:var(--faint);font-weight:600;padding:5px 6px;white-space:nowrap;border-right:1px solid var(--line)}
+td.lab{padding:3px 9px;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:2;
+border-right:1px solid var(--line);max-width:430px;overflow:hidden;text-overflow:ellipsis}
+th.lab{position:sticky;left:0;z-index:4;text-align:left}
+td.slot{min-width:34px;border-right:1px solid #1e2532}
+.gb{height:15px;border-radius:3px;margin:0 1px;display:block}
+.gb.HR{background:var(--hr)}.gb.DE{background:var(--de)}.gb.K,.gb.KD{background:var(--k)}
+.gb.crit{outline:1.5px solid var(--bad);outline-offset:1px}
+.gsec{background:#11151c;font:700 10px var(--mono);letter-spacing:1.2px;color:var(--faint)}
+/* ---- panel ---- */
+#pop{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+#pop.on{display:flex}
+#pop .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:620px;width:100%;
+max-height:82vh;overflow:auto;padding:18px 20px}
+#pop h3{margin:0 0 3px;font-size:15px}
+#pop .x{float:right;cursor:pointer;color:var(--dim);font-size:20px;line-height:1}
+#pop dl{margin:12px 0 0;display:grid;grid-template-columns:112px 1fr;gap:6px 12px;font-size:12.5px}
+#pop dt{color:var(--dim);font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;padding-top:2px}
+#pop ul{margin:3px 0;padding-left:16px}
+#pop a{color:var(--accent)}
+.note{color:var(--dim);font-size:11.5px;margin-top:14px;line-height:1.6}
+.setup{max-width:420px;margin:70px auto;background:var(--panel);border:1px solid var(--line);
+border-radius:12px;padding:22px}
+.setup input{width:100%;margin:10px 0;padding:8px}
+.setup button{background:var(--accent);border:0;color:#0e1116;font-weight:700;padding:8px 16px;
+border-radius:7px;cursor:pointer}
+.err{color:var(--bad);font-size:12px;margin-top:8px}
+</style></head><body>
+<div class="wrap" id="wrap"><div class="sub">Učitavam…</div></div>
+<div id="pop"><div class="box"><span class="x" onclick="closePop()">×</span><div id="popc"></div></div></div>
+
+<script>
+var ENDPOINT="https://script.google.com/macros/s/AKfycbzDmxkszY2_DErgtwQ3g35BNn4S0MyFoq7zb5lg4-TF5FjdvnLn3rMEP6vNlegjPozRgA/exec";
+var SECRET=localStorage.getItem("kcep_secret")||"";
+var TASKS=[],P=[],LVL={},BY={},MAXL=0;
+var S={mode:"koraci",stream:"all",crit:false,start:"2026-08-24",wpl:1};
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function el(h){var d=document.createElement("div");d.innerHTML=h;return d.firstElementChild;}
+function api(p){var q=Object.keys(p).map(function(k){return k+"="+encodeURIComponent(p[k]);}).join("&");
+ return fetch(ENDPOINT+"?secret="+encodeURIComponent(SECRET)+"&"+q).then(function(r){return r.json();});}
+
+function codeOf(t){var m=(t.naziv||"").match(/^(HR|DE|KD|K)-(\d+)/);return m?m[0]:null;}
+function streamOf(c){return c?c.split("-")[0]:null;}
+function depsOf(t){var m=(t.opis||"").match(/Ovisi o:\s*([^\n]+)/);if(!m)return[];
+ return m[1].split(/[,;]/).map(function(s){var x=s.trim().match(/^(HR|DE|KD|K)-\d+/);return x?x[0]:null;}).filter(Boolean);}
+function isprava(t){var m=(t.opis||"").match(/Isprava:\s*([^\n]+)/);return m?m[1].trim():"";}
+
+function build(){
+ P=TASKS.filter(function(t){return !t.parent;});
+ BY={};P.forEach(function(t){var c=codeOf(t);if(c)BY[c]=t;});
+ LVL={};
+ function L(c,seen){
+  if(LVL[c]!==undefined)return LVL[c];
+  if(seen[c])return 0; seen[c]=1;
+  var t=BY[c];if(!t)return 0;
+  var d=depsOf(t).map(function(x){return BY[x]?L(x,Object.assign({},seen))+1:0;});
+  var v=d.length?Math.max.apply(null,d):0; LVL[c]=v; return v;
+ }
+ Object.keys(BY).forEach(function(c){L(c,{});});
+ MAXL=Math.max.apply(null,Object.values(LVL).concat([0]));
+}
+function subs(id){return TASKS.filter(function(t){return t.parent===id;});}
+function prog(t){var s=subs(t.id);var arr=s.length?s:[t];
+ var d=arr.filter(function(x){return x.status==="Gotovo";}).length;return {d:d,n:arr.length};}
+function fixedDate(t){return (t.sdue&&t.sdue.length>=10)?t.sdue:((t.due&&t.due.length>=10)?t.due:"");}
+function weekOf(c){return LVL[c]*S.wpl;}
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x;}
+function weekStart(w){var d=new Date(S.start+"T00:00:00");d.setDate(d.getDate()+w*7);return iso(d);}
+function dateOf(c){return weekStart(weekOf(c));}
+function fmt(d){if(!d)return"";var p=d.split("-");return p[2]+"."+p[1]+"."+p[0].slice(2);}
+
+function visible(){
+ return P.filter(function(t){
+  var c=codeOf(t); if(!c) return false;
+  if(S.crit && !t.critical) return false;
+  var s=streamOf(c);
+  if(S.stream==="hr" && !(s==="HR"||s==="K")) return false;
+  if(S.stream==="de" && !(s==="DE"||s==="KD")) return false;
+  return true;
+ });
+}
+
+function renderKoraci(){
+ var vis=visible(), out="";
+ out+='<div class="lane-hd"><div>Faza</div><div class="hHR">Hrvatska &nbsp;·&nbsp; HR i K</div><div class="hDE">Njemačka &nbsp;·&nbsp; DE i KD</div></div>';
+ for(var l=0;l<=MAXL;l++){
+  var here=vis.filter(function(t){return LVL[codeOf(t)]===l;});
+  if(!here.length) continue;
+  var hr=here.filter(function(t){var s=streamOf(codeOf(t));return s==="HR"||s==="K";});
+  var de=here.filter(function(t){var s=streamOf(codeOf(t));return s==="DE"||s==="KD";});
+  out+='<div class="stage"><div class="snum"><b>'+l+'</b><span>tj '+(l*S.wpl+1)+'<br>'+fmt(weekStart(l*S.wpl))+'</span></div>';
+  out+='<div class="cell">'+(hr.length?hr.map(card).join(""):'<div class="empty">ništa u ovoj fazi</div>')+'</div>';
+  out+='<div class="cell">'+(de.length?de.map(card).join(""):'<div class="empty">ništa u ovoj fazi</div>')+'</div>';
+  out+='</div>';
+ }
+ return out||'<div class="empty">Nema koraka za odabrane filtre.</div>';
+}
+function card(t){
+ var c=codeOf(t),s=streamOf(c),pr=prog(t),fx=fixedDate(t);
+ var ttl=(t.naziv||"").replace(/^(HR|DE|KD|K)-\d+\s*/,"");
+ return '<div class="card '+s+(t.critical?' crit':'')+(pr.d===pr.n?' done':'')+'" onclick="openPop(\''+t.id+'\')">'+
+  '<span class="code">'+c+'</span>'+(t.critical?'<span class="flag">KRIT</span>':'')+
+  (fx?'<span class="flag fix">ROK '+fmt(fx)+'</span>':'')+
+  '<div class="ttl">'+esc(ttl.slice(0,110))+(ttl.length>110?'…':'')+'</div>'+
+  '<div class="meta">'+pr.d+'/'+pr.n+' koraka · '+esc(t.owner||"-")+'</div></div>';
+}
+
+function renderGantt(){
+ var vis=visible().slice().sort(function(a,b){
+  var la=LVL[codeOf(a)],lb=LVL[codeOf(b)];
+  if(la!==lb)return la-lb;
+  return codeOf(a).localeCompare(codeOf(b),"hr",{numeric:true});
+ });
+ var cols=(MAXL+1)*S.wpl+1;
+ var h='<table class="g"><thead><tr><th class="lab">Zahvat</th>';
+ for(var w=0;w<cols;w++){
+  h+='<th>tj '+(w+1)+'<br>'+fmt(weekStart(w))+'</th>';
+ }
+ h+='</tr></thead><tbody>';
+ var lastL=-1;
+ vis.forEach(function(t){
+  var c=codeOf(t),s=streamOf(c),L=LVL[c],pr=prog(t);
+  if(L!==lastL){h+='<tr><td class="lab gsec">FAZA '+L+'</td><td class="gsec" colspan="'+cols+'"></td></tr>';lastL=L;}
+  var ttl=(t.naziv||"").replace(/^(HR|DE|KD|K)-\d+\s*/,"");
+  h+='<tr><td class="lab" onclick="openPop(\''+t.id+'\')" style="cursor:pointer"><span class="code">'+c+'</span> '+esc(ttl.slice(0,72))+'</td>';
+  var st=L*S.wpl;
+  for(var w=0;w<cols;w++){
+   h+='<td class="slot">'+((w>=st&&w<st+S.wpl)?'<span class="gb '+s+(t.critical?' crit':'')+'" title="'+c+'"></span>':'')+'</td>';
+  }
+  h+='</tr>';
+ });
+ return h+'</tbody></table>';
+}
+
+function openPop(id){
+ var t=TASKS.find(function(x){return x.id===id;});if(!t)return;
+ var c=codeOf(t),d=depsOf(t),pr=prog(t);
+ var blocks=P.filter(function(x){return depsOf(x).indexOf(c)>=0;}).map(codeOf).filter(Boolean);
+ var sb=subs(t.id);
+ var h='<h3>'+esc(t.naziv)+'</h3><div class="meta">'+esc(t.section)+'</div><dl>';
+ h+='<dt>Faza</dt><dd>'+LVL[c]+' &nbsp;·&nbsp; tjedan '+(weekOf(c)+1)+' &nbsp;·&nbsp; izvedeni datum '+fmt(dateOf(c))+'</dd>';
+ if(fixedDate(t))h+='<dt>Upisani rok</dt><dd>'+fmt(fixedDate(t))+'</dd>';
+ h+='<dt>Nositelj</dt><dd>'+esc(t.owner||"-")+'</dd>';
+ h+='<dt>Status</dt><dd>'+esc(t.status||"-")+' &nbsp;·&nbsp; '+pr.d+' od '+pr.n+' koraka</dd>';
+ if(t.critical)h+='<dt>Oznaka</dt><dd style="color:var(--bad)">kritični put</dd>';
+ if(isprava(t))h+='<dt>Isprava</dt><dd>'+esc(isprava(t))+'</dd>';
+ h+='<dt>Ovisi o</dt><dd>'+(d.length?d.map(function(x){return '<a href="#" onclick="return jump(\''+x+'\')">'+x+'</a>';}).join(", "):"ničemu, može odmah")+'</dd>';
+ h+='<dt>Blokira</dt><dd>'+(blocks.length?blocks.map(function(x){return '<a href="#" onclick="return jump(\''+x+'\')">'+x+'</a>';}).join(", "):"ništa")+'</dd>';
+ if(sb.length)h+='<dt>Koraci</dt><dd><ul>'+sb.map(function(x){return '<li>'+(x.status==="Gotovo"?"✓ ":"")+esc(x.naziv)+'</li>';}).join("")+'</ul></dd>';
+ h+='</dl>';
+ document.getElementById("popc").innerHTML=h;
+ document.getElementById("pop").classList.add("on");
+}
+function jump(c){var t=BY[c];if(t)openPop(t.id);return false;}
+function closePop(){document.getElementById("pop").classList.remove("on");}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closePop();});
+document.getElementById("pop").addEventListener("click",function(e){if(e.target===this)closePop();});
+
+function render(){
+ var vis=visible();
+ var crit=vis.filter(function(t){return t.critical;}).length;
+ var steps=TASKS.filter(function(t){return t.parent;}).length+P.length;
+ var done=TASKS.filter(function(t){return t.status==="Gotovo";}).length;
+ var h='<div class="brand">Koykan · Company restructure</div>';
+ h+='<h1>KCEP vremenski pogled</h1>';
+ h+='<div class="sub">Kombinirani hod kroz Hrvatsku i Njemačku, poredan po ovisnostima. <b>'+vis.length+'</b> zahvata u <b>'+(MAXL+1)+'</b> faza, od toga <b>'+crit+'</b> na kritičnom putu. Ukupno '+steps+' koraka, '+done+' gotovo.</div>';
+ h+='<div class="bar">';
+ h+='<span class="lbl">Pogled</span>';
+ h+=chip("mode","koraci","Koraci")+chip("mode","gantt","Gantt");
+ h+='<span class="sep"></span><span class="lbl">Tok</span>';
+ h+=chip("stream","all","Oboje")+chip("stream","hr","Samo HR")+chip("stream","de","Samo DE");
+ h+='<span class="sep"></span>';
+ h+='<span class="chip'+(S.crit?" on":"")+'" onclick="setS(\'crit\','+(!S.crit)+')">Samo kritični put</span>';
+ h+='<span class="sep"></span><span class="lbl">Start</span>';
+ h+='<input type="date" value="'+S.start+'" onchange="setS(\'start\',this.value)">';
+ h+='<span class="lbl" style="margin-left:6px">Tjedana po fazi</span>';
+ h+='<input type="number" min="1" max="8" style="width:56px" value="'+S.wpl+'" onchange="setS(\'wpl\',Math.max(1,+this.value||1))">';
+ h+='<span class="sep"></span><span class="chip" onclick="reload()">Osvježi</span>';
+ h+='</div>';
+ h+=(S.mode==="koraci"?renderKoraci():'<div id="gantt">'+renderGantt()+'</div>');
+ h+='<div class="note">Faza je izvedena iz polja <b>Ovisi o</b>, ne iz kalendara. Faza 0 su zahvati koji ne čekaju nikoga i mogu odmah. Zahvat je u fazi N ako mu je najdublji prethodnik u fazi N-1, pa je broj faza stvarna dužina kritičnog puta. Datumi su izvedeni iz starta i broja tjedana po fazi i služe za planiranje, a zelena oznaka ROK je datum stvarno upisan na dashboardu. Podaci se čitaju živo s istog izvora kao glavni dashboard.</div>';
+ document.getElementById("wrap").innerHTML=h;
+}
+function chip(k,v,lab){return '<span class="chip'+(S[k]===v?" on":"")+'" onclick="setS(\''+k+'\',\''+v+'\')">'+lab+'</span>';}
+function setS(k,v){S[k]=v;render();}
+function reload(){load();}
+
+function showSetup(msg){
+ document.getElementById("wrap").innerHTML='<div class="setup"><div class="brand">Koykan</div>'+
+ '<h1>KCEP vremenski pogled</h1><div class="sub">Unesi pristupni kod.</div>'+
+ '<input type="password" id="sc" placeholder="kod" autocomplete="off">'+
+ '<button onclick="saveSecret()">Otvori</button>'+(msg?'<div class="err">'+esc(msg)+'</div>':'')+'</div>';
+ var i=document.getElementById("sc");i.focus();
+ i.addEventListener("keydown",function(e){if(e.key==="Enter")saveSecret();});
+}
+function saveSecret(){var v=document.getElementById("sc").value.trim();if(!v)return;
+ SECRET=v;localStorage.setItem("kcep_secret",v);load();}
+
+function load(){
+ if(!SECRET){showSetup("");return;}
+ api({action:"list"}).then(function(r){
+  if(!r||!r.ok||!r.tasks){showSetup("Kod nije prihvaćen ili izvor ne odgovara.");return;}
+  TASKS=r.tasks;build();render();
+ }).catch(function(e){
+  document.getElementById("wrap").innerHTML='<div class="setup"><h1>Ne mogu dohvatiti podatke</h1><div class="err">'+esc(e.message)+'</div><button onclick="load()">Pokušaj ponovno</button></div>';
+ });
+}
+load();
+</script></body></html>
