@@ -386,7 +386,7 @@
         card.appendChild(taskRow(top,false));
         var subs=sortSibs(secTasks.filter(function(s){return s.parent===top.id;}));
         subs.forEach(function(s){ if(passFilter(s)) card.appendChild(taskRow(s,true)); });
-        if(isQuick(top)) card.appendChild(subAddRow(top));
+        card.appendChild(subAddRow(top));
       });
       board.appendChild(card);
     });
