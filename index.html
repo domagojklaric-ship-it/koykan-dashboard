@@ -545,7 +545,7 @@
         sarr.forEach(function(t){ list.appendChild(rowEl(t)); }); });
       card.appendChild(list); grid.appendChild(card); });
   }
-  function sortDate(t){ var c=[]; if(t.due) c.push(new Date(t.due).getTime()); if(t.nextDate) c.push(new Date(t.nextDate).getTime());
+  function sortDate(t){ var c=[]; if(t.due) c.push(new Date(t.due).getTime()); if(t.isProject && t.nextDate) c.push(new Date(t.nextDate).getTime());
     c=c.filter(function(x){ return !isNaN(x); });
     return c.length? Math.min.apply(null,c) : Infinity; }
 
