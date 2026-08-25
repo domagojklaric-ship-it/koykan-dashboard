@@ -474,18 +474,20 @@
     return true; }
   function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(typeFilter==='week'&&!isWeek(t)) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(waitFilter==='hold'&&t.wait!=='hold') return false; if(waitFilter==='done'&&t.wait!=='done') return false; if(waitFilter==='notdone'&&t.wait==='done') return false; if(searchQ && norm(t.title+' '+(t.nextText||'')+' '+(t.owner||'')).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
   function autoFlip(){
-    var todo=TASKS.filter(function(t){ return !t.done && /^\s*pending\b/i.test(String(t.nextText||'')) && isOverdue(t); });
+    var todo=TASKS.filter(function(t){ var n=String(t.nextText||''); return !t.done && !/^\s*done\b/i.test(n) && /^\s*(pending|on hold)\b/i.test(n) && isOverdue(t); });
     if(!todo.length) return;
     var d=new Date(), dm=d.getDate()+'.'+(d.getMonth()+1)+'.';
     todo.forEach(function(t){
-      var nx=String(t.nextText||'').replace(/^\s*pending\b/i,'ACTION');
-      var rest=('AUTO: '+dm+' PENDING -> ACTION, rok probijen\n'+String(t.rest||'')).replace(/\n+$/,'');
+      var n0=String(t.nextText||'');
+      var was=/^\s*on hold\b/i.test(n0) ? 'ON HOLD' : 'PENDING';
+      var nx=n0.replace(/^\s*(pending|on hold)\b/i,'ACTION');
+      var rest=('AUTO: '+dm+' '+was+' -> ACTION, rok probijen\n'+String(t.rest||'')).replace(/\n+$/,'');
       t.nextText=nx; t.rest=rest;
       var notes=buildNotes(nx, t.nextDate, rest, t.critical, t.link);
       t.notes=notes;
       api({action:'update', taskId:t.id, notes:notes}).catch(function(){});
     });
-    setTimeout(function(){ banner(todo.length+' tema prebačena iz PENDING u ACTION (rok probijen)'); }, 500);
+    setTimeout(function(){ banner(todo.length+' tema prebačena u ACTION (rok probijen)'); }, 500);
   }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.isProject && t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
