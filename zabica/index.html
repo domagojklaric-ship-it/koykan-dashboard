@@ -330,6 +330,7 @@
     if(b){ b.innerHTML='Critical <b class="ocnt">'+cr+'</b>'; b.title=cr+' kritičnih (otvoreni taskovi i podtaskovi)'; }
   }
   function autoFlip(){
+    return; /* ISKLJUCENO 11.9.2026. - statuse mijenjaju nositelji rucno */
     var todo = TASKS.filter(function(t){ return t.status!=='Gotovo' && /^\s*pending\b/i.test(String(t.note||'')) && isOverdue(t); });
     if(!todo.length) return;
     var d=new Date(), dm=d.getDate()+'.'+(d.getMonth()+1)+'.';
