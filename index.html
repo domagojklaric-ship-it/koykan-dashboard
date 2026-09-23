@@ -223,7 +223,7 @@
 
 <div class="wrap">
   <div class="top">
-    <div><div class="title">Koykan <span>/ taskovi (live)</span></div><div class="sub" id="sub">Spojeno na Google Tasks</div></div>
+    <div><div class="title">Koykan <span>/ taskovi (live)</span></div><div class="sub" id="sub">Spojeno na Cloudflare</div></div>
     <div class="prog" id="prog" style="display:none">
       <div class="ring"><svg width="56" height="56"><circle cx="28" cy="28" r="23" fill="none" stroke="var(--line)" stroke-width="5"></circle>
         <circle id="ring-fg" cx="28" cy="28" r="23" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="144.5"></circle></svg><div class="pct" id="pct">0%</div></div>
@@ -341,7 +341,7 @@
 
 <script>
 (function(){
-  var ENDPOINT='https://script.google.com/macros/s/AKfycbw15wF-bL73IGOGYpzKIMvJv5fNZrmus0sfeStyw_Z-hO_1Ww3ZrmPlaf0sHOFxhsHvFg/exec';
+  var ENDPOINT='https://koykan-tasks.koykan.workers.dev/';
   var LIST_ID='MTU0MjYyMDg5MDk1MzIxNjI3Njg6MDow';
 
   // poznati projekti (distinktivni dijelovi naziva) za batch "Označi projekte"
@@ -402,7 +402,7 @@
     return fetch(url,{method:'GET'}).then(function(r){ return r.text(); }).then(function(txt){
       var s=String(txt).trim();
       if(s.charAt(0)==='{' || s.charAt(0)==='[') return JSON.parse(s);
-      throw new Error('Google trenutno ne odgovara');
+      throw new Error('Server trenutno ne odgovara');
     }).catch(function(e){
       if(tries>1) return new Promise(function(res){ setTimeout(res,wait); }).then(function(){ return fetchRetry_(url, tries-1, Math.min(wait*2,8000)); });
       throw e;
@@ -953,4 +953,4 @@
 })();
 </script>
 
-<!-- v 2026-09-22T06:37 -->
+<!-- v 2026-09-23T19:00 cloudflare -->
