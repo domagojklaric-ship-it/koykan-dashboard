@@ -468,7 +468,7 @@
     row.innerHTML =
       '<span class="grip" draggable="true" title="Povuci za promjenu redoslijeda">⠿</span>'+
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
-      (isSub?'':numCtl(t))+'<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
+      (isSub?'':numCtl(t))+'<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+(t.link?('<a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a> '):'')+esc(t.naziv)+'</div>'+
       '<input class="t-status" placeholder="next step…" value="'+escAttr(t.note||'')+'" title="Next step">'+
       ''+
       '<div class="ctl">'+
