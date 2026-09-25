@@ -132,6 +132,8 @@
 
   .chip .ocnt{display:inline-block;min-width:16px;margin-left:4px;padding:0 4px;border-radius:99px;background:rgba(255,255,255,.08);color:var(--faint);font:700 10px/1.6 var(--mono);vertical-align:baseline}
   .chip.on .ocnt{background:rgba(122,162,247,.20);color:var(--accent)}
+.t-dur{width:64px;flex:none;box-sizing:border-box;padding:4px 6px;font:600 12px/1.2 var(--mono,monospace);background:transparent;color:inherit;border:1px solid var(--line);border-radius:6px;text-align:right}
+.t-dur.ghost{display:inline-block;border:0;height:1px;padding:0}
 </style>
 </head>
 <body>
@@ -191,6 +193,7 @@
       <span class="hn">Korak</span>
       <span class="hs1">Current status</span>
       <span class="hctl">
+        <span style="width:64px" title="Trajanje grupe u danima">Dana</span>
         <span style="width:108px">Nositelj</span>
         <span style="width:100px">Status</span>
         <span style="width:30px">Opis</span>
@@ -395,6 +398,7 @@
 
   function waitBadge(t){var n=(t.note||'').replace(/^[\s\-–—|:]+/,'');if(/^action\b/i.test(n))return '<span class="wpill wp-act" title="Klik: cikliraj status">🟠 ACTION</span> ';if(/^pending\b/i.test(n))return '<span class="wpill wp-pend" title="Klik: cikliraj status">🔵 PENDING</span> ';return '<span class="wpill wp-none" title="Klik: postavi status">status</span> ';}
   function dueCls(d,st){ if(!d||st==='Gotovo') return ''; var x=new Date(d); if(isNaN(x.getTime())) return ''; x.setHours(0,0,0,0); var t0=new Date(); t0.setHours(0,0,0,0); return x<t0?' over':''; }
+  function durCtl(t,isSub){ if(isSub||isQuick(t)) return '<span class="t-dur ghost"></span>'; return '<input class="t-dur" type="number" min="0" step="1" inputmode="numeric" placeholder="dana" title="Trajanje grupe (dana)" value="'+escAttr(t.dur||'')+'">'; }
   function taskRow(t, isSub){
     var done=t.status==='Gotovo';
     var row=document.createElement('div'); row.className='task'+(done?' is-done':'')+(t.critical?' is-crit':'')+(isSub?' sub':'')+((!isSub&&isQuick(t))?' quick':'');
@@ -404,7 +408,7 @@
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
       '<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+'</div>'+
       '<input class="t-status" placeholder="current status…" value="'+escAttr(t.note||'')+'" title="Current status">'+
-      '<div class="ctl">'+
+      '<div class="ctl">'+durCtl(t,isSub)+
         ownerSelect(t)+
         statusSelect(t)+
         '<button class="icon opis'+(t.opis?' has':'')+'" title="Opis (klik za uredi, hover za pregled)">✎</button>'+
@@ -414,7 +418,7 @@
         '<input type="date" class="t-due'+dueCls(t.due,t.status)+'" value="'+escAttr(dateVal(t.due))+'" title="Rok završetka">'+
       '</div>';
     row.querySelector('.check').addEventListener('click', function(){ update(t, {status: done?'Otvoreno':'Gotovo'}); });
-    row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); });
+    row.querySelector('.naziv').addEventListener('click', function(){ editNaziv(t, row); }); var _du=row.querySelector('input.t-dur'); if(_du){ ['click','mousedown'].forEach(function(ev){ _du.addEventListener(ev,function(e){ e.stopPropagation(); }); }); _du.addEventListener('change', function(){ var v=String(this.value||'').replace(/[^0-9]/g,''); if(v!==String(t.dur||'')) update(t,{dur:v}); }); }
     row.querySelector('.t-status').addEventListener('change', function(){ if(this.value.trim()!==String(t.note||'')) update(t, {note:this.value.trim()}); });
     row.querySelector('.wpill')?.addEventListener('click', function(e){ e.stopPropagation(); var base=(t.note||'').replace(/^\s*(action|pending)\b\s*[-–—|:]*\s*/i,''); var raw=(t.note||'').replace(/^[\s\-–—|:]+/,''); var w=/^action\b/i.test(raw)?'action':(/^pending\b/i.test(raw)?'pending':''); var nw=({'':'action','action':'pending','pending':''})[w]; var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':''); var nn=kw?(base?(kw+' - '+base):kw):base; update(t,{note:nn}); });
     row.querySelector('.t-next')?.addEventListener('change', function(){ if(this.value.trim()!==String(t.nextstep||'')) update(t, {nextstep:this.value.trim()}); });
