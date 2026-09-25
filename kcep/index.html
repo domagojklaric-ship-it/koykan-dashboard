@@ -166,6 +166,7 @@
   <div class="addbar hidden" id="addbar">
     <select id="a-section"></select>
     <input class="inp" id="a-naziv" placeholder="Naziv koraka">
+    <input class="inp" id="a-due" type="date" title="Rok završetka" style="max-width:160px;flex:none">
     <select id="a-owner"></select>
     <button class="btn primary" id="a-save">Dodaj</button>
     <button class="btn ghost" id="a-cancel">Odustani</button>
@@ -568,13 +569,13 @@
   }
 
   el('add-toggle').addEventListener('click', function(){ el('addbar').classList.toggle('hidden'); if(!el('addbar').classList.contains('hidden')) el('a-naziv').focus(); });
-  el('a-cancel').addEventListener('click', function(){ el('addbar').classList.add('hidden'); el('a-naziv').value=''; });
+  el('a-cancel').addEventListener('click', function(){ el('addbar').classList.add('hidden'); el('a-naziv').value=''; el('a-due').value=''; });
   el('a-save').addEventListener('click', function(){
     var naziv=el('a-naziv').value.trim(); if(!naziv){ el('a-naziv').focus(); return; }
-    var section=el('a-section').value, owner=el('a-owner').value, ord=Date.now();
-    var tmp={id:'tmp'+Date.now(), section:section, naziv:naziv, owner:owner, status:'Otvoreno', sdue:'', due:'', note:'', opis:'', nextstep:'', link:'', critical:false, parent:'', ord:ord};
-    TASKS.push(tmp); renderAll(); el('a-naziv').value='';
-    api({action:'add', section:section, naziv:naziv, owner:owner, status:'Otvoreno', ord:ord}).then(function(res){
+    var section=el('a-section').value, owner=el('a-owner').value, ord=Date.now(), due=el('a-due').value||'';
+    var tmp={id:'tmp'+Date.now(), section:section, naziv:naziv, owner:owner, status:'Otvoreno', sdue:'', due:due, note:'', opis:'', nextstep:'', link:'', critical:false, parent:'', ord:ord};
+    TASKS.push(tmp); renderAll(); el('a-naziv').value=''; el('a-due').value='';
+    api({action:'add', section:section, naziv:naziv, owner:owner, status:'Otvoreno', ord:ord, due:due}).then(function(res){
       if(res&&res.ok){ banner('Dodano'); load(); } else { banner('Dodavanje nije uspjelo'); load(); }
     }).catch(function(){ load(); });
   });
