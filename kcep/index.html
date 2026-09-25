@@ -431,10 +431,22 @@
     var d=document.createElement('div'); d.className='subadd';
     var s=document.createElement('span'); s.textContent='+ podtask';
     s.addEventListener('click', function(){
-      var v=prompt('Naziv podtaska:',''); if(v===null) return; v=v.trim(); if(!v) return;
-      var tmp={id:'tmp'+Date.now(), section:top.section, naziv:v, owner:top.owner||'PM', status:'Otvoreno', sdue:'', due:'', note:'', opis:'', nextstep:'', link:'', critical:false, parent:top.id, ord:Date.now()};
-      TASKS.push(tmp); renderAll();
-      api({action:'add', section:top.section, naziv:v, owner:(top.owner||'PM'), status:'Otvoreno', parent:top.id, ord:Date.now()}).then(function(res){ if(res&&res.ok){banner('Podtask dodan'); load();} else load(); }).catch(load);
+      if(d.querySelector('.subform')) return;
+      var f=document.createElement('div'); f.className='subform'; f.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+      f.innerHTML='<input class="inp sf-n" placeholder="Naziv podtaska" style="min-width:280px;flex:1 1 280px"><input class="inp sf-d" type="date" title="Rok zavr\u0161etka" style="max-width:160px;flex:none"><button class="btn primary sf-ok">Dodaj</button><button class="btn ghost sf-x">Odustani</button>';
+      s.style.display='none'; d.appendChild(f);
+      var ni=f.querySelector('.sf-n'); ni.focus();
+      function close(){ f.remove(); s.style.display=''; }
+      function go(){
+        var v=ni.value.trim(); if(!v){ ni.focus(); return; }
+        var due=f.querySelector('.sf-d').value||''; close();
+        var tmp={id:'tmp'+Date.now(), section:top.section, naziv:v, owner:top.owner||'PM', status:'Otvoreno', sdue:'', due:due, note:'', opis:'', nextstep:'', link:'', critical:false, parent:top.id, ord:Date.now()};
+        TASKS.push(tmp); renderAll();
+        api({action:'add', section:top.section, naziv:v, owner:(top.owner||'PM'), status:'Otvoreno', parent:top.id, ord:Date.now(), due:due}).then(function(res){ if(res&&res.ok){banner('Podtask dodan'); load();} else load(); }).catch(load);
+      }
+      f.querySelector('.sf-x').addEventListener('click', close);
+      f.querySelector('.sf-ok').addEventListener('click', go);
+      ni.addEventListener('keydown', function(e){ if(e.key==='Enter') go(); if(e.key==='Escape') close(); });
     });
     d.appendChild(s); return d;
   }
