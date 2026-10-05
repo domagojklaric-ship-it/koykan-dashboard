@@ -219,6 +219,34 @@
   body.scoped .e-owner{display:none}
   .s-comm.con{color:#ffce85; border-color:rgba(255,180,60,.5); background:rgba(255,180,60,.13)}
   .kybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 14px;margin:0 0 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:13px;color:var(--muted)}
+.mirror{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:0 0 14px;overflow:hidden}
+.mx-h{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);font:600 13px/1.2 var(--body)}
+.mx-n{font:600 11px/1 var(--mono);color:var(--muted)}
+.mx-hint{font-size:11px;color:var(--faint);margin-left:auto}
+.mx-rf{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;cursor:pointer;padding:2px 8px}
+.mx-b{border-bottom:1px solid var(--line)}
+.mx-b:last-child{border-bottom:0}
+.mx-bh{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:12px}
+.mx-bh:hover{background:rgba(255,255,255,.03)}
+.mx-car{color:var(--faint);width:10px}
+.mx-over{font:700 10px/1.4 var(--body);color:var(--over);border:1px solid rgba(239,111,111,.5);border-radius:99px;padding:0 6px}
+.mx-go{margin-left:auto;color:var(--accent);text-decoration:none;font-weight:700}
+.mx-r{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 32px;border-top:1px solid rgba(44,51,64,.6)}
+.mx-r.crit{box-shadow:inset 3px 0 0 var(--over)}
+.mx-r.busy{opacity:.5;pointer-events:none}
+.mx-ck{flex:none;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;font-size:12px;line-height:1}
+.mx-ck:hover{border-color:var(--ok);color:var(--ok)}
+.mx-t{flex:2 1 260px;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;font-size:13px}
+.mx-nz{overflow:hidden;text-overflow:ellipsis}
+.mx-par{color:var(--faint);font-size:11px;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+.mx-ow{font:600 10px/1.4 var(--mono);color:var(--accent);border:1px solid rgba(90,166,240,.4);border-radius:5px;padding:0 5px;flex:none}
+.mx-lnk{text-decoration:none;flex:none}
+.mx-pill{font:700 9px/1.4 var(--body);border-radius:99px;padding:1px 6px;flex:none}
+.mx-action{color:#ffb15c;border:1px solid rgba(255,150,60,.4)} .mx-pending{color:#7db4ff;border:1px solid rgba(90,150,255,.35)} .mx-onhold{color:#c9c2b6;border:1px solid rgba(200,190,175,.35)} .mx-done{color:var(--ok);border:1px solid rgba(79,208,137,.4)}
+.mx-note{flex:1.5 1 200px;min-width:120px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:5px 8px;font-size:12px}
+.mx-due{flex:none;width:128px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:4px 6px;font:11px var(--mono);color-scheme:dark}
+.mx-due.over{border-color:rgba(239,111,111,.65);color:#f3a0a0}
+@media (max-width:640px){ .mx-r{flex-wrap:wrap;padding-left:14px} .mx-hint{display:none} }
 .stale{font:600 10px/1.4 ui-monospace,monospace;padding:1px 6px;border-radius:6px;border:1px solid rgba(255,170,60,.55);color:#ffb347;vertical-align:middle}
 .stale.hot{color:#ff6b81;border-color:rgba(235,80,100,.6)}
 #wait-seg button[data-a="stale"].on{background:rgba(255,170,60,.16);color:#ffb347}
@@ -325,7 +353,8 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
 
   <div class="filters" id="owner-filters" style="display:none"></div>
   <div id="loading" class="loading" style="display:none">Učitavam taskove...</div>
-  <div class="grid" id="grid"></div>
+  <div class="mirror" id="mirror" style="display:none"></div>
+<div class="grid" id="grid"></div>
 
   <div class="bulkbar" id="bulkbar">
     <span class="bcount"><b id="bsel-n">0</b> označeno</span>
@@ -716,6 +745,61 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); });
   }
   function isScoped(){ return document.body.classList.contains('scoped'); }
+/* ===== Mirror: taskovi nositelja s projektnih boardova ===== */
+var MX={items:[], ts:0, loading:false, err:'', open:{}};
+var MX_LINK={kcep:'kcep',zabica:'zabica',cm:'cm',menu:'menu',bbt:'bbt',gastro:'gastro',stores:'stores',procurement:'procurement'};
+var MX_OWN={'AnaT':'Ana Trusk','Silvana':'Silva'};
+try{ MX.open=JSON.parse(localStorage.getItem('ky_mx_open')||'{}')||{}; }catch(e){ MX.open={}; }
+function mxEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function mxOwner(o){ return MX_OWN[o]||o; }
+function mxLoad(force){ if(MX.loading) return; if(!force && Date.now()-MX.ts<60000) return; MX.loading=true;
+  api({action:'mirror'}).then(function(r){ MX.loading=false; MX.ts=Date.now(); if(!r||r.error){ MX.err=(r&&r.error)||'?'; MX.items=[]; } else { MX.err=''; MX.items=r.items||[]; } mxRender(); })
+  .catch(function(e){ MX.loading=false; MX.ts=Date.now(); MX.err=String(e); mxRender(); }); }
+function mxVisible(){ var scoped=isScoped(); var t0=today0();
+  return MX.items.filter(function(x){
+    if(!scoped){ var o=mxOwner(x.owner); if(ownerOn[o]!==true) return false; }
+    if(searchQ && (String(x.naziv)+' '+String(x.parent)+' '+String(x.label)+' '+String(x.store||'')).toLowerCase().indexOf(searchQ)<0) return false;
+    if(typeof critOnly!=='undefined' && critOnly && !x.critical) return false;
+    var d=x.due?new Date(x.due+'T00:00:00'):null;
+    if(typeof ovrOnly!=='undefined' && ovrOnly && !(d && d<t0)) return false;
+    if(winFilter!=='all' && !inWin({due:x.due?x.due+'T00:00:00':null, isProject:false})) return false;
+    return true; }); }
+function mxPill(n){ var s=String(n||'').replace(/^[\s\-–—|:]+/,''); var m=s.match(/^(action|pending|on hold|done)\b/i); if(!m) return ''; var k=m[1].toLowerCase(); return '<span class="mx-pill mx-'+k.replace(' ','')+'">'+m[1].toUpperCase()+'</span>'; }
+function mxRender(){ var box=el('mirror'); if(!box) return;
+  if(!MX.ts && !MX.items.length){ box.style.display='none'; return; }
+  if(MX.err){ box.style.display='block'; box.innerHTML='<div class="mx-h"><b>S projektnih boardova</b><span class="mx-n">nedostupno ('+mxEsc(MX.err)+')</span></div>'; return; }
+  var vis=mxVisible(); var scoped=isScoped();
+  if(!vis.length){ box.style.display=MX.items.length?'block':'none'; box.innerHTML='<div class="mx-h"><b>S projektnih boardova</b><span class="mx-n">0 u ovom prikazu · ukupno '+MX.items.length+'</span><button class="mx-rf" title="Osvježi">↻</button></div>'; mxWire(box); return; }
+  var t0=today0(), groups={}; vis.forEach(function(x){ (groups[x.board]=groups[x.board]||[]).push(x); });
+  var h='<div class="mx-h"><b>S projektnih boardova</b><span class="mx-n">'+vis.length+(vis.length!==MX.items.length?(' od '+MX.items.length):'')+'</span><span class="mx-hint">mijenja se izravno na izvornom boardu</span><button class="mx-rf" title="Osvježi">↻</button></div>';
+  Object.keys(groups).forEach(function(b){ var arr=groups[b].slice().sort(function(a,c){ return (a.due||'9999')<(c.due||'9999')?-1:((a.due||'9999')>(c.due||'9999')?1:0); });
+    var over=arr.filter(function(x){ return x.due && new Date(x.due+'T00:00:00')<t0; }).length; var op=(MX.open[b]!==undefined)?MX.open[b]:(arr.length<=12);
+    h+='<div class="mx-b'+(op?' open':'')+'" data-b="'+b+'"><div class="mx-bh"><span class="mx-car">'+(op?'▾':'▸')+'</span><b>'+mxEsc(arr[0].label)+'</b><span class="mx-n">'+arr.length+'</span>'+(over?'<span class="mx-over">'+over+' kasni</span>':'')+'<a class="mx-go" href="'+MX_LINK[b]+'/" target="_blank" rel="noopener" title="Otvori board">↗</a></div>';
+    if(op){ arr.forEach(function(x){ var d=x.due?new Date(x.due+'T00:00:00'):null; var ov=d&&d<t0;
+      h+='<div class="mx-r'+(x.critical?' crit':'')+'" data-b="'+b+'" data-id="'+mxEsc(x.id)+'">'+
+        '<button class="mx-ck" title="Označi gotovo na izvornom boardu">✓</button>'+
+        '<div class="mx-t">'+mxPill(x.note)+(!scoped?'<span class="mx-ow">'+mxEsc(mxOwner(x.owner))+'</span>':'')+'<span class="mx-nz" title="'+mxEsc(x.naziv)+'">'+mxEsc(x.naziv)+'</span>'+(x.parent?'<span class="mx-par">↳ '+mxEsc(x.parent)+'</span>':'')+(x.store?'<span class="mx-par">· '+mxEsc(x.store)+'</span>':'')+(x.link?' <a class="mx-lnk" href="'+mxEsc(x.link)+'" target="_blank" rel="noopener">🔗</a>':'')+'</div>'+
+        '<input class="mx-note" value="'+mxEsc(x.note)+'" placeholder="next step…">'+
+        '<input type="date" class="mx-due'+(ov?' over':'')+'" value="'+mxEsc(x.due)+'">'+
+        '</div>'; }); }
+    h+='</div>'; });
+  box.style.display='block'; box.innerHTML=h; mxWire(box); }
+function mxFind(row){ var b=row.getAttribute('data-b'), id=row.getAttribute('data-id'); return MX.items.filter(function(x){ return x.board===b && x.id===id; })[0]; }
+function mxSave(x, fields, row, okMsg){ if(row) row.classList.add('busy'); var p={action:'mupdate', board:x.board, id:x.id}; Object.keys(fields).forEach(function(k){ p[k]=fields[k]; });
+  api(p).then(function(r){ if(row) row.classList.remove('busy'); if(!r||r.error){ banner('Nije spremljeno: '+((r&&r.error)||'?')); mxLoad(true); return; }
+    Object.keys(fields).forEach(function(k){ x[k]=fields[k]; }); if(fields.status==='Gotovo'){ MX.items=MX.items.filter(function(y){ return y!==x; }); }
+    banner(okMsg||'Spremljeno na '+x.label); mxRender(); }).catch(function(e){ if(row) row.classList.remove('busy'); banner('Greška: '+e); }); }
+function mxWire(box){
+  var rf=box.querySelector('.mx-rf'); if(rf) rf.addEventListener('click', function(){ mxLoad(true); });
+  Array.prototype.forEach.call(box.querySelectorAll('.mx-bh'), function(hd){ hd.addEventListener('click', function(e){ if(e.target.closest('a')) return; var b=hd.parentNode.getAttribute('data-b'); var cur=hd.parentNode.classList.contains('open'); MX.open[b]=!cur; try{ localStorage.setItem('ky_mx_open', JSON.stringify(MX.open)); }catch(_){} mxRender(); }); });
+  Array.prototype.forEach.call(box.querySelectorAll('.mx-r'), function(row){ var x=mxFind(row); if(!x) return;
+    row.querySelector('.mx-ck').addEventListener('click', function(){ if(!confirm('Zatvoriti na boardu '+x.label+':\n"'+x.naziv+'"?')) return; mxSave(x,{status:'Gotovo'},row,'Zatvoreno na '+x.label); });
+    var n=row.querySelector('.mx-note'); n.addEventListener('keydown', function(e){ if(e.key==='Enter') this.blur(); }); n.addEventListener('change', function(){ var v=this.value.trim(); if(v!==String(x.note||'')) mxSave(x,{note:v},row); });
+    var d=row.querySelector('.mx-due'); d.addEventListener('change', function(){ if(this.value!==String(x.due||'')) mxSave(x,{due:this.value},row); }); });
+}
+var _mxRender0=render; render=function(){ _mxRender0.apply(this, arguments); try{ mxRender(); mxLoad(false); }catch(e){} };
+/* ===== kraj mirror modula ===== */
+
   var LAST1={};
   function kyN(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\u0111/g,'d').trim(); }
   function fmtD(ts){ var d=new Date(ts); return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear()+'.'; }
@@ -979,4 +1063,4 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
 })();
 </script>
 
-<!-- v 2026-09-24 cloudflare + lock + 1on1 + done-bulk + rok badge + default view + stale + Tamara -->
+<!-- v 2026-10-05 cloudflare + lock + 1on1 + done-bulk + rok badge + default view + stale + Tamara + mirror -->
