@@ -138,8 +138,8 @@
 .dlv.over,.dlv.over b{color:#f3a0a0} .dlv.over .dlv-k{color:#f3a0a0;border-color:rgba(239,111,111,.55)}
 .dlv.adm{cursor:pointer} .dlv.adm:hover{text-decoration:underline dotted}
 .dlv-lock{font-size:10px;opacity:.7}
-.dlv-add{display:none;margin-left:8px;font:700 10px/1 var(--mono);color:#f5c451;border:1px dashed rgba(245,196,81,.5);border-radius:5px;padding:2px 5px;cursor:pointer}
-.task:hover .dlv-add{display:inline-block}
+.dlv-add{display:inline-block;opacity:.35;margin-right:6px;vertical-align:1px;font:700 10px/1 var(--mono);color:#f5c451;border:1px dashed rgba(245,196,81,.5);border-radius:5px;padding:2px 5px;cursor:pointer}
+.task:hover .dlv-add,.dlv-add:hover{opacity:1}
 .dlv-l{display:block;font:600 11px/1 var(--mono);color:var(--faint);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em}
 .dlv-d{background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:7px 9px;font:13px var(--mono);color-scheme:dark}
 </style>
@@ -410,7 +410,7 @@
     row.innerHTML =
       '<span class="grip" draggable="true" title="Povuci za promjenu redoslijeda">⠿</span>'+
       '<div class="check" title="Označi gotovo">'+(done?'✓':'')+'</div>'+
-      '<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+dlvLine(t)+'</div>'+
+      '<div class="naziv" title="'+escAttr(t.naziv)+'">'+waitBadge(t)+dlvAdd(t)+esc(t.naziv)+(t.link?(' <a class="lnk" href="'+escAttr(t.link)+'" target="_blank" rel="noopener" title="Otvori link">↗</a>'):'')+dlvLine(t)+'</div>'+
       '<input class="t-status" placeholder="next step…" value="'+escAttr(t.note||'')+'" title="Next step">'+
       ''+
       '<div class="ctl">'+
@@ -521,10 +521,11 @@
   }
   /* ===== Deliverable (polje nextstep = 'YYYY-MM-DD|tekst'; mijenja samo Domagoj) ===== */
 var KY_ADMIN=(function(){ try{ return localStorage.getItem('koykan_admin')||''; }catch(e){ return ''; } })();
-function dlvParse(s){ s=String(s||''); if(!s) return null; var i=s.indexOf('|'); var d=i>=0?s.slice(0,i):'', tx=i>=0?s.slice(i+1):s; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ d=''; tx=s; } return {d:d, t:tx}; }
+function dlvParse(s){ s=String(s||''); if(!s) return null; var i=s.indexOf('|'); if(i<0) return null; var d=i>=0?s.slice(0,i):'', tx=i>=0?s.slice(i+1):s; if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ d=''; tx=s; } return {d:d, t:tx}; }
 function dlvHr(d){ if(!d) return ''; var p=d.split('-'); return (+p[2])+'.'+(+p[1])+'.'+p[0]+'.'; }
+function dlvAdd(t){ return (KY_ADMIN && !dlvParse(t.nextstep))?'<span class="dlv-add" title="Dodaj deliverable">🎯+</span>':''; }
 function dlvLine(t){ var x=dlvParse(t.nextstep);
-  if(!x) return KY_ADMIN?'<span class="dlv-add" title="Dodaj deliverable">🎯+</span>':'';
+  if(!x) return '';
   var over=x.d && t.status!=='Gotovo' && x.d<todayStr();
   return '<div class="dlv'+(over?' over':'')+(KY_ADMIN?' adm':'')+'" title="'+(KY_ADMIN?'Klik: uredi deliverable':'Deliverable postavlja Domagoj')+'"><span class="dlv-k">🎯 Deliverable</span> '+esc(x.t)+(x.d?' <b>· '+dlvHr(x.d)+'</b>':'')+(KY_ADMIN?'':' <span class="dlv-lock">🔒</span>')+'</div>'; }
 function dlvOpen(t){ var x=dlvParse(t.nextstep)||{d:'',t:''};
