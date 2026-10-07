@@ -238,6 +238,14 @@
 .mxe-f{display:flex;gap:8px;margin-top:16px}
 .mxe-ok{background:var(--accent) !important;color:#111 !important;border-color:var(--accent) !important;font-weight:700}
 @media (max-width:600px){ .mxe-2{flex-direction:column;gap:0} }
+.pd-add{display:inline-block;opacity:.35;margin-right:6px;font:700 10px/1 var(--mono);color:#f5c451;border:1px dashed rgba(245,196,81,.5);border-radius:5px;padding:2px 5px;cursor:pointer;vertical-align:1px}
+.srow:hover .pd-add,.task:hover .pd-add,.pd-add:hover{opacity:1}
+.pdlv{font:500 12px/1.35 var(--body);color:#e9d9a6;white-space:normal}
+.pdlv .pdlv-k{font:700 9px/1.4 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:#f5c451;border:1px solid rgba(245,196,81,.45);border-radius:5px;padding:0 5px;margin-right:4px}
+.pdlv b{color:#f5c451} .pdlv.over,.pdlv.over b{color:#f3a0a0} .pdlv.over .pdlv-k{color:#f3a0a0;border-color:rgba(239,111,111,.55)}
+.pdlv.adm{cursor:pointer} .pdlv.adm:hover{text-decoration:underline dotted} .pdlv-lock{font-size:10px;opacity:.7}
+.srow.has-dlv{flex-wrap:wrap} .srow .pdlv{order:99;flex:1 0 100%;padding:2px 0 0 28px}
+.tbody .pdlv{display:block;margin-top:3px}
 .mx-sdue.over{border-color:rgba(239,111,111,.65);color:#f3a0a0}
 .mx-h{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);font:600 13px/1.2 var(--body)}
 .mx-n{font:600 11px/1 var(--mono);color:var(--muted)}
@@ -488,7 +496,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
       TASKS=(res.tasks||[]).map(function(t){ var o=ownerOf(t.title); var pj=stripProj(o.clean); var n=parseNext(t.notes||'');
         var wait = waitOf(n.text||'');
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
-                 due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, link:n.link, locked:!!t.locked, created:t.created||null, src:t.src||'' }; });
+                 due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, link:n.link, locked:!!t.locked, created:t.created||null, src:t.src||'', dlv:t.dlv||'' }; });
       autoFlip(); buildOwnerFilters(); render(); kyDefaults();
       el('bar').style.display='flex'; el('prog').style.display='flex';
       el('synced').textContent='sync '+new Date().toLocaleTimeString();
@@ -562,7 +570,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
   var _saveAll=function(t,row,f){ var nx=('nx' in f)?f.nx:t.nextText, nd=('nd' in f)?f.nd:t.nextDate, rest=('rest' in f)?f.rest:t.rest, crit=('crit' in f)?f.crit:t.critical, link=('link' in f)?f.link:t.link; var notes=buildNotes(nx,nd,rest,crit,link); if(typeof busy==='function')busy(row,true); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(typeof busy==='function')busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti: '+((res&&res.error)||'?')); load(); return; } t.nextText=nx; t.nextDate=nd; t.rest=rest; t.critical=crit; t.link=link; t.notes=notes; render(); }).catch(function(e){ banner('Greska: '+e); load(); }); };
  if(!window._soInit){ window._soInit=true; var mw=document.createElement('div'); mw.className='so-modal'; mw.innerHTML='<div class="so-box"><div class="so-hd"><b>Opis</b><button class="so-x" aria-label="Zatvori">\u2715</button></div><textarea class="so-ta" placeholder="Unesi opis\u2026"></textarea><div class="so-row"><button class="so-cancel">Zatvori</button><button class="so-save">Spremi</button></div></div>'; document.body.appendChild(mw); window._soMW=mw; var cl=function(){ mw.classList.remove('show'); }; mw.querySelector('.so-x').addEventListener('click',cl); mw.querySelector('.so-cancel').addEventListener('click',cl); mw.addEventListener('click',function(e){ if(e.target===mw) cl(); }); mw.querySelector('.so-save').addEventListener('click',function(){ var c=window._soCur; if(c){ _saveAll(c.t,c.row,{rest:mw.querySelector('.so-ta').value.trim()}); } cl(); }); }
  var openOpis=function(t,row){ window._soCur={t:t,row:row}; window._soMW.querySelector('.so-ta').value=t.rest||''; window._soMW.classList.add('show'); setTimeout(function(){window._soMW.querySelector('.so-ta').focus();},30); };
- var soloRow=function(t){ var row=document.createElement('div'); row.className='srow'+(t.done?' is-done':'')+(t.critical?' is-crit':''); var lnk=t.link||''; if(lnk && lnk.indexOf('http')!==0) lnk='https://'+lnk; var _t0=today0().getTime(); var _ndO=(!t.done&&t.nextDate&&new Date(new Date(t.nextDate).setHours(0,0,0,0)).getTime()<_t0)?' od':''; var _duO=(!t.done&&t.due&&new Date(new Date(t.due).setHours(0,0,0,0)).getTime()<_t0)?' od':''; row.innerHTML='<span class="sbox" title="gotovo">'+(t.done?'\u2713':'')+'</span><div class="stitle" title="'+escapeAttr(t.title)+'">'+waitBadge(t)+(t.link?('<a class="slink" href="'+escapeAttr(lnk)+'" target="_blank" rel="noopener" title="Otvori link">\u2197</a> '):'')+escapeHtml(t.title)+(t.isProject?' <span class="sproj">projekt</span>':'')+rokBadge(t)+staleBadge(t)+'</div><input class="s-next" placeholder="next step\u2026" value="'+escapeAttr(t.nextText||'')+'">'+(t.isProject?'<input type="date" class="s-ndate'+_ndO+'" value="'+escapeAttr(dateInputVal(t.nextDate))+'" title="Rok za next step">':'<span class="s-ndate ghost" aria-hidden="true"></span>')+'<input type="date" class="s-due'+_duO+(t.locked?' due-lock':'')+'" value="'+escapeAttr(dateInputVal(t.due))+'" title="'+(t.locked?'Rok zaklju\u010dao Domagoj':'Rok zavrsetka taska')+'"'+((t.locked&&isScoped())?' disabled':'')+'><button class="icon opis-pill s-icn'+((t.rest&&t.rest.trim())?' has':'')+'" data-opis="'+escapeAttr(t.rest||'')+'" title="Opis (klik za uredi, hover za pregled)">\u270E</button><button class="icon s-icn s-link'+(t.link?' on':'')+'" title="Link">\uD83D\uDD17</button><button class="icon s-icn s-wait'+(t.wait?' won-'+t.wait:'')+'" title="Status (klik cikliraj)">'+(t.wait==='done'?'\u2705':(t.wait==='action'?'\uD83D\uDFE0':(t.wait==='pending'?'\uD83D\uDD35':(t.wait==='hold'?'\u23F8':'\u25CB'))))+'</button><button class="icon s-icn s-crit'+(t.critical?' on':'')+'" title="Critical">\u2691</button><button class="icon s-icn s-lock'+(t.locked?' lon':'')+'" title="'+(t.locked?(isScoped()?'Rok zaklju\u010dao Domagoj':'Rok zaklju\u010dan \u2014 klik za otklju\u010davanje'):(isScoped()?'':'Zaklju\u010daj rok'))+'">'+(t.locked?'\uD83D\uDD10':'\u25CB')+'</button><button class="icon s-icn s-proj'+(t.isProject?' on':'')+'" title="'+(t.isProject?'Projekt \u2014 klik da vise nije':'Oznaci kao projekt')+'">'+(t.isProject?'\u25A3':'\u25A2')+'</button><select class="sowner s-own" title="Nositelj — promjena prebacuje task">'+ownerOpts(t.prefix)+'</select>'; row.querySelector('.sbox').addEventListener('click',function(){ toggle(t,row); });
+ var soloRow=function(t){ var row=document.createElement('div'); row.className='srow'+(t.done?' is-done':'')+(pdParse(t.dlv)?' has-dlv':'')+(t.critical?' is-crit':''); var lnk=t.link||''; if(lnk && lnk.indexOf('http')!==0) lnk='https://'+lnk; var _t0=today0().getTime(); var _ndO=(!t.done&&t.nextDate&&new Date(new Date(t.nextDate).setHours(0,0,0,0)).getTime()<_t0)?' od':''; var _duO=(!t.done&&t.due&&new Date(new Date(t.due).setHours(0,0,0,0)).getTime()<_t0)?' od':''; row.innerHTML='<span class="sbox" title="gotovo">'+(t.done?'\u2713':'')+'</span><div class="stitle" title="'+escapeAttr(t.title)+'">'+waitBadge(t)+pdAdd(t)+(t.link?('<a class="slink" href="'+escapeAttr(lnk)+'" target="_blank" rel="noopener" title="Otvori link">\u2197</a> '):'')+escapeHtml(t.title)+(t.isProject?' <span class="sproj">projekt</span>':'')+rokBadge(t)+staleBadge(t)+'</div><input class="s-next" placeholder="next step\u2026" value="'+escapeAttr(t.nextText||'')+'">'+(t.isProject?'<input type="date" class="s-ndate'+_ndO+'" value="'+escapeAttr(dateInputVal(t.nextDate))+'" title="Rok za next step">':'<span class="s-ndate ghost" aria-hidden="true"></span>')+'<input type="date" class="s-due'+_duO+(t.locked?' due-lock':'')+'" value="'+escapeAttr(dateInputVal(t.due))+'" title="'+(t.locked?'Rok zaklju\u010dao Domagoj':'Rok zavrsetka taska')+'"'+((t.locked&&isScoped())?' disabled':'')+'><button class="icon opis-pill s-icn'+((t.rest&&t.rest.trim())?' has':'')+'" data-opis="'+escapeAttr(t.rest||'')+'" title="Opis (klik za uredi, hover za pregled)">\u270E</button><button class="icon s-icn s-link'+(t.link?' on':'')+'" title="Link">\uD83D\uDD17</button><button class="icon s-icn s-wait'+(t.wait?' won-'+t.wait:'')+'" title="Status (klik cikliraj)">'+(t.wait==='done'?'\u2705':(t.wait==='action'?'\uD83D\uDFE0':(t.wait==='pending'?'\uD83D\uDD35':(t.wait==='hold'?'\u23F8':'\u25CB'))))+'</button><button class="icon s-icn s-crit'+(t.critical?' on':'')+'" title="Critical">\u2691</button><button class="icon s-icn s-lock'+(t.locked?' lon':'')+'" title="'+(t.locked?(isScoped()?'Rok zaklju\u010dao Domagoj':'Rok zaklju\u010dan \u2014 klik za otklju\u010davanje'):(isScoped()?'':'Zaklju\u010daj rok'))+'">'+(t.locked?'\uD83D\uDD10':'\u25CB')+'</button><button class="icon s-icn s-proj'+(t.isProject?' on':'')+'" title="'+(t.isProject?'Projekt \u2014 klik da vise nije':'Oznaci kao projekt')+'">'+(t.isProject?'\u25A3':'\u25A2')+'</button><select class="sowner s-own" title="Nositelj — promjena prebacuje task">'+ownerOpts(t.prefix)+'</select>'+pdLine(t); row.querySelector('.sbox').addEventListener('click',function(){ toggle(t,row); }); pdWire(row,t);
     var _ow=row.querySelector('.s-own'); if(_ow){ _ow.addEventListener('click',function(e){ e.stopPropagation(); }); _ow.addEventListener('change',function(){ var _p=this.value; if(_p===t.prefix) return; if(!_p) return; saveTask(t,row,t.title,t.due,t.nextText||'',t.nextDate,_p,t.link); banner('Task prebačen na '+(MAP[_p]||_p)); }); }
     var _pj=row.querySelector('.s-proj'); if(_pj) _pj.addEventListener('click',function(e){ e.stopPropagation(); t.isProject=!t.isProject; saveTask(t,row,t.title,t.due,t.nextText||'',t.nextDate,t.prefix,t.link); }); row.querySelector('.s-next').addEventListener('change',function(){ var v=this.value.trim(); if(v!==(t.nextText||'')){ t.wait=waitOf(v); paintWait(row,t.wait); t.rest=_stampStatus(t.rest); _saveAll(t,row,{nx:v}); } }); row.querySelector('.s-ndate')?.addEventListener('change',function(){ _saveAll(t,row,{nd:this.value?fromInput(this.value):null}); }); row.querySelector('.s-due').addEventListener('change',function(){
       var dd = this.value ? fromInput(this.value) : null;
@@ -655,9 +663,9 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
     var linkp=t.link?'<a class="pill link-pill" href="'+escapeAttr(lhref)+'" target="_blank" rel="noopener">↗ otvori</a>':'';
     var waitp='<span class="pill wait-pill'+(t.wait?' w-on-'+t.wait:'')+'" title="Klik: ACTION \u2192 PENDING \u2192 nista">'+(t.wait==='action'?'\uD83D\uDFE0 ACTION':(t.wait==='pending'?'\uD83D\uDD35 PENDING':'status'))+'</span>';
     row.innerHTML='<span class="selbox"></span><span class="box"><svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.4-5" fill="none" stroke="#0d1014" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
-      '<span class="tbody"><span class="tt">'+waitBadge(t)+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+waitp+linkp+'</span></span>'+
+      '<span class="tbody"><span class="tt">'+waitBadge(t)+pdAdd(t)+escapeHtml(t.title)+'</span>'+pdLine(t)+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+critp+waitp+linkp+'</span></span>'+
       '<button class="priv-btn">'+btnLbl+'</button>';
-    var tbody=row.querySelector('.tbody');
+    var tbody=row.querySelector('.tbody'); pdWire(row,t);
     var lp=row.querySelector('.link-pill'); if(lp) lp.addEventListener('click',function(e){ e.stopPropagation(); });
     var sb=row.querySelector('.selbox'); if(selected[t.id]) sb.setAttribute('data-sel','1');
     sb.addEventListener('click',function(e){ e.stopPropagation(); toggleSel(t.id,row); });
@@ -797,7 +805,7 @@ function mxRender(){ var box=el('mirror'); if(!box) return;
     if(op){ arr.forEach(function(x){ var ovN=x.sdue&&new Date(x.sdue+'T00:00:00')<t0, ovD=x.due&&new Date(x.due+'T00:00:00')<t0;
       h+='<div class="mx-r'+(x.critical?' crit':'')+'" data-b="'+b+'" data-id="'+mxEsc(x.id)+'">'+
         '<button class="mx-ck" title="Označi gotovo na izvornom boardu">✓</button>'+
-        '<div class="mx-t">'+mxPill(x.note)+(!scoped?'<span class="mx-ow">'+mxEsc(mxOwner(x.owner))+'</span>':'')+'<span class="mx-nz" title="Klik za uređivanje">'+mxEsc(x.naziv)+'</span>'+(x.dlv?'<span class="mx-dlv" title="Deliverable (postavlja Domagoj)">🎯'+(mxDlvTxt(x.dlv).d?' '+mxDlvTxt(x.dlv).d:'')+'</span>':'')+(x.parent?'<span class="mx-par">↳ '+mxEsc(x.parent)+'</span>':'')+(x.store?'<span class="mx-par">· '+mxEsc(x.store)+'</span>':'')+(x.link?' <a class="mx-lnk" href="'+mxEsc(x.link)+'" target="_blank" rel="noopener">🔗</a>':'')+'</div>'+
+        '<div class="mx-t">'+mxPill(x.note)+(!scoped?'<span class="mx-ow">'+mxEsc(mxOwner(x.owner))+'</span>':'')+'<span class="mx-nz" title="Klik za uređivanje">'+mxEsc(x.naziv)+'</span>'+(x.dlv?'<span class="mx-dlv" title="'+mxEsc('Deliverable: '+mxDlvTxt(x.dlv).t)+'">🎯'+(mxDlvTxt(x.dlv).d?' '+mxDlvTxt(x.dlv).d:'')+'</span>':'')+(x.parent?'<span class="mx-par">↳ '+mxEsc(x.parent)+'</span>':'')+(x.store?'<span class="mx-par">· '+mxEsc(x.store)+'</span>':'')+(x.link?' <a class="mx-lnk" href="'+mxEsc(x.link)+'" target="_blank" rel="noopener">🔗</a>':'')+'</div>'+
         '<input class="mx-note" value="'+mxEsc(x.note)+'" placeholder="next step…">'+
         '<input type="date" class="mx-sdue'+(ovN?' over':'')+'" value="'+mxEsc(x.sdue||'')+'" title="Next step datum">'+
         '<input type="date" class="mx-due'+(ovD?' over':'')+'" value="'+mxEsc(x.due)+'" title="Rok završetka">'+'<button class="mx-ed" title="Uredi sve (naziv, nositelj, opis, link…)">✎</button>'+
@@ -821,7 +829,7 @@ function mxWire(box){
 }
 var _mxRender0=render; render=function(){ _mxRender0.apply(this, arguments); try{ mxRender(); mxLoad(false); }catch(e){} };
 /* ===== Mirror editor: puno uređivanje taska s projektnog boarda ===== */
-var MX_OWNERS={kcep:['Dom','Boro','Tamara','Sandra','Edin','Andrej','DE savjetnik','BDO','Xela','Neodređeno'],zabica:['Davor','Silva','Ankica','AnaT','Nataša','Lucija','Dom','Neodređeno'],cm:['Dom','Tom','Sandra','Neodređeno'],menu:['Nino','Davor','AnaT','Ankica','Nataša','Silva','Tamara','Dom','Neodređeno'],bbt:['Dom','Davor','Nino','AnaT','Ankica','Nataša','Martina'],gastro:['Dom','Davor','Antonio','Sandi','Nino','Silva','Neodređeno'],stores:['Davor','Nino','Silva','AnaT','Ankica','Nataša','Dom','PEP tim','Neodređeno'],procurement:['Dom','Nino','Nataša','Neodređeno']};
+var MX_OWNERS={kcep:['Dom','Boro','Tamara','Sandra','Edin','Andrej','DE savjetnik','BDO','Xela','Neodređeno'],zabica:['Davor','Silva','Ankica','AnaT','Nataša','Lucija','Dom','Neodređeno'],cm:['Dom','Tom','Lucija','Stefan','Sandra','Neodređeno'],menu:['Nino','Davor','AnaT','Ankica','Nataša','Silva','Tamara','Dom','Neodređeno'],bbt:['Dom','Davor','Nino','AnaT','Ankica','Nataša','Martina'],gastro:['Dom','Davor','Antonio','Sandi','Nino','Silva','Neodređeno'],stores:['Davor','Nino','Silva','AnaT','Ankica','Nataša','Dom','PEP tim','Neodređeno'],procurement:['Dom','Nino','Nataša','Neodređeno']};
 var MX_STORES=['Arena (Zagreb)','Tkalčićeva (Zagreb)','City Center One (Split)','Supernova (Zadar)','PEP (München)','Eurovea (Bratislava)','Aupark (Bratislava)','Máj Národní (Prag)'];
 function mxDlvTxt(s){ var i=String(s||'').indexOf('|'); if(i<0) return null; var d=s.slice(0,i), t=s.slice(i+1); var p=d.split('-'); return {t:t, d:(d?(+p[2])+'.'+(+p[1])+'.'+p[0]+'.':'')}; }
 function mxEdit(x){
@@ -840,7 +848,7 @@ function mxEdit(x){
     '<div class="mxe-2"><div><label>Datum next stepa</label><input type="date" data-f="sdue"></div><div><label>Rok završetka</label><input type="date" data-f="due"></div></div>'+
     '<label>Opis</label><textarea data-f="opis" rows="5"></textarea>'+
     '<label>Link</label><input data-f="link" placeholder="https://…">'+extra+
-    (dl?'<div class="mxe-dlv">🎯 <b>Deliverable</b> '+mxEsc(dl.t)+(dl.d?' · <b>'+dl.d+'</b>':'')+' <span title="Mijenja samo Domagoj na boardu">🔒</span></div>':'')+
+    (!isScoped()?'<div class="mxe-dlvf">'+pdForm(x.dlv)+'</div>':dl?'<div class="mxe-dlv">🎯 <b>Deliverable</b> '+mxEsc(dl.t)+(dl.d?' · <b>'+dl.d+'</b>':'')+' <span title="Mijenja samo Domagoj na boardu">🔒</span></div>':'')+
     '<div class="mxe-f"><button class="btn" data-done style="margin-right:auto">✓ Zatvori task</button><button class="btn" data-x>Odustani</button><button class="btn mxe-ok" data-ok>Spremi</button></div></div>';
   document.body.appendChild(m);
   ['naziv','note','sdue','due','opis','link','store','cost'].forEach(function(f){ var n=m.querySelector('[data-f="'+f+'"]'); if(n) n.value=x[f]||''; });
@@ -858,16 +866,42 @@ function mxEdit(x){
       var v=n.value; if(f!=='opis') v=v.trim(); else v=v.replace(/\s+$/,'');
       if(v!==String(x[f]||'')) ch[f]=v; });
     if(ch.naziv!==undefined && !ch.naziv){ banner('Naziv ne smije biti prazan'); m.querySelector('[data-f="naziv"]').focus(); return; }
+    if(!isScoped() && m.querySelector('[data-pd]')){ var nv=pdRead(m); if(nv!==String(x.dlv||'')) ch.nextstep=nv; }
     if(!Object.keys(ch).length){ close(); return; }
     if(ch.owner!==undefined && isScoped() && !confirm('Prebacuješ task na: '+ch.owner+'.\nNakon spremanja više ga nećeš vidjeti na svom boardu. Nastaviti?')) return;
     var b=m.querySelector('[data-ok]'); b.disabled=true; b.textContent='Spremam…';
     var p={action:'mupdate', board:x.board, id:x.id}; Object.keys(ch).forEach(function(k){ p[k]=(k==='critical')?String(ch[k]):ch[k]; });
     api(p).then(function(r){ if(!r||r.error){ b.disabled=false; b.textContent='Spremi'; banner('Nije spremljeno: '+((r&&r.error)||'?')); return; }
-      Object.keys(ch).forEach(function(k){ x[k]=ch[k]; }); close(); banner('Spremljeno na '+x.label); mxRender(); mxLoad(true); })
+      Object.keys(ch).forEach(function(k){ x[k]=ch[k]; }); if(ch.nextstep!==undefined) x.dlv=ch.nextstep; close(); banner('Spremljeno na '+x.label); mxRender(); mxLoad(true); })
     .catch(function(e){ b.disabled=false; b.textContent='Spremi'; banner('Greška: '+e); });
   });
 }
 /* ===== kraj mirror editora ===== */
+/* ===== Deliverable na osobnom boardu (polje dlv = 'YYYY-MM-DD|tekst'; postavlja samo Domagoj) ===== */
+function pdParse(s){ s=String(s||''); var i=s.indexOf('|'); if(i<0) return null; var d=s.slice(0,i), t=s.slice(i+1); if(d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) return null; return {d:d, t:t}; }
+function pdHr(d){ if(!d) return ''; var p=d.split('-'); return (+p[2])+'.'+(+p[1])+'.'+p[0]+'.'; }
+function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2); }
+function pdAdd(t){ return (!isScoped() && !pdParse(t.dlv))?'<span class="pd-add" title="Dodaj deliverable">🎯+</span> ':''; }
+function pdLine(t){ var x=pdParse(t.dlv); if(!x) return ''; var adm=!isScoped(); var over=x.d && !t.done && x.d<pdTodayISO();
+  return '<div class="pdlv'+(over?' over':'')+(adm?' adm':'')+'" title="'+(adm?'Klik: uredi deliverable':'Deliverable postavlja Domagoj')+'"><span class="pdlv-k">🎯 Deliverable</span> '+escapeHtml(x.t)+(x.d?' <b>· '+pdHr(x.d)+'</b>':'')+(adm?'':' <span class="pdlv-lock">🔒</span>')+'</div>'; }
+function pdForm(cur){ var x=pdParse(cur)||{d:'',t:''}; return '<label>🎯 Deliverable — što točno mora biti isporučeno</label><textarea data-pd="t" rows="3" placeholder="npr. Potpisan ugovor s dobavljačem">'+escapeHtml(x.t)+'</textarea><label>Datum isporuke</label><input type="date" data-pd="d" value="'+escapeAttr(x.d)+'">'; }
+function pdRead(m){ var tx=m.querySelector('[data-pd="t"]').value.replace(/\|/g,'/').replace(/\s+/g,' ').trim(), d=m.querySelector('[data-pd="d"]').value; return tx?((d||'')+'|'+tx):''; }
+function pdOpen(t){ if(isScoped()) return;
+  var m=document.createElement('div'); m.className='mxe-bg';
+  m.innerHTML='<div class="mxe"><div class="mxe-h"><b>🎯 Deliverable</b><span class="mx-par"></span><button class="mxe-x" data-x>✕</button></div>'+pdForm(t.dlv)+
+    '<div class="mxe-f">'+(t.dlv?'<button class="btn" data-del style="margin-right:auto;color:var(--over)">Obriši</button>':'<span style="margin-right:auto"></span>')+'<button class="btn" data-x>Odustani</button><button class="btn mxe-ok" data-ok>Spremi</button></div></div>';
+  document.body.appendChild(m); m.querySelector('.mx-par').textContent=t.title; m.querySelector('[data-pd="t"]').focus();
+  function close(){ m.remove(); document.removeEventListener('keydown',esc_); }
+  function esc_(e){ if(e.key==='Escape') close(); }
+  document.addEventListener('keydown',esc_);
+  Array.prototype.forEach.call(m.querySelectorAll('[data-x]'),function(b){ b.addEventListener('click',close); });
+  m.addEventListener('mousedown',function(e){ if(e.target===m) close(); });
+  function save(v){ api({action:'dlv', taskId:t.id, dlv:v}).then(function(r){ if(!r||r.error){ banner('Nije spremljeno: '+((r&&r.error)||'?')); return; } t.dlv=v; RAW.forEach(function(x){ if(x.id===t.id) x.dlv=v; }); close(); banner(''); render(); }).catch(function(e){ banner('Greška: '+e); }); }
+  var dl=m.querySelector('[data-del]'); if(dl) dl.addEventListener('click',function(){ if(confirm('Obrisati deliverable?')) save(''); });
+  m.querySelector('[data-ok]').addEventListener('click',function(){ var v=pdRead(m); if(!v){ m.querySelector('[data-pd="t"]').focus(); return; } save(v); });
+}
+function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv, .pd-add'),function(n){ n.addEventListener('click',function(e){ e.stopPropagation(); e.preventDefault(); pdOpen(t); }); n.addEventListener('mousedown',function(e){ e.stopPropagation(); }); }); }
+/* ===== kraj deliverable modula ===== */
 /* ===== kraj mirror modula ===== */
 
   var LAST1={};
