@@ -547,7 +547,7 @@ function subAddRow(top){
   }
   function del(t){
     TASKS=TASKS.filter(function(x){return x.id!==t.id && x.parent!==t.id;}); renderAll();
-    api({action:'delete', id:t.id}).then(function(res){ if(!res||res.error){ banner('Brisanje nije uspjelo'); load(); } else banner('Obrisano'); }).catch(function(){ load(); });
+    api({action:'delete', id:t.id, admin:KY_ADMIN}).then(function(res){ if(!res||res.error){ banner('Brisanje nije uspjelo'); load(); } else banner('Obrisano'); }).catch(function(){ load(); });
   }
 
   el('add-toggle').addEventListener('click', function(){ el('addbar').classList.toggle('hidden'); if(!el('addbar').classList.contains('hidden')) el('a-naziv').focus(); });
