@@ -481,6 +481,8 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
         var _tries = /(^|&)action=add(&|$)/.test(qs) ? 1 : 5;
     return fetchRetry_(ENDPOINT+'?'+qs, _tries); }
 
+  /* read-only pristup za Domove snapshot skripte (14.10.2026.) */
+  window.kySnapshot=function(){ return { tasks:TASKS, mirror:(typeof MX!=='undefined'&&MX&&MX.items)?MX.items:[], mirrorTs:(typeof MX!=='undefined'&&MX)?MX.ts:0 }; };
   var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', waitFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, ovrOnly=false, commOnly=false, tagOwner=false;
   var el=function(id){return document.getElementById(id);};
   function banner(m){ var b=el('banner'); if(!m){b.style.display='none';return;} b.textContent=m; b.style.display='block'; }
