@@ -32,6 +32,7 @@
   .prog .lbl b{color:var(--text)}
   .filters{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
   .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .dlvctx{display:block;font:600 10px/1.3 var(--mono);color:var(--dim);letter-spacing:.03em;margin-bottom:2px;white-space:normal} body.dlvmode .grip{visibility:hidden} .dlvcard-over .sec-h .name{color:#f3a0a0} .dlvcard-none .sec-h .name,.dlvcard-later .sec-h .name{opacity:.75}
   .chips .klabel{font:600 10px/1 var(--mono);color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-right:2px}
   .chip{font:600 11px/1 var(--body);background:var(--panel);border:1px solid var(--line);color:var(--faint);border-radius:99px;padding:6px 11px;cursor:pointer;user-select:none}
   .chip.on{background:var(--panel2);color:var(--text);border-color:#3a445a}
@@ -225,6 +226,14 @@
       <span class="chip" id="f-prio" data-acc="bad">P1</span>
       <input id="search" placeholder="traži (naziv, next step, opis)…">
     </div>
+    <div class="chips" id="f-dlv">
+      <span class="klabel">Deliverable</span>
+      <span class="chip on" data-dl="all">Sve</span>
+      <span class="chip" data-dl="sort" title="Svi otvoreni koraci po roku deliverablea, od najbližeg">🎯 Deliverable</span>
+      <span class="chip" data-dl="over" data-acc="bad" title="Rok deliverablea je prošao">Missed <b class="ocnt" data-dn="over">0</b></span>
+      <span class="chip" data-dl="week" data-acc="warn" title="Rok deliverablea od danas do nedjelje">This week <b class="ocnt" data-dn="week">0</b></span>
+      <span class="chip" data-dl="none" title="Otvoreni koraci bez deliverablea">No deliverable <b class="ocnt" data-dn="none">0</b></span>
+    </div>
   </div>
 
   <div class="head-scroll">
@@ -283,7 +292,7 @@
   var SECRET = lsGet(BOARD.skey);
   var KY_ADMIN = lsGet('koykan_admin');
   var TASKS = [], CFG = {id:'_CFG', sdue:'', note:''}, VIEW = BOARD.view || 'list';
-  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false, fP1=false;
+  var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false, fP1=false, fDlv='all';
   OWNERS.forEach(function(o){ fOwner[o]=true; });
 
   function el(id){ return document.getElementById(id); }
@@ -378,6 +387,7 @@
     ch.addEventListener('click', function(){ fStatus=ch.getAttribute('data-st'); qsa('[data-st]').forEach(function(x){x.classList.toggle('on',x===ch);}); renderAll(); });
   });
   el('search').addEventListener('input', function(){ searchQ=this.value.toLowerCase().trim(); renderAll(); });
+  qsa('[data-dl]').forEach(function(ch){ ch.addEventListener('click', function(){ fDlv=ch.getAttribute('data-dl'); qsa('[data-dl]').forEach(function(x){x.classList.toggle('on',x===ch);}); document.body.classList.toggle('dlvmode', fDlv!=='all'); renderAll(); }); });
   el('f-overdue').addEventListener('click', function(){ fOverdue=!fOverdue; this.classList.toggle('on',fOverdue); renderAll(); });
   el('f-crit').addEventListener('click', function(){ fCrit=!fCrit; this.classList.toggle('on',fCrit); renderAll(); });
   el('f-prio').addEventListener('click', function(){ fP1=!fP1; this.classList.toggle('on',fP1); renderAll(); });
@@ -391,6 +401,7 @@
     if(fOverdue && !isOverdue(t)) return false;
     if(fCrit && !t.critical) return false;
     if(fP1 && t.prio!=='P1') return false;
+    if(fDlv!=='all'){ var _k=dlvKind(t); if(fDlv==='sort'){ if(_k==='done'||_k==='group') return false; } else if(_k!==fDlv) return false; }
     var ow = OWNERS.indexOf(t.owner)>=0 ? t.owner : 'Neodređeno';
     if(fOwner[ow]===false) return false;
     if(searchQ){ var hay=[t.naziv,t.note,t.opis,t.owner,t.store].join(' ').toLowerCase(); if(hay.indexOf(searchQ)<0) return false; }
@@ -401,7 +412,20 @@
   function ordKey(t){ var o=t.ord; return (typeof o==='number' && !isNaN(o)) ? o : (100000 + TASKS.indexOf(t)); }
   function sortSibs(arr){ return arr.slice().sort(function(a,b){ return ordKey(a)-ordKey(b); }); }
 
+  function dlvKind(t){ if(t.status==='Gotovo') return 'done'; var x=dlvParse(t.nextstep); if(!x||!x.d){ if(!t.parent && TASKS.some(function(c){ return c.parent===t.id; })) return 'group'; return 'none'; } var td=todayStr(); if(x.d<td) return 'over'; var e=new Date(); e.setHours(0,0,0,0); var wd=e.getDay(); e.setDate(e.getDate()+(wd===0?0:7-wd)); var ei=e.getFullYear()+'-'+('0'+(e.getMonth()+1)).slice(-2)+'-'+('0'+e.getDate()).slice(-2); return x.d<=ei?'week':'later'; }
+  function dlvDate(t){ var x=dlvParse(t.nextstep); return (x&&x.d)?x.d:'9999-12-31'; }
+  function dlvCounts(){ var c={over:0,week:0,none:0}; TASKS.forEach(function(t){ if(fSection!=='all' && t.section!==fSection) return; var ow=OWNERS.indexOf(t.owner)>=0?t.owner:'Neodređeno'; if(fOwner[ow]===false) return; var k=dlvKind(t); if(c[k]!==undefined) c[k]++; }); qsa('[data-dn]').forEach(function(n){ n.textContent=c[n.getAttribute('data-dn')]; }); }
+  function renderDlvBoard(board){
+    var items=TASKS.filter(passFilter).sort(function(a,b){ var da=dlvDate(a), db=dlvDate(b); if(da!==db) return da<db?-1:1; if(!!a.critical!==!!b.critical) return a.critical?-1:1; return ordKey(a)-ordKey(b); });
+    var byId={}; TASKS.forEach(function(t){ byId[t.id]=t; });
+    var L={over:'Missed',week:'This week',later:'Later',none:'No deliverable'};
+    ['over','week','later','none'].forEach(function(k){ var arr=items.filter(function(t){ return dlvKind(t)===k; }); if(!arr.length) return;
+      var card=secCard(L[k], arr); card.classList.add('dlvcard','dlvcard-'+k);
+      arr.forEach(function(t){ var row=taskRow(t,false); var nz=row.querySelector('.naziv'); var p=t.parent&&byId[t.parent]; var ctx=secLabel(t.section)+(p?' › '+p.naziv:''); if(nz) nz.insertAdjacentHTML('afterbegin','<span class="dlvctx">'+esc(ctx)+'</span>'); card.appendChild(row); });
+      board.appendChild(card); });
+  }
   function chipCounts(){
+    dlvCounts();
     var ov=TASKS.filter(isOverdue).length;
     var cr=TASKS.filter(function(t){ return t.critical && t.status!=='Gotovo'; }).length;
     var p1=TASKS.filter(function(t){ return t.prio==='P1' && t.status!=='Gotovo'; }).length;
@@ -439,6 +463,7 @@
   function renderBoard(){
     var board=el('board'); board.innerHTML='';
     if(!TASKS.filter(passFilter).length){ board.innerHTML='<div class="empty">Nema koraka za prikaz. Provjeri filtere ili dodaj novi.</div>'; return; }
+    if(fDlv!=='all'){ renderDlvBoard(board); return; }
     if(MOD.stores){ renderBoardStores(board); return; }
     secOrder().forEach(function(sec){
       var secTasks=TASKS.filter(function(t){return t.section===sec;});
@@ -612,7 +637,7 @@
   function dlvLine(t){ var x=dlvParse(t.nextstep);
     if(!x) return '';
     var over=x.d && t.status!=='Gotovo' && x.d<todayStr();
-    return '<div class="dlv'+(over?' over':'')+(KY_ADMIN?' adm':'')+'" title="'+(KY_ADMIN?'Klik: uredi deliverable':'Deliverable postavlja Domagoj')+'"><span class="dlv-k">🎯 Deliverable</span> '+esc(x.t)+(x.d?' <b>· '+hrDate(x.d)+'</b>':'')+(KY_ADMIN?'':' <span class="dlv-lock">🔒</span>')+'</div>'; }
+    return '<div class="dlv'+(over?' over':'')+(KY_ADMIN?' adm':'')+'" title="'+(KY_ADMIN?'Klik: uredi deliverable':'Deliverable postavlja Domagoj')+'"><span class="dlv-k">🎯 Deliverable</span> '+esc(x.t)+(x.d?' <b>· '+hrDate(x.d)+'</b>':'')+(over?' <b class="dlv-late">· kasni '+Math.round((new Date(todayStr())-new Date(x.d))/864e5)+' d</b>':'')+(KY_ADMIN?'':' <span class="dlv-lock">🔒</span>')+'</div>'; }
   function dlvOpen(t){ var x=dlvParse(t.nextstep)||{d:'',t:''};
     var m=document.createElement('div'); m.className='modal show';
     m.innerHTML='<div class="modal-box"><div class="mh"><div><div class="mt">🎯 Deliverable</div><div class="ms"></div></div></div>'+
