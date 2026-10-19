@@ -28,7 +28,12 @@
   .ring .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px}
   .meta{font-size:12px; color:var(--muted)} .meta b{color:var(--text); font-family:var(--mono); font-weight:500}
 
-  .bar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+  .bar{display:flex; flex-direction:column; align-items:stretch; gap:10px; margin-bottom:14px}
+  .brow{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .brow .searchbox{flex:0 1 340px; width:auto; min-width:200px; padding:8px 11px}
+  .fgrid{gap:10px 12px; align-items:stretch}
+  .fbox{display:flex; flex-direction:column; gap:6px; padding:8px 10px 10px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.015)}
+  .fbox .glabel{padding-left:2px} .fbtns{display:flex; gap:6px; flex-wrap:wrap}
   .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden}
   .seg button{font:500 12px/1 var(--body); color:var(--muted); background:var(--panel); border:none; border-right:1px solid var(--line); padding:8px 12px; cursor:pointer}
   .seg button:last-child{border-right:none} .seg button.on{background:var(--panel2); color:var(--text)}
@@ -308,63 +313,65 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
   </div>
 
   <div class="bar" id="bar" style="display:none">
-    <div class="bgroup nb">
+    <div class="brow">
       <button class="btn add" id="new-task">+ Novi task</button>
-    </div>
-    <div id="adv" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
-    
-    <div class="bgroup">
-      <span class="glabel g2">Tip</span>
-      <div class="seg" id="type-seg">
-        <button data-t="all" class="on">Sve</button>
-        <button data-t="project">Projekti</button>
-        <button data-t="task">Taskovi</button>
-        <button data-t="critical">Critical</button>
-        
-      </div>
-    </div>
-    </div>
-    <div class="bgroup nb">
-      <span class="glabel g3">Vrijeme</span>
-      <div class="seg" id="win-seg">
-        <button data-w="all" class="on">Bilo kad</button>
-        <button data-w="overdue">Overdue</button>
-        <button data-w="today">Danas</button>
-        <button data-w="tomorrow">Sutra</button>
-        <button data-w="tilltoday">Do danas</button>
-      </div>
-    </div>
-    <div class="bgroup">
-      <span class="glabel">Status</span>
-      <div class="seg" id="wait-seg">
-        <button data-a="all" class="on">Sve</button>
-        <button data-a="action">🟠 ACTION</button>
-        <button data-a="pending">🔵 PENDING</button>
-        <button data-a="hold">⏸ ON HOLD</button>
-        <button data-a="done">✅ DONE</button>
-        <button data-a="notdone">Osim DONE</button>
-        <button data-a="stale" title="Next step nije mijenjan 7+ dana">⏳ Nedirano 7+</button>
-      </div>
-    </div>
-    <div class="bgroup" id="adv2" style="display:none">
-      <span class="glabel g4">Akcije</span>
-      <button class="btn proj" id="mark-proj" title="Dodaj A_ poznatim projektima">Označi projekte (A_)</button>
-      <button class="btn" id="grid-edit" title="Uredi next step, next datum i rok za sve filtrirane odjednom">Tablica</button>
-      <button class="btn" id="bulk-toggle">Bulk</button>
-    </div>
-    <div class="bgroup nb">
-      <button class="btn" id="more-btn" title="Napredne opcije: grupiranje, tip, tablica, bulk">⋯ Više</button>
-    </div>
-    <div class="bgroup nb">
-      <span class="glabel">Traži</span>
-      <input type="text" id="search" class="searchbox" placeholder="naziv, status ili nositelj...">
-    </div>
-    <div class="spacer"></div>
-    <div class="bgroup">
+      <input type="text" id="search" class="searchbox" placeholder="Traži: naziv, status ili nositelj...">
+      <div class="spacer"></div>
       <span class="synced" id="synced"></span>
       <button class="btn" id="load-completed">Gotovi: skriveni</button>
       <button class="btn" id="refresh">Osvježi</button>
+      <button class="btn" id="more-btn" title="Napredne opcije: tip, označi projekte, tablica, bulk">⋯ Više</button>
       <button class="btn" id="logout" title="Makni spremljeni secret">Secret</button>
+    </div>
+    <div class="brow fgrid">
+      <div class="fbox">
+        <span class="glabel g3">Vrijeme</span>
+        <div class="seg" id="win-seg">
+          <button data-w="all" class="on">Bilo kad</button>
+          <button data-w="overdue">Overdue</button>
+          <button data-w="today">Danas</button>
+          <button data-w="tomorrow">Sutra</button>
+          <button data-w="tilltoday">Do danas</button>
+        </div>
+      </div>
+      <div class="fbox">
+        <span class="glabel g1">Status</span>
+        <div class="seg" id="wait-seg">
+          <button data-a="all" class="on">Sve</button>
+          <button data-a="action">🟠 ACTION</button>
+          <button data-a="pending">🔵 PENDING</button>
+          <button data-a="hold">⏸ ON HOLD</button>
+          <button data-a="done">✅ DONE</button>
+          <button data-a="notdone">Osim DONE</button>
+        </div>
+      </div>
+      <div class="fbox">
+        <span class="glabel g2">Deliverable</span>
+        <div class="seg" id="dlv-seg">
+          <button data-d="all" class="on">Sve</button>
+          <button data-d="sort" title="Svi otvoreni taskovi po roku deliverablea, od najbližeg">🎯 Deliverable</button>
+          <button data-d="over" title="Rok deliverablea je prošao">Missed <span class="dlvn" data-n="over"></span></button>
+          <button data-d="week" title="Rok deliverablea od danas do nedjelje">This week <span class="dlvn" data-n="week"></span></button>
+          <button data-d="none" title="Otvoreni taskovi bez deliverablea">No deliverable <span class="dlvn" data-n="none"></span></button>
+        </div>
+      </div>
+      <div class="fbox" id="adv" style="display:none">
+        <span class="glabel g4">Tip</span>
+        <div class="seg" id="type-seg">
+          <button data-t="all" class="on">Sve</button>
+          <button data-t="project">Projekti</button>
+          <button data-t="task">Taskovi</button>
+          <button data-t="critical">Critical</button>
+        </div>
+      </div>
+      <div class="fbox" id="adv2" style="display:none">
+        <span class="glabel g4">Akcije</span>
+        <div class="fbtns">
+          <button class="btn proj" id="mark-proj" title="Dodaj A_ poznatim projektima">Označi projekte (A_)</button>
+          <button class="btn" id="grid-edit" title="Uredi next step, next datum i rok za sve filtrirane odjednom">Tablica</button>
+          <button class="btn" id="bulk-toggle">Bulk</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -483,7 +490,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
 
   /* read-only pristup za Domove snapshot skripte (14.10.2026.) */
   window.kySnapshot=function(){ return { tasks:TASKS, mirror:(typeof MX!=='undefined'&&MX&&MX.items)?MX.items:[], mirrorTs:(typeof MX!=='undefined'&&MX)?MX.ts:0 }; };
-  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', waitFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, ovrOnly=false, commOnly=false, tagOwner=false;
+  var TASKS=[], RAW=[], ownerOn={}, groupMode='due', loadCompleted=false, typeFilter='all', winFilter='all', waitFilter='all', dlvFilter='all', searchQ='', selectMode=false, selected={}, critOnly=false, ovrOnly=false, commOnly=false, tagOwner=false;
   var el=function(id){return document.getElementById(id);};
   function banner(m){ var b=el('banner'); if(!m){b.style.display='none';return;} b.textContent=m; b.style.display='block'; }
   function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -544,7 +551,11 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
     if(winFilter==='today'){ var t0=today0(); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===t0.getTime(); }); }
     if(winFilter==='tomorrow'){ var tm=today0(); tm.setDate(tm.getDate()+1); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()===tm.getTime(); }); }
     return true; }
-  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(waitFilter==='hold'&&t.wait!=='hold') return false; if(waitFilter==='done'&&t.wait!=='done') return false; if(waitFilter==='stale'&&!isStale(t)) return false; if(waitFilter==='notdone'&&t.wait==='done') return false; if(searchQ && norm(t.title+' '+(t.nextText||'')+' '+(t.owner||'')).indexOf(searchQ)<0) return false; if(!inWin(t)) return false; return true; }); }
+  function visibleTasks(){ return TASKS.filter(function(t){ if(critOnly && !t.critical) return false; if(commOnly && !isCommitted(t)) return false; if(ovrOnly && !isOverdue(t)) return false; if(!ownerOn[t.owner]) return false; if(typeFilter==='project'&&!t.isProject) return false; if(typeFilter==='task'&&t.isProject) return false; if(typeFilter==='critical'&&!t.critical) return false; if(waitFilter==='action'&&t.wait!=='action') return false; if(waitFilter==='pending'&&t.wait!=='pending') return false; if(waitFilter==='hold'&&t.wait!=='hold') return false; if(waitFilter==='done'&&t.wait!=='done') return false; if(waitFilter==='stale'&&!isStale(t)) return false; if(waitFilter==='notdone'&&t.wait==='done') return false; if(searchQ && norm(t.title+' '+(t.nextText||'')+' '+(t.owner||'')).indexOf(searchQ)<0) return false; if(dlvFilter==='all' && !inWin(t)) return false; if(!dlvPass(t)) return false; return true; }); }
+  function dlvKind(t){ if(t.done) return 'done'; var x=pdParse(t.dlv); if(!x||!x.d) return 'none'; var td=pdTodayISO(); if(x.d<td) return 'over'; var e=new Date(); e.setHours(0,0,0,0); var wd=e.getDay(); e.setDate(e.getDate()+(wd===0?0:7-wd)); var ei=e.getFullYear()+'-'+('0'+(e.getMonth()+1)).slice(-2)+'-'+('0'+e.getDate()).slice(-2); return x.d<=ei?'week':'later'; }
+  function dlvPass(t){ if(dlvFilter==='all') return true; var k=dlvKind(t); if(dlvFilter==='sort') return k!=='done'; return k===dlvFilter; }
+  function dlvDate(t){ var x=pdParse(t.dlv); return (x&&x.d)?x.d:'9999-12-31'; }
+  function dlvCounts(){ var c={over:0,week:0,none:0}; TASKS.forEach(function(t){ if(!ownerOn[t.owner]) return; var k=dlvKind(t); if(c[k]!==undefined) c[k]++; }); Array.prototype.forEach.call(document.querySelectorAll('#dlv-seg .dlvn'),function(n){ var v=c[n.dataset.n]; n.textContent=v?'('+v+')':''; }); }
   function autoFlip(){
     return; /* ISKLJUCENO 11.9.2026. - statuse mijenjaju nositelji rucno */
     var todo=TASKS.filter(function(t){ var n=String(t.nextText||''); return !t.done && !/^\s*done\b/i.test(n) && /^\s*(pending|on hold)\b/i.test(n) && isOverdue(t); });
@@ -566,7 +577,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
 
   function render(){
     var grid=el('grid'); grid.innerHTML='';
-    var items=visibleTasks(); if(!isScoped()){ var _kb=document.createElement('div'); _kb.className='kybar'; var _kh=false; if(waitFilter==='done'){ var _dn=items.filter(function(x){return !x.done && x.wait==='done';}); if(_dn.length){ _kh=true; var _b1=document.createElement('button'); _b1.className='btn'; _b1.textContent='Zatvori sve prikazane DONE ('+_dn.length+')'; _b1.addEventListener('click',function(){ closeDoneBulk(_dn); }); _kb.appendChild(_b1); } } var _o1=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(!critOnly && !ovrOnly && _o1.length===1 && ['Dom','Private'].indexOf(_o1[0])<0){ _kh=true; var _who=_o1[0]; var _px=PREFIX[_who]||_who; var _ls=LAST1[kyN(_px)]; var _s1=document.createElement('span'); _s1.textContent='Zadnji 1:1 s '+_who+': '+(_ls?fmtD(_ls):'nema zapisa'); var _b2=document.createElement('button'); _b2.className='btn'; _b2.textContent='\u2713 1:1 odr\u017ean danas'; _b2.addEventListener('click',function(){ mark1on1(_px,_who); }); _kb.appendChild(_s1); _kb.appendChild(_b2); } if(_kh) grid.appendChild(_kb); } grid.className='grid'; var _on=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(true){ grid.className='grid solo'; var _c=document.createElement('div'); _c.className='card'; var _l=document.createElement('div'); _l.className='list'; items.sort(function(a,b){ if(a.done!==b.done)return a.done?1:-1; if(a.critical!==b.critical)return a.critical?-1:1; var da=sortDate(a), db=sortDate(b); if(da===Infinity)da=8e15; if(db===Infinity)db=8e15; return da-db; }); function _d10(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+    var items=visibleTasks(); if(!isScoped()){ var _kb=document.createElement('div'); _kb.className='kybar'; var _kh=false; if(waitFilter==='done'){ var _dn=items.filter(function(x){return !x.done && x.wait==='done';}); if(_dn.length){ _kh=true; var _b1=document.createElement('button'); _b1.className='btn'; _b1.textContent='Zatvori sve prikazane DONE ('+_dn.length+')'; _b1.addEventListener('click',function(){ closeDoneBulk(_dn); }); _kb.appendChild(_b1); } } var _o1=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(!critOnly && !ovrOnly && _o1.length===1 && ['Dom','Private'].indexOf(_o1[0])<0){ _kh=true; var _who=_o1[0]; var _px=PREFIX[_who]||_who; var _ls=LAST1[kyN(_px)]; var _s1=document.createElement('span'); _s1.textContent='Zadnji 1:1 s '+_who+': '+(_ls?fmtD(_ls):'nema zapisa'); var _b2=document.createElement('button'); _b2.className='btn'; _b2.textContent='\u2713 1:1 odr\u017ean danas'; _b2.addEventListener('click',function(){ mark1on1(_px,_who); }); _kb.appendChild(_s1); _kb.appendChild(_b2); } if(_kh) grid.appendChild(_kb); } grid.className='grid'; var _on=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(true){ grid.className='grid solo'; var _c=document.createElement('div'); _c.className='card'; var _l=document.createElement('div'); _l.className='list'; var _dsort=(dlvFilter==='sort'||dlvFilter==='over'||dlvFilter==='week'); if(_dsort){ items.sort(function(a,b){ if(a.done!==b.done)return a.done?1:-1; var da=dlvDate(a), db=dlvDate(b); if(da!==db) return da<db?-1:1; if(a.critical!==b.critical)return a.critical?-1:1; return sortDate(a)-sortDate(b); }); } else { items.sort(function(a,b){ if(a.done!==b.done)return a.done?1:-1; if(a.critical!==b.critical)return a.critical?-1:1; var da=sortDate(a), db=sortDate(b); if(da===Infinity)da=8e15; if(db===Infinity)db=8e15; return da-db; }); } function _d10(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
   function _stampStatus(rest){ var ls=String(rest||'').split('\n').filter(function(l){ return !/^\s*STATUS:\s*\d{4}-\d{2}-\d{2}\s*$/i.test(l); }); return ('STATUS: '+_d10()+'\n'+ls.join('\n')).replace(/\n+$/,''); }
   function _fmtD(x){ if(!x) return '-'; try{ var d=new Date(x); if(isNaN(d.getTime())) return '-'; return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear(); }catch(e){ return '-'; } }
   function _stampRok(rest,st,no){ return ('ROK: '+_d10()+' '+_fmtD(st)+' -> '+_fmtD(no)+'\n'+String(rest||'')).replace(/\n+$/,''); }
@@ -588,7 +599,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
     });
     row.querySelector('.opis-pill').addEventListener('click',function(){ openOpis(t,row); }); row.querySelector('.s-link').addEventListener('click',function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ _saveAll(t,row,{link:v.trim()}); } }); row.querySelector('.s-crit').addEventListener('click',function(){ _saveAll(t,row,{crit:!t.critical}); }); var sc_=row.querySelector('.s-comm'); if(sc_) sc_.addEventListener('click',function(){ toggleCommitted(t,row); }); var sl_=row.querySelector('.s-lock'); if(sl_) sl_.addEventListener('click',function(e){ e.stopPropagation(); toggleLock(t,row); }); row.querySelector('.s-wait').addEventListener('click',function(){ toggleWait(t,row); }); var wpS_=row.querySelector('.wpill'); if(wpS_) wpS_.addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row); }); var la=row.querySelector('.slink'); if(la) la.addEventListener('click',function(e){ e.stopPropagation(); }); var _wrap=document.createElement('div'); _wrap.className='solo-wrap'; _wrap.appendChild(row); var _st=row.querySelector('.stitle'); if(_st){ _st.addEventListener('click',function(e){ if(e.target.closest('.slink'))return; e.stopPropagation(); openEditor(t,row,_wrap); }); } return _wrap; };
  var sh=document.createElement('div'); sh.className='srowhead'; sh.innerHTML='<span class="hsbox"></span><span class="hst">Task</span><span class="hsn">Next step</span><span class="hsd">Rok next stepa</span><span class="hsd">Rok zavrsetka</span><span class="hsi">Opis</span><span class="hsi">Link</span><span class="hsi">Status</span><span class="hsi">Crit</span><span class="hsi">Lock</span><span class="hsi">Proj</span><span class="hso">Nositelj</span>'; _c.appendChild(sh);
- items.forEach(function(t){ _l.appendChild(soloRow(t)); }); _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; }
+ var _sec=null, _SL={over:'Missed',week:'This week',later:'Later',none:'No deliverable'}; items.forEach(function(t){ if(_dsort){ var k=dlvKind(t); if(k!==_sec && _SL[k]){ _sec=k; var hd=document.createElement('div'); hd.className='dlvsec dlvsec-'+k; hd.textContent=_SL[k]+' ('+items.filter(function(x){return dlvKind(x)===k;}).length+')'; _l.appendChild(hd); } } _l.appendChild(soloRow(t)); }); dlvCounts(); _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; }
     if(groupMode==='owner_next'){ renderOwnerNested(grid, items, 'nextDate'); updateProg(); return; }
     if(groupMode==='owner_due'){ renderOwnerNested(grid, items, 'due'); updateProg(); return; }
     var groups={};
@@ -886,7 +897,7 @@ function pdHr(d){ if(!d) return ''; var p=d.split('-'); return (+p[2])+'.'+(+p[1
 function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2); }
 function pdAdd(t){ return (!isScoped() && !pdParse(t.dlv))?'<span class="pd-add" title="Dodaj deliverable">🎯+</span> ':''; }
 function pdLine(t){ var x=pdParse(t.dlv); if(!x) return ''; var adm=!isScoped(); var over=x.d && !t.done && x.d<pdTodayISO();
-  return '<div class="pdlv'+(over?' over':'')+(adm?' adm':'')+'" title="'+(adm?'Klik: uredi deliverable':'Deliverable postavlja Domagoj')+'"><span class="pdlv-k">🎯 Deliverable</span> '+escapeHtml(x.t)+(x.d?' <b>· '+pdHr(x.d)+'</b>':'')+(adm?'':' <span class="pdlv-lock">🔒</span>')+'</div>'; }
+  return '<div class="pdlv'+(over?' over':'')+(adm?' adm':'')+'" title="'+(adm?'Klik: uredi deliverable':'Deliverable postavlja Domagoj')+'"><span class="pdlv-k">🎯 Deliverable</span> '+escapeHtml(x.t)+(x.d?' <b>· '+pdHr(x.d)+'</b>':'')+(over?' <b class="pdlv-late">· kasni '+Math.round((new Date(pdTodayISO())-new Date(x.d))/864e5)+' d</b>':'')+(adm?'':' <span class="pdlv-lock">🔒</span>')+'</div>'; }
 function pdForm(cur){ var x=pdParse(cur)||{d:'',t:''}; return '<label>🎯 Deliverable — što točno mora biti isporučeno</label><textarea data-pd="t" rows="3" placeholder="npr. Potpisan ugovor s dobavljačem">'+escapeHtml(x.t)+'</textarea><label>Datum isporuke</label><input type="date" data-pd="d" value="'+escapeAttr(x.d)+'">'; }
 function pdRead(m){ var tx=m.querySelector('[data-pd="t"]').value.replace(/\|/g,'/').replace(/\s+/g,' ').trim(), d=m.querySelector('[data-pd="d"]').value; return tx?((d||'')+'|'+tx):''; }
 function pdOpen(t){ if(isScoped()) return;
@@ -1058,6 +1069,7 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   if(el('comm-btn')) el('comm-btn').addEventListener('click',function(){ commOnly=!commOnly; this.classList.toggle('on',commOnly); render(); });
   el('more-btn').addEventListener('click',function(){ var a=el('adv'), b=el('adv2'); var open=a.style.display==='none'; a.style.display=open?'flex':'none'; b.style.display=open?'flex':'none'; this.classList.toggle('on',open); this.textContent=open?'⋯ Manje':'⋯ Više'; });
   el('win-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; winFilter=b.dataset.w; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
+  el('dlv-seg')&&el('dlv-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; dlvFilter=b.dataset.d; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('wait-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; waitFilter=b.dataset.a; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('search').addEventListener('input',function(){ searchQ=norm(this.value); render(); });
   el('mark-proj').addEventListener('click',markProjectsBatch);
@@ -1082,6 +1094,7 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
 <style>
   .grid.solo{display:block}
   .grid.solo .card{max-width:100%;margin:0 auto}
+  .dlvsec{padding:10px 14px 6px;font:700 10px/1.2 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--soon);border-bottom:1px solid var(--line)} .dlvsec-over{color:var(--over)} .dlvsec-none,.dlvsec-later{color:var(--faint)} .dlvn{opacity:.75;font-weight:400}
   .srowhead{display:flex;align-items:center;gap:10px;padding:6px 22px 6px 14px;color:var(--faint);font:600 9px/1.2 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line)}
   .srowhead .hsbox{flex:none;width:18px}
   .srowhead .hst{flex:2 1 260px;min-width:150px}
