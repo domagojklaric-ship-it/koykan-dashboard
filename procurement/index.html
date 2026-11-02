@@ -109,7 +109,7 @@
   .wp-act{color:#ffb15c;background:rgba(255,150,60,.14);border:1px solid rgba(255,150,60,.38)}
   .wp-pend{color:#7db4ff;background:rgba(90,150,255,.13);border:1px solid rgba(90,150,255,.34)}
 
-  .wpill{cursor:pointer}
+  .wpill{cursor:pointer} .wp-done{color:#5fd38a;background:rgba(70,190,110,.13);border:1px solid rgba(70,190,110,.36)}
   .wp-none{color:var(--muted,#98a1ac);background:transparent;border:1px solid var(--line,#2c3340)}
 
   .t-due.over{border-color:rgba(239,111,111,.65) !important; color:#f3a0a0 !important}
@@ -482,9 +482,9 @@
     d.appendChild(s); return d;
   }
 
-  /* ---------- status (ACTION / PENDING / ON HOLD / TREBA STATUS) + povijest ---------- */
-  var WSTATES=[['action','ACTION','wp-act','🟠 ACTION'],['pending','PENDING','wp-pend','🔵 PENDING'],['hold','ON HOLD','wp-hold','⏸ ON HOLD'],['treba','TREBA STATUS','wp-none','TREBA STATUS']];
-  var WRX=/^\s*(action|pending|on hold|treba status)\b\s*[-–—|:]*\s*/i;
+  /* ---------- status (ACTION / PENDING / ON HOLD / DONE / TREBA STATUS) + povijest ---------- */
+  var WSTATES=[['action','ACTION','wp-act','🟠 ACTION'],['pending','PENDING','wp-pend','🔵 PENDING'],['hold','ON HOLD','wp-hold','⏸ ON HOLD'],['done','DONE','wp-done','✅ DONE'],['treba','TREBA STATUS','wp-none','TREBA STATUS']];
+  var WRX=/^\s*(action|pending|on hold|done|treba status)\b\s*[-–—|:]*\s*/i;
   function wState(t){ var raw=String(t.note||'').replace(/^[\s\-–—|:]+/,'').toLowerCase(); for(var i=0;i<WSTATES.length;i++){ if(raw.indexOf(WSTATES[i][1].toLowerCase())===0 && !/[a-z]/.test(raw.charAt(WSTATES[i][1].length))) return i; } return -1; }
   function waitBadge(t){ var i=wState(t); if(i<0) return '<span class="wpill wp-none" title="Klik: postavi status">status</span> '; return '<span class="wpill '+WSTATES[i][2]+'" title="Klik: cikliraj status">'+WSTATES[i][3]+'</span> '; }
   function stampStatus(t){ var st=String(t.note||'').trim(); var l='STATUS: '+dm()+(st?(' prethodno: "'+st+'"'):' prethodno: (prazno)'); return (l+'\n'+String(t.opis||'')).replace(/\n+$/,''); }
