@@ -1,0 +1,65 @@
+/* Koykan – svijetla tema za projektne boardove (učitava je shell.js na podboardovima).
+   Boardovi dijele isti predložak, pa ovdje samo pregazimo varijable i tvrdo zadane tamne boje. */
+:root{
+  --bg:#f7f6f2; --panel:#ffffff; --panel2:#f2f1ec; --line:#e6e3dc;
+  --text:#1f1e1b; --muted:#5f5c55; --faint:#6f6b63; --dim:#98948b; --accent:#2f6fdb;
+  --good:#1f9a5c; --warn:#b7791f; --bad:#d1453b; --ok:#1f9a5c; --over:#d1453b; --soon:#b7791f;
+  --mono:'Inter',system-ui,sans-serif; --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+html body{ background:var(--bg); color:var(--text); font-variant-numeric:tabular-nums }
+input,select,textarea{ color-scheme:light !important }
+
+/* labele bez terminal stila */
+.brand,.sub,.klabel,.prog .lbl,.sec-h .count,.board-head,.dlvctx,.dlv-l,.modal-box .mh .ms,.chip .ocnt,.tcreated{ text-transform:none !important; letter-spacing:0 !important }
+.brand{ color:var(--faint); font-weight:500 }
+.board-head{ font-size:12px; font-weight:500; color:var(--dim) }
+
+/* gumbi, chipovi, sekcije */
+.btn{ background:var(--panel); border-radius:9px }
+.btn:hover,.chip.on,.icon:hover{ border-color:#cfcbc2 }
+.btn.primary,.btn.on.primary{ color:#fff }
+.btn.on{ background:#e9f0fc; color:var(--accent); border-color:#c4d6f5 }
+.chip{ background:var(--panel); color:var(--muted) }
+.chip.on{ background:var(--panel2); color:var(--text) }
+.chip .ocnt{ background:var(--panel2) } .chip.on .ocnt{ background:#e9f0fc; color:var(--accent) }
+.sec{ box-shadow:0 1px 2px rgba(30,25,15,.05) }
+.sec-h{ background:var(--panel) }
+.prog .fill{ background:linear-gradient(90deg,#1f9a5c,#44b97c) }
+.task:hover{ background:#faf9f6 }
+.check{ background:#fff; border-color:#cbc7be }
+.task.is-done .check{ color:#fff }
+.t-status,.t-next,select,input[type=date],input.inp,.setup input,.modal-box textarea,.subform input.inp,.dlv-d{ background:var(--panel) }
+
+/* podtaskovi i brza operativa */
+.task.sub{ background:#f8faff; border-left-color:#c4d6f5 }
+.task.sub:hover{ background:#f0f5fe }
+.task.sub .naziv{ color:#3d4a5c }
+.task.quick{ background:#f1faf5; border-left-color:#9ad3b3 }
+.task.quick .naziv{ color:#17794a }
+
+/* statusi i oznake */
+.wp-act{ color:#c25e0a; background:#fdf0e3; border-color:#f5d2ad }
+.wp-pend{ color:#2f6fdb; background:#e9f0fc; border-color:#c4d6f5 }
+.wp-hold{ color:#7a7368; background:#f1efea; border-color:#ddd8cf }
+.wp-done{ color:#1f9a5c; background:#e6f5ec; border-color:#b8e0c8 }
+.t-due.over{ border-color:#f3c3be !important; color:var(--bad) !important }
+.t-due.due-lock{ border-color:#efd8a8 !important; color:#a8740f !important }
+.icon.lock.on{ color:#a8740f; border-color:#efd8a8 }
+.icon.link.on,.icon.opis.has{ border-color:#c4d6f5 } .icon.opis.has{ background:#e9f0fc }
+.dlv{ color:#8a6210 } .dlv b,.dlv .dlv-k,.dlv-add{ color:#8a6210 } .dlv .dlv-k,.dlv-add{ border-color:#e2c27a }
+.dlv.over,.dlv.over b,.dlv.over .dlv-k,.dlvcard-over .sec-h .name{ color:var(--bad) }
+
+/* Obveze (RECC) ima vlastiti predložak */
+:root{ --none:#e6e3dc }
+th,.addbox label{ font-family:var(--body) !important; text-transform:none !important; letter-spacing:0 !important; font-size:12px !important; font-weight:500 !important }
+button.pri{ color:#fff }
+.cell{ color:#fff } .cell.none{ color:var(--dim) }
+
+/* izbornik uzima 232px, pa redovi smiju biti uži prije vodoravnog pomicanja */
+.task,.board-head{ min-width:1080px !important }
+
+/* plutajući elementi */
+.banner{ box-shadow:0 8px 30px rgba(40,35,25,.15) }
+.modal{ background:rgba(40,35,25,.35) }
+.opis-pop{ background:#fff; border-color:var(--line); box-shadow:0 8px 30px rgba(40,35,25,.15) }
+.head-scroll::-webkit-scrollbar,.sec::-webkit-scrollbar{ height:8px } .head-scroll::-webkit-scrollbar-thumb,.sec::-webkit-scrollbar-thumb{ background:#d6d2c9; border-radius:4px }

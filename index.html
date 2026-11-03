@@ -1170,8 +1170,48 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
 
 <style>
   /* ---- v6 app izgled (3.11.2026.): bočni izbornik, mirniji redovi, bez mono/CAPS labela ---- */
-  :root{ --bg:#14171c; --panel:#1a1f26; --panel2:#222934; --line:#29303b; --mono:'Inter',system-ui,sans-serif; }
-  body{ font-variant-numeric:tabular-nums; font-size:14px }
+  :root{ --bg:#f7f6f2; --panel:#ffffff; --panel2:#f2f1ec; --line:#e6e3dc; --text:#1f1e1b; --muted:#5f5c55; --faint:#98948b;
+    --accent:#2f6fdb; --ok:#1f9a5c; --over:#d1453b; --soon:#b7791f; --proj:#a8740f; --mono:'Inter',system-ui,sans-serif;
+    --t-act:#c25e0a; --t-pend:#2f6fdb; --t-hold:#7a7368; --t-done:#1f9a5c; --t-dlv:#8a6210; }
+  body{ font-variant-numeric:tabular-nums; font-size:14px; background:var(--bg); color:var(--text) }
+  input,select,textarea{ color-scheme:light !important }
+
+  /* svijetla tema: tvrdo zadane tamne boje iz starijih slojeva */
+  .btn.add,.setup .btn,.mini.save,.editor .save,.bulkbar .bset,.so-row .so-save,.mxe-ok{ color:#fff !important }
+  .btn:hover{ border-color:#cfcbc2 } .btn.on{ border-color:#cfcbc2; background:var(--panel2) }
+  .card,.grid.solo .card,.mirror,.setup,.addform{ box-shadow:0 1px 2px rgba(30,25,15,.05) }
+  .banner{ background:#fdecea; border-color:#f3c3be; color:var(--over) }
+  .wp-act{ color:var(--t-act); background:#fdf0e3; border-color:#f5d2ad }
+  .wp-pend{ color:var(--t-pend); background:#e9f0fc; border-color:#c4d6f5 }
+  .wp-hold{ color:var(--t-hold); background:#f1efea; border-color:#ddd8cf }
+  .wp-done{ color:var(--t-done); background:#e6f5ec; border-color:#b8e0c8 }
+  .wp-none{ color:var(--faint) }
+  #wait-seg button[data-a="action"].on{ background:#fdf0e3; color:var(--t-act) }
+  #wait-seg button[data-a="pending"].on{ background:#e9f0fc; color:var(--t-pend) }
+  #wait-seg button[data-a="hold"].on{ background:#f1efea; color:var(--t-hold) }
+  #wait-seg button[data-a="done"].on{ background:#e6f5ec; color:var(--t-done) }
+  #win-seg button[data-w="overdue"].on{ background:#fdecea; color:var(--over) }
+  .chip .cc.over,.kasni,.mx-over{ color:var(--over); background:#fdecea; border-color:#f3c3be }
+  .chip .cc.crit,.critb{ color:var(--t-act); background:#fdf0e3; border-color:#f5d2ad }
+  .pdlv,.mxe-dlv{ color:var(--t-dlv) } .pdlv b,.mxe-dlv b,.mx-dlv{ color:var(--t-dlv) }
+  .pdlv .pdlv-k,.mx-dlv{ color:var(--t-dlv); border-color:#e7cf98 }
+  .srow .pdlv,.pv-mx .pdlv{ background:#fbf5e6 !important; border-left-color:#e2c27a !important }
+  .pdlv.over,.pdlv.over b,.pdlv.over .pdlv-k{ color:var(--over) }
+  .pd-add{ color:var(--t-dlv); border-color:#e2c27a }
+  .stale,.rokx{ color:var(--t-act); border-color:#f5d2ad } .stale.hot,.rokx.hot,.srow .s-lock.lon{ color:var(--over) }
+  .rok.over{ background:#fdecea; color:var(--over); border-color:#f3c3be } .rok.soon{ background:#fdf3e1; color:var(--soon); border-color:#efd8a8 }
+  .mx-action{ color:var(--t-act) } .mx-pending{ color:var(--t-pend) } .mx-onhold{ color:var(--t-hold) }
+  .mx-ow{ color:var(--accent); border-color:#c4d6f5 }
+  .mx-bh:hover{ background:var(--panel2) } .mx-r{ border-top-color:var(--line) }
+  .mx-due.over,.mx-sdue.over{ color:var(--over); border-color:#f3c3be }
+  .ge-overlay,.mxe-bg,.so-modal{ background:rgba(40,35,25,.35) }
+  .ge,.mxe,.so-box{ box-shadow:0 20px 60px rgba(40,35,25,.18) }
+  .bulkbar{ box-shadow:0 10px 34px rgba(40,35,25,.15) }
+  .opis-hov{ background:#fff; box-shadow:0 10px 34px rgba(40,35,25,.15) }
+  .ge-table tr.dirty td{ background:#eef3fd }
+  .dlvsec-person.has-over,.dlvsec-over{ color:var(--over) }
+  .srow.is-crit{ box-shadow:inset 3px 0 0 var(--over) }
+  .row:hover{ background:var(--panel2) }
   .wrap{ padding:26px clamp(16px,3vw,36px) 70px; max-width:1500px }
   .top{ align-items:center; margin-bottom:18px }
   .title{ font-size:26px }
@@ -1191,10 +1231,10 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   .btn{ border-radius:9px; padding:9px 13px; font-size:13px }
   .fgrid{ gap:10px 22px }
   .fbox{ flex-direction:row; align-items:center; gap:8px; padding:0; border:0; background:none }
-  .seg{ border:0; gap:2px; background:var(--panel); border-radius:10px; padding:3px }
+  .seg{ border:0; gap:2px; background:var(--panel2); border-radius:10px; padding:3px }
   .seg button{ border:0 !important; border-radius:7px; padding:7px 11px; background:transparent; font-size:12.5px; color:var(--muted) }
   .seg button:hover{ color:var(--text) }
-  .seg button.on{ background:var(--panel2); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.3) }
+  .seg button.on{ background:#fff; color:var(--text); box-shadow:0 1px 2px rgba(40,35,25,.12) }
   .dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:1px }
   .d-act{ background:#ffb15c } .d-pend{ background:#7db4ff } .d-hold{ background:#c9c2b6 } .d-done{ background:#4fd089 }
   .dlvn{ font-size:11px; color:var(--faint) }
@@ -1209,8 +1249,8 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   .srow .pdlv{ flex-basis:calc(100% - 26px) !important; margin-left:26px !important }
   .pd-add{ opacity:0 }
   .srow{ padding:8px 16px; gap:8px; transition:background .12s }
-  .srow:hover{ background:rgba(255,255,255,.025) }
-  .srow .sbox{ border-radius:50%; width:18px; height:18px; border-color:#3a4350 }
+  .srow:hover{ background:#faf9f6 }
+  .srow .sbox{ border-radius:50%; width:18px; height:18px; border-color:#cbc7be }
   .srow .sbox:hover{ border-color:var(--ok) }
   .srow .stitle{ font-size:13.5px }
   .srow .stitle:hover{ text-decoration:none }
@@ -1221,7 +1261,7 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   .srow input[type=date]{ font-size:12px; color:var(--muted) }
   .srow input[type=date]::-webkit-calendar-picker-indicator{ opacity:0; cursor:pointer }
   .srow:hover input[type=date]::-webkit-calendar-picker-indicator{ opacity:.55 }
-  .srow input[type=date].od{ background:transparent; color:#f3a0a0; border-color:transparent; font-weight:600 }
+  .srow input[type=date].od{ background:transparent; color:var(--over); border-color:transparent; font-weight:600 }
   .srow:hover input[type=date].od{ border-color:rgba(239,111,111,.4) }
 
   /* ikone u redu: linijske ikone, vidljive na hover ili kad su uključene */
@@ -1231,13 +1271,13 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   .srow .s-icn::before{ content:''; position:absolute; inset:0; margin:auto; width:16px; height:16px; background:currentColor; -webkit-mask:var(--ic) center/16px no-repeat; mask:var(--ic) center/16px no-repeat }
   .srow .s-icn.has,.srow .s-icn.on,.srow .s-lock.lon,.srow .opis-pill[data-opis]:not([data-opis=""]),.srow .s-wait{ opacity:1; border-color:transparent }
   .srow .s-icn.has,.srow .s-icn.on,.srow .opis-pill[data-opis]:not([data-opis=""]){ color:var(--accent) }
-  .srow .s-crit.on{ color:var(--over) } .srow .s-lock.lon{ color:#ff6b81 } .srow .s-proj.on{ color:var(--proj); background:transparent }
+  .srow .s-crit.on{ color:var(--over) } .srow .s-lock.lon{ color:var(--over) } .srow .s-proj.on{ color:var(--proj); background:transparent }
   .srow .opis-pill{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z'/><path d='M14 3v6h6M8 13h8M8 17h5'/></svg>") }
   .srow .s-link{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7'/><path d='M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7'/></svg>") }
   .srow .s-crit{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 21V4'/><path d='M5 4h12l-2.5 4.5L17 13H5'/></svg>") }
   .srow .s-lock{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V7a4 4 0 0 1 8 0v4'/></svg>") }
   .srow .s-proj{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/></svg>") }
-  .srow .s-wait::before{ -webkit-mask:none; mask:none; width:10px; height:10px; border-radius:50%; background:transparent; border:1.5px solid #4a5361 }
+  .srow .s-wait::before{ -webkit-mask:none; mask:none; width:10px; height:10px; border-radius:50%; background:transparent; border:1.5px solid #c4c0b7 }
   .srow .s-wait.won-action::before{ background:#ffb15c; border-color:#ffb15c }
   .srow .s-wait.won-pending::before{ background:#7db4ff; border-color:#7db4ff }
   .srow .s-wait.won-hold::before{ background:#c9c2b6; border-color:#c9c2b6 }
@@ -1246,7 +1286,7 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   @media (hover:none){ .srow .s-icn{ opacity:1 } .srow input[type=date]::-webkit-calendar-picker-indicator{ opacity:.55 } }
   .srow select.sowner{ font-weight:600; color:var(--muted) }
   .wpill{ font-weight:600; font-size:10px; padding:2px 8px }
-  .srow .sproj{ border:0; background:rgba(245,196,81,.14); padding:2px 8px }
+  .srow .sproj{ border:0; background:#fbf1d9; color:var(--proj); padding:2px 8px }
 
   /* projektni boardovi ispod liste */
   .mirror{ border-radius:14px }
