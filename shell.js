@@ -18,8 +18,7 @@
     {key:'procurement', name:'Sourcing', skey:'procurement_secret'},
     {key:'hr', name:'HR Global', skey:'hr_secret'},
     {key:'cm', name:'CM insolvencija', skey:'cm_secret'},
-    {key:'explore', name:'Keep exploring', skey:'explore_secret'},
-    {key:'obveze', name:'Obveze (RECC)', skey:'obveze_secret'}
+    {key:'explore', name:'Keep exploring', skey:'explore_secret'}
   ];
   function ls(k){ try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } }
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
