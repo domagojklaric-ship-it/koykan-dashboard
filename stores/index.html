@@ -272,7 +272,6 @@
         <span style="width:108px">Nositelj</span>
         <span style="width:100px">Status</span>
         <span style="width:58px">Prio</span>
-        <span style="width:84px">Trošak €</span>
         <span style="width:30px">Opis</span>
         <span style="width:28px">Link</span>
         <span style="width:28px">Crit</span>
@@ -724,9 +723,6 @@ FILTER_HOOKS.push(function(t){ return fStore==='all' || (t.store||'')===fStore; 
 CTL_A.push({html:function(t,isSub){ if(isSub) return '<span class="t-store ghost"></span>'; var opts=STORES.slice(); if(opts.indexOf(t.store||'')<0) opts.unshift(t.store||'');
     return '<select class="t-store" title="Poslovnica">'+opts.map(function(s){ return '<option value="'+escAttr(s)+'"'+(s===(t.store||'')?' selected':'')+'>'+esc(storeLabel(s))+'</option>'; }).join('')+'</select>'; },
   wire:function(row,t){ var s=row.querySelector('select.t-store'); if(s) s.addEventListener('change', function(){ var v=this.value; TASKS.filter(function(x){ return x.parent===t.id; }).forEach(function(x){ x.store=v; api({action:'update', id:x.id, store:v}).catch(function(){}); }); update(t,{store:v}); }); }});
-CTL_B.push({html:function(t){ return '<input class="t-cost" inputmode="decimal" placeholder="€" title="Procjena troška (EUR)" value="'+escAttr(t.cost||'')+'">'; },
-  wire:function(row,t){ var c=row.querySelector('input.t-cost'); if(!c) return; c.addEventListener('keydown', function(e){ if(e.key==='Enter') this.blur(); });
-    c.addEventListener('change', function(){ var v=String(this.value||'').replace(/[^\d,.]/g,''); if(/,/.test(v)) v=v.replace(/\./g,'').replace(',','.'); else if(/^\d{1,3}(\.\d{3})+$/.test(v)) v=v.replace(/\./g,''); if(v!==String(t.cost||'')) update(t,{cost:v}); else this.value=v; }); }});
 function renderBoardStores(board){
   storeOrder().forEach(function(st){
     var stTasks=TASKS.filter(function(t){ return (t.store||'')===st; }), blocks=[];
@@ -752,7 +748,7 @@ function renderMatrix(){ var m=el('matrix'); if(!m || VIEW!=='matrix') return;
   storeOrder().forEach(function(st){ var stT=TASKS.filter(function(t){ return (t.store||'')===st; });
     h+='<tr><td class="mx-st">'+esc(storeLabel(st))+'</td>'+cols.map(function(sec){ return cell(stT.filter(function(t){ return sec==='__all'||t.section===sec; }), st, sec); }).join('')+'</tr>'; });
   h+='<tr class="mx-tot"><td class="mx-st">Sve poslovnice</td>'+cols.map(function(sec){ return cell(TASKS.filter(function(t){ return sec==='__all'||t.section===sec; }), '__ALL__', sec); }).join('')+'</tr></table>';
-  h+='<p class="mx-note">Klik na ćeliju otvara listu taskova te poslovnice i grupe. Trošak je zbroj procjena za otvorene taskove.</p>';
+  h+='<p class="mx-note">Klik na ćeliju otvara listu taskova te poslovnice i grupe.</p>';
   m.innerHTML=h;
   Array.prototype.forEach.call(m.querySelectorAll('.mx-c:not(.none)'), function(c){ c.addEventListener('click', function(){ var st=c.getAttribute('data-mst'), sec=c.getAttribute('data-msec');
     fStore=(st==='__ALL__')?'all':st; fSection=(sec==='__all')?'all':sec; fillStoreSelects(); setView('list'); window.scrollTo(0,0); }); });

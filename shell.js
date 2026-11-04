@@ -30,7 +30,7 @@
   var cur=path===rootPath ? '' : (path.slice(rootPath.length).split('/')[0]||'');
   if(cur){ var fn=document.createElement('link'); fn.rel='stylesheet'; fn.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap'; document.head.appendChild(fn);
     var bt=document.createElement('link'); bt.rel='stylesheet'; bt.href=ROOT+'board-theme.css?v=1'; document.head.appendChild(bt);
-    var bs=document.createElement('script'); bs.src=ROOT+'board-simple.js?v=1'; document.body.appendChild(bs); }
+    var bs=document.createElement('script'); bs.src=ROOT+'board-simple.js?v=2'; document.body.appendChild(bs); }
   var full=ls('ky_full')==='1';
 
   var h='<div class="kys-brand"><span class="kys-logo">K</span><span>Koykan</span></div>';
