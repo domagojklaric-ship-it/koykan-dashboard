@@ -61,3 +61,60 @@
   side.addEventListener('click', function(e){ if(e.target.closest('a,.chip')) toggle(false); });
   if(document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
 })();
+
+/* Koykan – hrvatski prikaz datuma (DD.MM.GGGG.) u svim poljima za datum (D.K. 6.11.2026).
+   Nativni <input type="date"> ostaje (vrijednost i kalendar rade isto, YYYY-MM-DD),
+   samo se njegov tekst sakrije i preko njega se ispiše datum s točkama. */
+(function(){
+  if(window.__kyDate) return; window.__kyDate=true;
+  var st=document.createElement('style');
+  st.textContent='.kyd-w{position:relative;display:inline-flex;align-items:center;flex:none;max-width:100%;vertical-align:middle}'+
+    '.kyd-w.kyd-full{display:flex;width:100%}'+
+    'input[type=date].kyd::-webkit-datetime-edit{opacity:0}'+
+    '.kyd-l{position:absolute;display:flex;align-items:center;pointer-events:none;white-space:nowrap;overflow:hidden;z-index:1}';
+  (document.head||document.documentElement).appendChild(st);
+  function fmt(v){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||''); return m? m[3]+'.'+m[2]+'.'+m[1]+'.' : ''; }
+  function paint(inp){
+    var l=inp.__kydL; if(!l) return;
+    var cs=getComputedStyle(inp), f=fmt(inp.value);
+    l.textContent=f||'dd.mm.gggg.';
+    l.style.font=cs.font; l.style.letterSpacing=cs.letterSpacing; l.style.color=cs.color;
+    l.style.opacity=f? cs.opacity : String((parseFloat(cs.opacity)||1)*0.45);
+    l.style.visibility=cs.visibility; l.style.display=(cs.display==='none')?'none':'flex';
+    var bl=parseFloat(cs.borderLeftWidth)||0, pl=parseFloat(cs.paddingLeft)||0;
+    l.style.left=(inp.offsetLeft+bl+pl)+'px';
+    l.style.top=inp.offsetTop+'px';
+    l.style.height=inp.offsetHeight+'px';
+    l.style.width=Math.max(0,inp.offsetWidth-bl-pl-22)+'px';
+  }
+  function wrap(inp){
+    if(inp.__kydL||inp.type!=='date'||!inp.parentNode) return;
+    var w0=inp.offsetWidth; if(!w0) return; // nije vidljivo, omotat ce se kad se prikaze
+    var w=document.createElement('span'); w.className='kyd-w';
+    inp.parentNode.insertBefore(w,inp); w.appendChild(inp);
+    if(inp.offsetWidth<w0-2){ w.classList.add('kyd-full'); }
+    var l=document.createElement('span'); l.className='kyd-l'; w.appendChild(l);
+    inp.__kydL=l; inp.classList.add('kyd');
+    ['input','change','focus','blur'].forEach(function(ev){ inp.addEventListener(ev,function(){ paint(inp); }); });
+    paint(inp);
+  }
+  var ro=('ResizeObserver' in window)? new ResizeObserver(function(es){ es.forEach(function(e){ var t=e.target; if(t.__kydL) paint(t); else wrap(t); }); }) : null;
+  function scan(root){
+    var list=root.querySelectorAll? root.querySelectorAll('input[type=date]') : [];
+    Array.prototype.forEach.call(list,function(inp){ if(!inp.__kydSeen){ inp.__kydSeen=true; if(ro) ro.observe(inp); } wrap(inp); });
+    if(root.tagName==='INPUT' && root.type==='date'){ if(!root.__kydSeen){ root.__kydSeen=true; if(ro) ro.observe(root); } wrap(root); }
+  }
+  ['value','valueAsDate','valueAsNumber'].forEach(function(p){
+    var d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,p); if(!d||!d.set) return;
+    Object.defineProperty(HTMLInputElement.prototype,p,{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){ d.set.call(this,v); if(this.__kydL) paint(this); }});
+  });
+  var mo=new MutationObserver(function(ms){
+    ms.forEach(function(m){
+      if(m.type==='childList'){ Array.prototype.forEach.call(m.addedNodes,function(n){ if(n.nodeType===1) scan(n); }); }
+      else if(m.target.__kydL){ paint(m.target); }
+    });
+  });
+  function start(){ scan(document); mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','disabled','style','value']}); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  window.addEventListener('resize',function(){ Array.prototype.forEach.call(document.querySelectorAll('input.kyd'),paint); });
+})();
