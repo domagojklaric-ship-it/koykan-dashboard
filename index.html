@@ -331,6 +331,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
         <button data-v="all">Sve</button>
       </div>
       <div class="spacer"></div>
+      <label class="sortbox">Sortiraj <select id="sort-by"><option value="">Zadano</option><option value="status">Status (ACTION, PENDING, ON HOLD, DONE)</option><option value="next">Next step do</option><option value="due">Rok</option><option value="title">Task (A-Ž)</option><option value="owner">Nositelj</option></select><button type="button" id="sort-dir" class="sortdir"></button></label>
       <button class="btn ghost" id="more-btn" title="Detaljni filteri, tablica, bulk">Više filtera</button>
     </div>
     <div class="brow fgrid" id="oldf" style="display:none">
@@ -628,7 +629,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
       }).catch(function(e){ t.due=_od; t.rest=_or; render(); banner('Rok nije spremljen: '+e); });
     });
     row.querySelector('.opis-pill').addEventListener('click',function(){ openOpis(t,row); }); row.querySelector('.s-link').addEventListener('click',function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ _saveAll(t,row,{link:v.trim()}); } }); row.querySelector('.s-crit').addEventListener('click',function(){ _saveAll(t,row,{crit:!t.critical}); }); var sl_=row.querySelector('.s-lock'); if(sl_) sl_.addEventListener('click',function(e){ e.stopPropagation(); toggleLock(t,row); }); row.querySelector('.s-wait').addEventListener('click',function(){ toggleWait(t,row); }); var wpS_=row.querySelector('.wpill'); if(wpS_) wpS_.addEventListener('click',function(e){ e.stopPropagation(); statusMenu(t,row,wpS_); }); var la=row.querySelector('.slink'); if(la) la.addEventListener('click',function(e){ e.stopPropagation(); }); var _wrap=document.createElement('div'); _wrap.className='solo-wrap'; _wrap.appendChild(row); var _st=row.querySelector('.stitle'); if(_st){ _st.addEventListener('click',function(e){ if(e.target.closest('.slink'))return; e.stopPropagation(); openDrawer(t,row); }); } return _wrap; };
- var sh=document.createElement('div'); sh.className='srowhead'; sh.innerHTML='<span class="hsbox"></span><span class="hst">Task</span><span class="hsn">Next step</span><span class="hsd">Next step do</span><span class="hsd">Rok</span><span class="hso">Nositelj</span>'; _c.appendChild(sh);
+ var sh=document.createElement('div'); sh.className='srowhead'; if(SORT.by && !_dsort) items.sort(sortCmp); sh.innerHTML='<span class="hsbox"></span>'+sortHead('hst','title','Task')+'<span class="hsn">Next step</span>'+sortHead('hsd','next','Next step do')+sortHead('hsd','due','Rok')+sortHead('hso','owner','Nositelj'); Array.prototype.forEach.call(sh.querySelectorAll('[data-s]'),function(h){ h.addEventListener('click',function(){ setSort(h.getAttribute('data-s')); }); }); _c.appendChild(sh);
  if(dlvFilter==='person'){ personView(items,_l,soloRow); dlvCounts(); _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; } var _sec=null, _SL={over:'Missed',week:'This week',later:'Later',none:'No deliverable'}; items.forEach(function(t){ if(_dsort){ var k=dlvKind(t); if(k!==_sec && _SL[k]){ _sec=k; var hd=document.createElement('div'); hd.className='dlvsec dlvsec-'+k; hd.textContent=_SL[k]+' ('+items.filter(function(x){return dlvKind(x)===k;}).length+')'; _l.appendChild(hd); } } _l.appendChild(soloRow(t)); }); if(!items.length){ var _e=document.createElement('div'); _e.className='empty-v'; _e.textContent=searchQ?'Ništa ne odgovara pretrazi.':'Ovdje trenutno nema ničega.'; _l.appendChild(_e); } dlvCounts(); _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; }
     if(groupMode==='owner_next'){ renderOwnerNested(grid, items, 'nextDate'); updateProg(); return; }
     if(groupMode==='owner_due'){ renderOwnerNested(grid, items, 'due'); updateProg(); return; }
@@ -996,6 +997,17 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
     Array.prototype.forEach.call(card.querySelectorAll('tr[data-o]'),function(tr){ tr.addEventListener('click',function(){ var o=tr.getAttribute('data-o'); Object.keys(ownerOn).forEach(function(x){ ownerOn[x]=(x===o); }); critOnly=ovrOnly=staleOnly=false; buildOwnerFilters(); setView('all'); }); });
     if(!MX.ts) mxLoad(false); }
 
+  /* sortiranje (6.11.2026.): po statusu, nazivu, datumu next stepa, roku, nositelju; prazno uvijek na dnu */
+  var SORT={by:'',dir:1}; try{ var _so=JSON.parse(localStorage.getItem('ky_sort')||'{}'); if(_so&&_so.by) SORT={by:String(_so.by),dir:_so.dir===-1?-1:1}; }catch(e){}
+  var WRANK={action:0,pending:1,hold:2,done:3};
+  function sortVal(t,by){ if(by==='status') return (t.wait in WRANK)?WRANK[t.wait]:null; if(by==='title') return t.title||null; if(by==='owner') return t.owner||null;
+    var d=by==='next'?t.nextDate:t.due; return d?new Date(d).setHours(0,0,0,0):null; }
+  function sortCmp(a,b){ var x=sortVal(a,SORT.by), y=sortVal(b,SORT.by); if(x===null||y===null) return (x===null)-(y===null);
+    var c=(typeof x==='string')?x.localeCompare(y,'hr'):(x-y); return c*SORT.dir; }
+  function setSort(by,dir){ if(dir===undefined) dir=(SORT.by===by)?-SORT.dir:1; SORT={by:by,dir:by?dir:1}; try{ localStorage.setItem('ky_sort',JSON.stringify(SORT)); }catch(e){} paintSort(); render(); }
+  function paintSort(){ var s=el('sort-by'), d=el('sort-dir'); if(!s) return; s.value=SORT.by; d.style.visibility=SORT.by?'visible':'hidden'; d.textContent=SORT.dir===1?'↑':'↓'; d.title=SORT.dir===1?'Uzlazno (klik: obrni)':'Silazno (klik: obrni)'; }
+  function sortHead(cls,by,lbl){ var on=SORT.by===by; return '<span class="'+cls+' sorth'+(on?' on':'')+'" data-s="'+by+'" title="Sortiraj po: '+lbl+'">'+lbl+(on?(SORT.dir===1?' ↑':' ↓'):'')+'</span>'; }
+
   function toast(m){ var x=el('ky-toast'); if(!x){ x=document.createElement('div'); x.id='ky-toast'; document.body.appendChild(x); } x.textContent=m; x.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){ x.classList.remove('show'); },3500); }
 
   function closeMenu(){ var m=document.querySelector('.stmenu'); if(m) m.remove(); document.removeEventListener('click',closeMenu); }
@@ -1191,6 +1203,9 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   el('load-completed').addEventListener('click',function(){ loadCompleted=!loadCompleted; this.textContent=loadCompleted?'Gotovi: učitani':'Gotovi: skriveni'; this.classList.toggle('on',loadCompleted); load(); });
   el('type-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; typeFilter=b.dataset.t; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('more-btn').addEventListener('click',function(){ var a=el('oldf'); var open=a.style.display==='none'; a.style.display=open?'flex':'none'; this.classList.toggle('on',open); this.textContent=open?'Manje filtera':'Više filtera'; });
+  el('sort-by').addEventListener('change',function(){ setSort(this.value,1); });
+  el('sort-dir').addEventListener('click',function(){ setSort(SORT.by,-SORT.dir); });
+  paintSort();
   el('views').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) setView(b.dataset.v); });
   el('oldf').addEventListener('click',function(e){ if(e.target.closest('.seg button')){ timMode=false; Array.prototype.forEach.call(el('views').children,function(b){ b.classList.remove('on'); }); } }, true);
   el('owner-filters').addEventListener('click',function(e){ if(timMode && e.target.closest('.chip')){ timMode=false; Array.prototype.forEach.call(el('views').children,function(b){ b.classList.toggle('on', b.dataset.v==='all'); }); } }, true);
@@ -1483,6 +1498,10 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
   .drw-f{ position:sticky; bottom:-18px; margin:auto -22px -18px; padding:14px 22px; background:#fff; border-top:1px solid var(--line); display:flex; align-items:center; gap:8px }
   .drw-f .spacer{ flex:1 } .drw-close,.drw-donebtn{ color:var(--ok) !important }
   .srow input.d-empty:not(:focus){ color:transparent } .srow:hover input.d-empty:not(:focus){ color:var(--faint) }
+  .sortbox{ display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--faint) }
+  .sortbox select{ border:1px solid var(--line); background:var(--panel); border-radius:8px; padding:6px 8px; font:500 12.5px var(--body); color:var(--text); max-width:190px }
+  .sortdir{ border:1px solid var(--line); background:var(--panel); border-radius:8px; width:30px; height:30px; cursor:pointer; font:600 14px var(--body); color:var(--text) }
+  .srowhead .sorth{ cursor:pointer; user-select:none } .srowhead .sorth:hover{ color:var(--text) } .srowhead .sorth.on{ color:var(--accent) }
   .empty-v{ padding:28px 16px; text-align:center; color:var(--faint); font-size:13.5px }
 
   /* 4.11.2026.: kopiranje naziva, bez upisa 14+ d, sažetak projektnih boardova, pregled Tim */
