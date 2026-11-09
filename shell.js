@@ -132,3 +132,61 @@
   },250);
 })();
 
+/* Kritično traka na projektnim boardovima (D.K. 9.11.2026): samo otvoreni critical taskovi TOG boarda, na vrhu liste */
+(function(){
+  if(typeof window.RENDER_HOOKS==='undefined' || !window.RENDER_HOOKS || typeof window.RENDER_HOOKS.push!=='function') return;
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function ymd(s){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||'')); return m? new Date(+m[1],+m[2]-1,+m[3]).getTime() : null; }
+  function dm(s){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||'')); return m? m[3]+'.'+m[2]+'.' : ''; }
+  function dlv(s){ s=String(s||''); var i=s.indexOf('|'); if(i<0) return null; var d=s.slice(0,i); return /^\d{4}-\d{2}-\d{2}$/.test(d)? {d:d,t:s.slice(i+1)} : null; }
+  function style(){ if(document.getElementById('csb-style')) return; var st=document.createElement('style'); st.id='csb-style';
+    st.textContent='.crit-strip{margin:0 0 14px;border:1px solid var(--over,#d1453b);border-left:5px solid var(--over,#d1453b);background:var(--panel,#fff);border-radius:12px;padding:10px 14px}'+
+    '.crit-strip .cs-h{display:flex;align-items:center;gap:10px}'+
+    '.crit-strip .cs-t{font-weight:700;color:var(--over,#d1453b);letter-spacing:.02em;text-transform:uppercase;font-size:13px}'+
+    '.crit-strip .cs-n{font-weight:700;font-size:12px;color:#fff;background:var(--over,#d1453b);border-radius:999px;padding:1px 8px}'+
+    '.crit-strip .cs-tg{margin-left:auto;border:1px solid var(--line,#e6e3dc);background:transparent;color:var(--muted,#5f5c55);border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer}'+
+    '.crit-strip .cs-l{margin-top:8px;display:flex;flex-direction:column;max-height:320px;overflow:auto}'+
+    '.crit-strip .cs-r{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:6px 4px;border-top:1px solid var(--line,#e6e3dc);cursor:pointer}'+
+    '.crit-strip .cs-r:hover{background:rgba(209,69,59,.06)}'+
+    '.crit-strip .cs-o{font-size:12px;color:var(--muted,#5f5c55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+    '.crit-strip .cs-ti{font-size:14px;color:var(--text,#1f1e1b);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
+    '.crit-strip .cs-ti small{font-weight:400;color:var(--muted,#5f5c55)}'+
+    '.crit-strip .cs-m{font-size:12px;color:var(--muted,#5f5c55);white-space:nowrap}'+
+    '.crit-strip .cs-r.late .cs-m b{color:var(--over,#d1453b)}'+
+    '.cs-flash{outline:2px solid var(--over,#d1453b);outline-offset:2px;transition:outline-color .4s}'+
+    '@media (max-width:700px){.crit-strip .cs-r{grid-template-columns:minmax(0,1fr)}.crit-strip .cs-m{white-space:normal}}';
+    document.head.appendChild(st); }
+  function go(t){
+    var row=document.querySelector('[data-id="'+String(t.id).replace(/"/g,'')+'"]');
+    if(row && row.offsetParent){ row.scrollIntoView({block:'center',behavior:'smooth'}); row.classList.add('cs-flash'); setTimeout(function(){ row.classList.remove('cs-flash'); },2200); return; }
+    var s=document.getElementById('search'); if(s){ s.value=String(t.naziv||''); s.dispatchEvent(new Event('input',{bubbles:true})); }
+  }
+  var busy=false;
+  function paint(){ if(busy) return; busy=true; try{ paint_(); } finally { busy=false; } }
+  function paint_(){
+    var board=document.getElementById('board'); var T=window.TASKS; if(!board || !Array.isArray(T)) return;
+    style();
+    var box=document.getElementById('crit-strip-b');
+    if(!box){ box=document.createElement('div'); box.id='crit-strip-b'; box.className='crit-strip'; var hs=document.querySelector('.head-scroll'); var anchor=(hs&&hs.parentNode===board.parentNode)?hs:board; anchor.parentNode.insertBefore(box,anchor); }
+    var byId={}; T.forEach(function(t){ byId[t.id]=t; });
+    var list=T.filter(function(t){ return t && t.critical && t.status!=='Gotovo' && t.id!=='_CFG'; });
+    if(!list.length){ if(box.style.display!=='none'){ box.style.display='none'; box.innerHTML=''; box.__h=''; } return; }
+    var t0=new Date(); t0.setHours(0,0,0,0); t0=t0.getTime();
+    function key(t){ var ds=[]; var x=dlv(t.nextstep); if(x) ds.push(ymd(x.d)); if(t.due) ds.push(ymd(t.due)); ds=ds.filter(function(v){ return v!==null; }); return ds.length?Math.min.apply(null,ds):8e15; }
+    list.sort(function(a,b){ return key(a)-key(b); });
+    var open=true; try{ open=localStorage.getItem('ky_critb_open')!=='0'; }catch(e){}
+    var h='<div class="cs-h"><span class="cs-t">⚑ Kritično na ovom boardu</span><span class="cs-n">'+list.length+'</span><button class="cs-tg" type="button">'+(open?'Sakrij':'Prikaži')+'</button></div>';
+    if(open){ h+='<div class="cs-l">'+list.map(function(t,i){
+      var x=dlv(t.nextstep), late=key(t)<t0, parts=[], par=t.parent&&byId[t.parent]?byId[t.parent]:null;
+      if(x) parts.push('deliverable '+dm(x.d)+(x.t?' '+esc(String(x.t).slice(0,70)):''));
+      if(t.due) parts.push('rok '+dm(t.due));
+      return '<div class="cs-r'+(late?' late':'')+'" data-i="'+i+'" title="Pokaži task na boardu"><span class="cs-o">'+esc(t.owner)+'</span><span class="cs-ti">'+esc(t.naziv)+(par?' <small>· '+esc(String(par.naziv||'').slice(0,50))+'</small>':'')+'</span><span class="cs-m">'+(late?'<b>kasni</b>'+(parts.length?' · ':''):'')+parts.join(' · ')+'</span></div>';
+    }).join('')+'</div>'; }
+    if(box.__h===h && box.style.display!=='none'){ return; }
+    box.__h=h; box.innerHTML=h; box.style.display='';
+    box.querySelector('.cs-tg').addEventListener('click',function(){ try{ localStorage.setItem('ky_critb_open',open?'0':'1'); }catch(e){} paint(); });
+    Array.prototype.forEach.call(box.querySelectorAll('.cs-r'),function(r){ r.addEventListener('click',function(){ go(list[+r.getAttribute('data-i')]); }); });
+  }
+  window.RENDER_HOOKS.push({post:function(){ try{ paint(); }catch(e){} }});
+  try{ paint(); }catch(e){}
+})();
