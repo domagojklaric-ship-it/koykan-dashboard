@@ -118,3 +118,16 @@
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
   window.addEventListener('resize',function(){ Array.prototype.forEach.call(document.querySelectorAll('input.kyd'),paint); });
 })();
+
+/* #private u adresi: otvori Private pogled (svi rokovi) na osobnom boardu; link iz subotnjeg PRIVATE bloka u kalendaru (D.K. 9.11.2026) */
+(function(){
+  if((location.hash||'').toLowerCase()!=='#private') return;
+  var n=0, iv=setInterval(function(){
+    n++; if(n>80){ clearInterval(iv); return; }
+    var chip=[].slice.call(document.querySelectorAll('.filters .chip')).find(function(e){ return /^\s*Private\b/.test(e.innerText||''); });
+    if(!chip) return;
+    clearInterval(iv);
+    if(chip.getAttribute('data-on')!=='true') chip.click();
+    setTimeout(function(){ var b=document.querySelector('.views button[data-v="all"]'); if(b) b.click(); },300);
+  },250);
+})();
