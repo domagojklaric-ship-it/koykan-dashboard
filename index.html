@@ -609,7 +609,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
   }
   function isOverdue(t){ if(t.done) return false; var t0=today0().getTime(); var ds=[]; if(t.due) ds.push(t.due); if(t.isProject && t.nextDate) ds.push(t.nextDate); return ds.some(function(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime()<t0; }); }
 
-  /* Kritično traka (D.K. 9.11.2026): svi otvoreni critical taskovi uvijek vidljivi na vrhu liste, u svakom pogledu */
+  /* Kritično traka (D.K. 9.11.2026): otvoreni critical taskovi SAMO odabranog nositelja (jedan board), na vrhu liste, u svakom pogledu */
   function renderCritStrip(){
     var grid=el('grid'); if(!grid) return;
     if(!document.getElementById('cs-style')){ var st=document.createElement('style'); st.id='cs-style';
@@ -618,7 +618,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
       '.crit-strip .cs-t{font-weight:700;color:var(--over);letter-spacing:.02em;text-transform:uppercase;font-size:13px}'+
       '.crit-strip .cs-n{font-weight:700;font-size:12px;color:#fff;background:var(--over);border-radius:999px;padding:1px 8px}'+
       '.crit-strip .cs-tg{margin-left:auto;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer}'+
-      '.crit-strip .cs-l{margin-top:8px;display:flex;flex-direction:column}'+
+      '.crit-strip .cs-l{margin-top:8px;display:flex;flex-direction:column;max-height:320px;overflow:auto}'+
       '.crit-strip .cs-r{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:6px 4px;border-top:1px solid var(--line);cursor:pointer}'+
       '.crit-strip .cs-r:hover{background:rgba(209,69,59,.06)}'+
       '.crit-strip .cs-o{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
@@ -629,14 +629,15 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
       document.head.appendChild(st); }
     var box=document.getElementById('crit-strip');
     if(!box){ box=document.createElement('div'); box.id='crit-strip'; box.className='crit-strip'; grid.parentNode.insertBefore(box,grid); }
-    var list=TASKS.filter(function(t){ return t.critical && !t.done; });
-    if(critOnly || timMode || !list.length){ box.style.display='none'; box.innerHTML=''; return; }
+    var _sel=Object.keys(ownerOn).filter(function(k){ return ownerOn[k]; }); var _own=_sel.length===1?_sel[0]:null;
+    var list=TASKS.filter(function(t){ return t.critical && !t.done && t.owner===_own; });
+    if(!_own || critOnly || timMode || !list.length){ box.style.display='none'; box.innerHTML=''; return; }
     var t0=today0().getTime();
     function d0(d){ var x=new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
     function key(t){ var ds=[]; var x=pdParse(t.dlv); if(x&&x.d) ds.push(d0(x.d)); if(t.nextDate) ds.push(d0(t.nextDate)); if(t.due) ds.push(d0(t.due)); return ds.length?Math.min.apply(null,ds):8e15; }
     list.sort(function(a,b){ return key(a)-key(b); });
     var open=true; try{ open=localStorage.getItem('ky_crit_open')!=='0'; }catch(e){}
-    var h='<div class="cs-h"><span class="cs-t">⚑ Kritično</span><span class="cs-n">'+list.length+'</span><button class="cs-tg" type="button">'+(open?'Sakrij':'Prikaži')+'</button></div>';
+    var h='<div class="cs-h"><span class="cs-t">⚑ Kritično · '+escapeHtml(String(_own))+'</span><span class="cs-n">'+list.length+'</span><button class="cs-tg" type="button">'+(open?'Sakrij':'Prikaži')+'</button></div>';
     if(open){ h+='<div class="cs-l">'+list.map(function(t,i){
       var x=pdParse(t.dlv), late=key(t)<t0, parts=[];
       if(t.nextDate) parts.push('next '+fmtShort(new Date(t.nextDate)));
