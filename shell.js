@@ -154,6 +154,8 @@
     '.crit-strip .cs-m{font-size:12px;color:var(--muted,#5f5c55);white-space:nowrap}'+
     '.crit-strip .cs-r.late .cs-m b{color:var(--over,#d1453b)}'+
     '.cs-flash{outline:2px solid var(--over,#d1453b);outline-offset:2px;transition:outline-color .4s}'+
+    '.crit-strip .cs-rows{margin:8px -14px -10px;border-top:1px solid var(--line,#e6e3dc);max-height:460px;overflow:auto}'+
+    '.crit-strip .cs-rows .task:last-child{border-bottom:0}'+
     '@media (max-width:700px){.crit-strip .cs-r{grid-template-columns:minmax(0,1fr)}.crit-strip .cs-m{white-space:normal}}';
     document.head.appendChild(st); }
   function go(t){
@@ -176,15 +178,18 @@
     list.sort(function(a,b){ return key(a)-key(b); });
     var open=true; try{ open=localStorage.getItem('ky_critb_open')!=='0'; }catch(e){}
     var h='<div class="cs-h"><span class="cs-t">⚑ Kritično na ovom boardu</span><span class="cs-n">'+list.length+'</span><button class="cs-tg" type="button">'+(open?'Sakrij':'Prikaži')+'</button></div>';
-    if(open){ h+='<div class="cs-l">'+list.map(function(t,i){
+    /* redovi su isti redak kao na boardu (taskRow), pa se uređuju na mjestu; crta se samo nakon renderAll (D.K. 11.11.2026.) */
+    var live=(typeof window.taskRow==='function');
+    if(open){ h+= live ? '<div class="cs-rows"></div>' : '<div class="cs-l">'+list.map(function(t,i){
       var x=dlv(t.nextstep), late=key(t)<t0, parts=[], par=t.parent&&byId[t.parent]?byId[t.parent]:null;
       if(x) parts.push('deliverable '+dm(x.d)+(x.t?' '+esc(String(x.t).slice(0,70)):''));
       if(t.due) parts.push('rok '+dm(t.due));
       return '<div class="cs-r'+(late?' late':'')+'" data-i="'+i+'" title="Pokaži task na boardu"><span class="cs-o">'+esc(t.owner)+'</span><span class="cs-ti">'+esc(t.naziv)+(par?' <small>· '+esc(String(par.naziv||'').slice(0,50))+'</small>':'')+'</span><span class="cs-m">'+(late?'<b>kasni</b>'+(parts.length?' · ':''):'')+parts.join(' · ')+'</span></div>';
     }).join('')+'</div>'; }
-    if(box.__h===h && box.style.display!=='none'){ return; }
+    if(!live && box.__h===h && box.style.display!=='none'){ return; }
     box.__h=h; box.innerHTML=h; box.style.display='';
     box.querySelector('.cs-tg').addEventListener('click',function(){ try{ localStorage.setItem('ky_critb_open',open?'0':'1'); }catch(e){} paint(); });
+    var rows=box.querySelector('.cs-rows'); if(rows) list.forEach(function(t){ rows.appendChild(window.taskRow(t, !!t.parent)); });
     Array.prototype.forEach.call(box.querySelectorAll('.cs-r'),function(r){ r.addEventListener('click',function(){ go(list[+r.getAttribute('data-i')]); }); });
   }
   window.RENDER_HOOKS.push({post:function(){ try{ paint(); }catch(e){} }});
