@@ -717,6 +717,9 @@
   var fCountry='all'; try{ fCountry=localStorage.getItem('kcep_country')||'all'; }catch(e){}
   function cOf(sec){ var s=String(sec||''); return /^\s*HR\b/.test(s)?'HR':(/^\s*DE\b/.test(s)?'DE':''); }
   FILTER_HOOKS.push(function(t){ return fCountry==='all' || cOf(t.section)===fCountry; });
+  /* isti filter i za blok Kritično (shell.js) */
+  window.CRIT_FILTER=function(t){ return fCountry==='all' || cOf(t.section)===fCountry; };
+  window.CRIT_LABEL=function(){ return fCountry==='HR'?'Hrvatska':(fCountry==='DE'?'Njemačka':''); };
   var row=document.createElement('div'); row.className='chips'; row.id='f-country';
   function paint(){
     row.innerHTML='<span class="klabel">Država</span>'+[['all','Sve'],['HR','Hrvatska'],['DE','Njemačka']].map(function(c){

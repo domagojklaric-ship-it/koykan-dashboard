@@ -171,13 +171,16 @@
     var box=document.getElementById('crit-strip-b');
     if(!box){ box=document.createElement('div'); box.id='crit-strip-b'; box.className='crit-strip'; var hs=document.querySelector('.head-scroll'); var anchor=(hs&&hs.parentNode===board.parentNode)?hs:board; anchor.parentNode.insertBefore(box,anchor); }
     var byId={}; T.forEach(function(t){ byId[t.id]=t; });
-    var list=T.filter(function(t){ return t && t.critical && t.status!=='Gotovo' && t.id!=='_CFG'; });
+    /* board može suziti blok svojim filterom (npr. KCEP država): window.CRIT_FILTER(t) i window.CRIT_LABEL() */
+    var cf=(typeof window.CRIT_FILTER==='function')?window.CRIT_FILTER:null;
+    var list=T.filter(function(t){ return t && t.critical && t.status!=='Gotovo' && t.id!=='_CFG' && (!cf || cf(t)); });
     if(!list.length){ if(box.style.display!=='none'){ box.style.display='none'; box.innerHTML=''; box.__h=''; } return; }
     var t0=new Date(); t0.setHours(0,0,0,0); t0=t0.getTime();
     function key(t){ var ds=[]; var x=dlv(t.nextstep); if(x) ds.push(ymd(x.d)); if(t.due) ds.push(ymd(t.due)); ds=ds.filter(function(v){ return v!==null; }); return ds.length?Math.min.apply(null,ds):8e15; }
     list.sort(function(a,b){ return key(a)-key(b); });
     var open=true; try{ open=localStorage.getItem('ky_critb_open')!=='0'; }catch(e){}
-    var h='<div class="cs-h"><span class="cs-t">⚑ Kritično na ovom boardu</span><span class="cs-n">'+list.length+'</span><button class="cs-tg" type="button">'+(open?'Sakrij':'Prikaži')+'</button></div>';
+    var lbl=(typeof window.CRIT_LABEL==='function')?String(window.CRIT_LABEL()||''):'';
+    var h='<div class="cs-h"><span class="cs-t">⚑ Kritično na ovom boardu'+(lbl?' · '+esc(lbl):'')+'</span><span class="cs-n">'+list.length+'</span><button class="cs-tg" type="button">'+(open?'Sakrij':'Prikaži')+'</button></div>';
     /* redovi su isti redak kao na boardu (taskRow), pa se uređuju na mjestu; crta se samo nakon renderAll (D.K. 11.11.2026.) */
     var live=(typeof window.taskRow==='function');
     if(open){ h+= live ? '<div class="cs-rows"></div>' : '<div class="cs-l">'+list.map(function(t,i){
