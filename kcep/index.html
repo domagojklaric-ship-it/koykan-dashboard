@@ -283,6 +283,12 @@
   function lsGet(k){ try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } }
   function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
   var SECRET = lsGet(BOARD.skey);
+  /* Osobna prijava (koykan-auth, 12.11.2026.): link <adresa>#k=<ključ> sprema osobni ključ i miče ga iz adrese */
+  (function(){ var m=(location.hash||'').match(/[#&]k=([^&]+)/); if(!m) return; try{ lsSet('koykan_key', decodeURIComponent(m[1])); }catch(e){} try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){ location.hash=''; } })();
+  var PKEY = lsGet('koykan_key');
+  window.addEventListener('hashchange', function(){ if(/[#&]k=/.test(location.hash)) location.reload(); });
+  /* Lokalni test (samo localhost): endpoint workera iz localStorage dev_boards_endpoint, npr. http://127.0.0.1:8790 */
+  if(/^(localhost|127.0.0.1)$/.test(location.hostname) && lsGet('dev_boards_endpoint')) ENDPOINT = lsGet('dev_boards_endpoint') + '/' + BOARD.key;
   var KY_ADMIN = lsGet('koykan_admin');
   var TASKS = [], CFG = {id:'_CFG', sdue:'', note:''}, VIEW = BOARD.view || 'list';
   var fSection='all', fStatus='Otvoreno', fOwner={}, searchQ='', fOverdue=false, fCrit=false, fP1=false;
@@ -318,8 +324,9 @@
     });
   }
   function api(params){
-    params.secret = SECRET;
-    if(KY_ADMIN && params.action!=='list') params.admin = KY_ADMIN;
+    /* osobni ključ ima prednost pred kodom boarda; s osobnim ključem uloga (admin, editor, viewer) dolazi iz koykan-auth */
+    if(PKEY){ params.key = PKEY; }
+    else { params.secret = SECRET; if(KY_ADMIN && params.action!=='list') params.admin = KY_ADMIN; }
     /* kod i parametri idu u tijelu POST zahtjeva, ne u adresi (4.11.2026.) */
     var body = {}; Object.keys(params).forEach(function(k){ body[k] = params[k]==null ? '' : String(params[k]); });
     var tries = (params.action==='list') ? 3 : 1;
@@ -345,7 +352,7 @@
   function load(){
     el('sub').textContent='učitavam…';
     api({action:'list'}).then(function(res){
-      if(res && res.error==='auth'){ showSetup('Kod više ne vrijedi, unesi ponovno.'); return; }
+      if(res && res.error==='auth'){ if(PKEY){ try{ localStorage.removeItem('koykan_key'); }catch(e){} PKEY=''; showSetup('Osobni ključ ne vrijedi za ovaj board. Unesi kod boarda ili otvori novi link.'); return; } showSetup('Kod više ne vrijedi, unesi ponovno.'); return; }
       if(res && res.ok){ TASKS=splitCfg(res.tasks||[]); renderAll(); banner('Osvježeno'); }
       else { banner('Greška: '+((res&&res.error)||'?')); }
     }).catch(function(e){ banner('Greška veze: '+e); });
@@ -675,7 +682,7 @@
   }
   fillAddSelects();
   if(VIEW!=='list') setView(VIEW);
-  if(!SECRET){ showSetup(); }
+  if(!SECRET && !PKEY){ showSetup(); }
   else { el('app').classList.remove('hide'); load(); }
 </script>
 <script>

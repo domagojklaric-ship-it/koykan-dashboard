@@ -12,7 +12,7 @@
     {key:'pep', name:'PEP Takeover', skey:'pep_secret'},
     {key:'zabica', name:'Žabica (Rijeka)', skey:'zabica_secret'},
     {key:'stores', name:'Stores', skey:'stores_secret'},
-    {key:'kcep', name:'KCEP restructure', skey:'kcep_secret'},
+    {key:'kcep', name:'KCEP restructure', skey:'kcep_secret', personal:true},
     {key:'menu', name:'Menu CZ', skey:'menu_secret'},
     {key:'gastro', name:'Gastro-tim', skey:'gastro_secret'},
     {key:'procurement', name:'Sourcing', skey:'procurement_secret'},
@@ -38,7 +38,7 @@
     h+='<a class="kys-item'+(cur===''?' on':'')+'" href="'+ROOT+'"><span class="kys-ic kys-ic-tasks"></span><span class="kys-tx">Taskovi</span></a>';
   }
   h+='<div id="ky-side-slot"></div>';
-  var vis=BOARDS.filter(function(b){ return b.key===cur || full || !!ls(b.skey); });
+  var vis=BOARDS.filter(function(b){ return b.key===cur || full || !!ls(b.skey) || (b.personal && !!ls('koykan_key')); });
   if(vis.length){
     h+='<div class="kys-sec">Projektni boardovi</div>';
     vis.forEach(function(b){ h+='<a class="kys-item'+(b.key===cur?' on':'')+'" href="'+ROOT+b.key+'/"><span class="kys-av">'+esc(b.name.charAt(0))+'</span><span class="kys-tx">'+esc(b.name)+'</span></a>'; });
