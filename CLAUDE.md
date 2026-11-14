@@ -15,13 +15,14 @@
 **Who owns what (one writer per area)**
 | Session | Owns |
 |---|---|
-| koykan-platform | shared files, standard, `koykan-auth`, every production key, KPI and access rules |
+| koykan-platform | coordinator of all Koykan sessions (routes work, relays Dom's decisions, opens sessions), shared files, standard, `koykan-auth`, every production key, KPI and access rules |
 | Franchise master | Koykan Standards app, `Koykan - Franchise` folder, Book of Standards documents |
 | Inbox dispatcher | Dom's Gmail, tracker `CEKAMO_ODGOVORE.md` (with the TRACKER routine), hand-overs, routine decisions |
 | Dashboard | boards (koykan-dashboard, workers), Cowork routines and their prompts |
 | Menu engineering | Koykan Recipes, Menu Main, POS item sales |
 | Koykan scheduler | Koykan Shifts, clock-in kiosk |
 | Compliance | Koykan Compliance, store controls mirror |
+| Marketing | Instagram + Facebook and Google Business profiles (read, drafts only), content calendar and post drafts, monthly marketing report, Meta Ads test budget (Dom's OK per ad), Drive `Koykan Marketing` |
 - Never edit another session's repo or folder; send that session a message instead. Shared files come only from koykan-platform and stay byte-identical.
 - Keys only through koykan-platform; never in chat, mail, logs or git.
 
