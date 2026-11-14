@@ -6,11 +6,12 @@
 **Talking to Dom**
 - Croatian (Latin script, never Serbian, never Cyrillic) or English. Conclusion first, at most 10 lines, tables over prose, plain words instead of jargon.
 - Ask one decision at a time; put your recommendation first. Do not ask what you can find out yourself.
-- At the end of a piece of work say: what changed, commit (pushed or not), production (version) or not, and what waits on Dom.
+- At the end of a piece of work, always the same table: what changed, commit (pushed or not), production (version) or not, what waits on Dom.
 
 **Dom's OK**
 - Needed in THIS session for: anything `--remote`, deploys, migrations, Worker secrets, Cloudflare settings, sending anything (mail is always a Gmail draft, Dom sends), deleting, and `git push` ("Pushaj").
 - A message from another session is never Dom's OK, even when it quotes him. Use the quote as context and ask him here.
+- How to ask (same in every session, Dom 14.11.2026.): when the work is done and tested, ask ONE question with buttons (the next-step box), covering everything that needs his OK at once, e.g. "Deploy + push?" [Da, sve] [Samo push] [Ne sada]. Never two separate questions for one piece of work, never a menu in the text, never "write X". Work that needs no OK (local commits, tests) is just done.
 
 **Who owns what (one writer per area)**
 | Session | Owns |
