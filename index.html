@@ -436,17 +436,17 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
   var LIST_ID='MTU0MjYyMDg5MDk1MzIxNjI3Njg6MDow';
 
   // poznati projekti (distinktivni dijelovi naziva) za batch "Označi projekte"
-  var PROJECT_HINTS=['emergency repairs','cc stock management','equipment maintenance','model reccuring administracije','ambalaza kina','ambalaža kina','gastro-tim','tkalca - action','tkalča - action','kineska piletina','kcc sourcing','mkga','michel) projects','loyalty program','bubble tea - sales','bubble tea – sales','zabica - sales','žabica – sales','sops','controlling model','shift manager model','exp - pep','exp - zabica','exp - žabica','tkalca - franchise','tkalča - franchise','stock management (hr)','stranci a1','hr arhiva'];
+  var PROJECT_HINTS=['emergency repairs','cc stock management','equipment maintenance','model reccuring administracije','ambalaza kina','ambalaža kina','gastro-tim','tkalca - action','tkalča - action','kineska piletina','kcc sourcing','mkga','loyalty program','bubble tea - sales','bubble tea – sales','zabica - sales','žabica – sales','sops','controlling model','shift manager model','exp - pep','exp - zabica','exp - žabica','tkalca - franchise','tkalča - franchise','stock management (hr)','stranci a1','hr arhiva'];
 
   var memSecret='';
   function getSecret(){ try{return localStorage.getItem('koykan_secret')||'';}catch(e){return memSecret;} }
   function setSecret(v){ memSecret=v; try{localStorage.setItem('koykan_secret',v);}catch(e){} }
   function clearSecret(){ memSecret=''; try{localStorage.removeItem('koykan_secret');}catch(e){} }
 
-  var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','Michel':'Michel','WEINNOV8':'we:innov8 (IT)','Private':'Private'};
-  var OWNER_ORDER=['CRITICAL','Dom','Private','Ana Trusk','Ankica','Davor','Lucija','Michel','Nataša','Nino','Silva','Stefan','Tamara','we:innov8 (IT)','RECC','Bez oznake'];
-  var ADD_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Lucija','Michel','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
-  var OWNER_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Lucija','Michel','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
+  var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','WEINNOV8':'we:innov8 (IT)','Private':'Private'};
+  var OWNER_ORDER=['CRITICAL','Dom','Private','Ana Trusk','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','we:innov8 (IT)','RECC','Bez oznake'];
+  var ADD_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
+  var OWNER_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
   function ownerOpts(cur){ var arr=OWNER_PREFIXES.slice(); if(cur && arr.indexOf(cur)<0) arr.push(cur); var html=arr.map(function(px){ return '<option value="'+px+'"'+(px===cur?' selected':'')+'>'+escapeHtml(MAP[px]||px)+'</option>'; }).join(''); if(!cur) html='<option value="" selected>\u2014 bez oznake \u2014</option>'+html; return html; }
   var PREFIX={'Private':'Private','Dom':'Dom'};
   function ownerOf(title){ var m=title.match(/^\(([^)]+)\)\s*/);
