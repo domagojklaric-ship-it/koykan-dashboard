@@ -28,7 +28,7 @@
   var path=location.pathname.replace(/index\.html$/,'');
   var rootPath=new URL(ROOT, location.href).pathname;
   var cur=path===rootPath ? '' : (path.slice(rootPath.length).split('/')[0]||'');
-  if(cur){ var fn=document.createElement('link'); fn.rel='stylesheet'; fn.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap'; document.head.appendChild(fn);
+  if(cur && cur!=='access'){ var fn=document.createElement('link'); fn.rel='stylesheet'; fn.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap'; document.head.appendChild(fn);
     var bt=document.createElement('link'); bt.rel='stylesheet'; bt.href=ROOT+'board-theme.css?v=1'; document.head.appendChild(bt);
     var bs=document.createElement('script'); bs.src=ROOT+'board-simple.js?v=2'; document.body.appendChild(bs); }
   var full=ls('ky_full')==='1';
@@ -43,6 +43,7 @@
     h+='<div class="kys-sec">Projektni boardovi</div>';
     vis.forEach(function(b){ h+='<a class="kys-item'+(b.key===cur?' on':'')+'" href="'+ROOT+b.key+'/"><span class="kys-av">'+esc(b.name.charAt(0))+'</span><span class="kys-tx">'+esc(b.name)+'</span></a>'; });
   }
+  if(full){ h+='<a class="kys-item'+(cur==='access'?' on':'')+'" href="'+ROOT+'access/"><span class="kys-ic kys-ic-tasks"></span><span class="kys-tx">Access</span></a>'; }
   h+='<div class="kys-foot" id="ky-side-foot"></div>';
 
   var side=document.createElement('nav'); side.className='kys'; side.id='ky-side'; side.innerHTML=h;
