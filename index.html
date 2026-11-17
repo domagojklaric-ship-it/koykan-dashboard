@@ -865,7 +865,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
   function isScoped(){ return document.body.classList.contains('scoped'); }
 /* ===== Mirror: taskovi nositelja s projektnih boardova ===== */
 var MX={items:[], ts:0, loading:false, err:'', open:{}};
-var MX_LINK={kcep:'kcep',zabica:'zabica',cm:'cm',menu:'menu',bbt:'bbt',gastro:'gastro',stores:'stores',procurement:'procurement'};
+var MX_LINK={kcep:'kcep',zabica:'zabica',cm:'cm',menu:'menu',gastro:'gastro',stores:'stores',procurement:'procurement'};
 var MX_OWN={'AnaT':'Ana Trusk','Silvana':'Silva'};
 try{ MX.open=JSON.parse(localStorage.getItem('ky_mx_open')||'{}')||{}; }catch(e){ MX.open={}; }
 function mxEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }

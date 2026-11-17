@@ -8,8 +8,6 @@
   if(window.__kyShell) return; window.__kyShell=true;
   var me=document.currentScript; var ROOT=me? me.src.replace(/shell\.js(\?.*)?$/,'') : './';
   var BOARDS=[
-    {key:'bbt', name:'BBT pilot', skey:'bbt_secret'},
-    {key:'pep', name:'PEP Takeover', skey:'pep_secret'},
     {key:'zabica', name:'Žabica (Rijeka)', skey:'zabica_secret'},
     {key:'stores', name:'Stores', skey:'stores_secret'},
     {key:'kcep', name:'KCEP restructure', skey:'kcep_secret', personal:true},
