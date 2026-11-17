@@ -447,7 +447,10 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
   function getKey(){ try{return localStorage.getItem('koykan_key')||'';}catch(e){return memKey;} }
   function setKey(v){ memKey=v; try{localStorage.setItem('koykan_key',v);}catch(e){} }
   function clearKey(){ memKey=''; try{localStorage.removeItem('koykan_key');}catch(e){} }
-  (function(){ try{ var m=String(location.hash||'').match(/^#k=([^&]+)/); if(!m) return; var k=decodeURIComponent(m[1]); if(/^\S{16,200}$/.test(k)){ setKey(k); clearSecret(); } history.replaceState(null,'',location.pathname+location.search); }catch(e){} })();
+  /* poveznica na task (17.11.2026.): #/task/<id> ili #k=<ključ>&to=/task/<id> otvara ladicu tog taska nakon učitavanja */
+  var kyRoute='';
+  (function(){ try{ var h=String(location.hash||''); var r=h.match(/(?:^#|&)to=([^&]+)/); var d=h.match(/^#(\/task\/[A-Za-z0-9_-]+)/); kyRoute=r?decodeURIComponent(r[1]):(d?d[1]:''); var m=h.match(/^#k=([^&]+)/); if(!m) return; var k=decodeURIComponent(m[1]); if(/^\S{16,200}$/.test(k)){ setKey(k); clearSecret(); } history.replaceState(null,'',location.pathname+location.search); }catch(e){} })();
+  function kyOpenRoute(){ var m=String(kyRoute||'').match(/^\/task\/([A-Za-z0-9_-]+)$/); kyRoute=''; if(!m) return; var t=TASKS.filter(function(x){return x.id===m[1];})[0]; if(t) openDrawer(t,document.createElement('div')); }
 
   var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','WEINNOV8':'we:innov8 (IT)','Private':'Private'};
   var OWNER_ORDER=['CRITICAL','Dom','Private','Ana Trusk','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','we:innov8 (IT)','RECC','Bez oznake'];
@@ -533,7 +536,7 @@ body.scoped .s-lock:not(.lon){visibility:hidden}
         var wait = waitOf(n.text||'');
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
                  due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, fokus:fokusOf(n.rest,o.owner), link:n.link, locked:!!t.locked, created:t.created||null, src:t.src||'', dlv:t.dlv||'' }; });
-      autoFlip(); buildOwnerFilters(); render(); kyDefaults();
+      autoFlip(); buildOwnerFilters(); render(); kyDefaults(); kyOpenRoute();
       el('bar').style.display='flex'; el('prog').style.display='flex';
       el('synced').textContent='sync '+new Date().toLocaleTimeString();
         }).catch(function(err){ el('loading').style.display='none'; banner(_had ? 'Sync nije prosao \u2014 prikaz je zadnji uspjesni. Klikni Osvjezi.' : ('Ne mogu dohvatiti endpoint ('+err+').')); });
