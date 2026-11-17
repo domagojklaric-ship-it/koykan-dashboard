@@ -1307,7 +1307,7 @@ function pdWire(row,t){ Array.prototype.forEach.call(row.querySelectorAll('.pdlv
     try{ document.execCommand('copy'); cb&&cb(); }catch(e){ banner('Ne mogu kopirati automatski. Otvori konzolu, JSON je ispisan.'); console.log(text); }
     document.body.removeChild(ta); }
   el('load-completed').addEventListener('click',function(){ loadCompleted=!loadCompleted; this.textContent=loadCompleted?'Gotovi: učitani':'Gotovi: skriveni'; this.classList.toggle('on',loadCompleted); load(); });
-  el('type-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; typeFilter=b.dataset.t; Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
+  el('type-seg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; typeFilter=b.dataset.t; if(typeFilter==='req'){ Object.keys(ownerOn).forEach(function(x){ ownerOn[x]=true; }); buildOwnerFilters(); } Array.prototype.forEach.call(this.children,function(x){x.classList.toggle('on',x===b);}); render(); });
   el('more-btn').addEventListener('click',function(){ var a=el('oldf'); var open=a.style.display==='none'; a.style.display=open?'flex':'none'; this.classList.toggle('on',open); this.textContent=open?'Manje filtera':'Više filtera'; });
   el('sort-by').addEventListener('change',function(){ setSort(this.value,1); });
   el('sort-dir').addEventListener('click',function(){ setSort(SORT.by,-SORT.dir); });
