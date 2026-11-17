@@ -18,12 +18,12 @@
 |---|---|
 | koykan-platform | coordinator of all Koykan sessions (routes work, relays Dom's decisions, opens sessions), shared files, standard, `koykan-auth`, every production key, KPI and access rules |
 | Franchise master | Koykan Standards app, `Koykan - Franchise` folder, Book of Standards documents |
-| Inbox dispatcher | Dom's Gmail, tracker `CEKAMO_ODGOVORE.md` (with the TRACKER routine), hand-overs, routine decisions |
+| Inbox dispatcher | Runs in the cloud on Dom's personal account (from 16.11.2026.): Dom's Gmail, Calendar and Tasks, hand-overs, routine decisions, and Dom's only daily output "Moj dnevni plan" in its chat (17.11.2026.). Mail decisions go straight to the boards through the API ("Traži Domagoj" for requests to owners); the tracker `CEKAMO_ODGOVORE.md` is frozen since 17.11.2026. and there are no tracker items in the bridge. The desktop Inbox dispatcher only carries out the cloud dispatcher's bridge items: Franchise-folder file writes and Compliance agent-key calls |
 | Dashboard | boards (koykan-dashboard, workers), Cowork routines and their prompts |
 | Menu engineering | Koykan Recipes, Menu Main, POS item sales |
 | Koykan scheduler | Koykan Shifts, clock-in kiosk |
 | Compliance | Koykan Compliance, store controls mirror |
-| Marketing | Instagram + Facebook and Google Business profiles (read, drafts only), content calendar and post drafts, monthly marketing report, Meta Ads test budget (Dom's OK per ad), Drive `Koykan Marketing` |
+| Marketing | archived 16.11.2026. (Dom): Advent 2026 runs as a project in Koykan Projects (cloud thread Koykan projects); social profiles, content and Meta Ads wait for a new owner, which only Dom names |
 - Never edit another session's repo or folder; send that session a message instead. Shared files come only from koykan-platform and stay byte-identical.
 - Keys only through koykan-platform; never in chat, mail, logs or git.
 
