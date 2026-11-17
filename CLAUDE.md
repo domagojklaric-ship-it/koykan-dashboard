@@ -6,6 +6,9 @@
 **Talking to Dom**
 - Croatian (Latin script, never Serbian, never Cyrillic) or English. Conclusion first, at most 10 lines, tables over prose, plain words instead of jargon.
 - Ask one decision at a time; put your recommendation first. Do not ask what you can find out yourself.
+- Every answer (every set of messages, especially when a message from another session, a notification or a routine wakes the session) starts with a visual boundary, exactly these first two lines (Zagreb time; Dom 17.11.2026.):
+  `---`
+  `**HH.MM · povod: <Dom | poruka od <sesija> | stavka na mostu | rutina>**`
 - At the end of a piece of work, always the same table: what changed, commit (pushed or not), production (version) or not, what waits on Dom.
 
 **Dom's OK**
