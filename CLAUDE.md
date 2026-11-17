@@ -19,7 +19,8 @@
 | koykan-platform | coordinator of all Koykan sessions (routes work, relays Dom's decisions, opens sessions), shared files, standard, `koykan-auth`, every production key, KPI and access rules |
 | Franchise master | Koykan Standards app, `Koykan - Franchise` folder, Book of Standards documents |
 | Inbox dispatcher | Runs in the cloud on Dom's personal account (from 16.11.2026.): Dom's Gmail, Calendar and Tasks, hand-overs, routine decisions, and Dom's only daily output "Moj dnevni plan" in its chat (17.11.2026.). Mail decisions go straight to the boards through the API ("Traži Domagoj" for requests to owners); the tracker `CEKAMO_ODGOVORE.md` is frozen since 17.11.2026. and there are no tracker items in the bridge. The desktop Inbox dispatcher only carries out the cloud dispatcher's bridge items: Franchise-folder file writes and Compliance agent-key calls |
-| Dashboard | boards (koykan-dashboard, workers), Cowork routines and their prompts |
+| Dashboard (desktop) | code of the boards (koykan-dashboard, koykan-tasks-worker, koykan-boards-worker), deploys, Cowork routines and their prompts; no board data work since 17.11.2026. |
+| Dashboard cleanup (cloud) | from 17.11.2026. (Dom): administration of board data: Dom's board, "Traži Domagoj", control findings on the Stores board, single task changes, the Friday review and owner scorecards; works through the boards API, never code or deploys |
 | Menu engineering | Koykan Recipes, Menu Main, POS item sales |
 | Koykan scheduler | Koykan Shifts, clock-in kiosk |
 | Compliance | Koykan Compliance, store controls mirror |
