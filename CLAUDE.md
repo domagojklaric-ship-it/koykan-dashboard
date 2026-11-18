@@ -23,10 +23,10 @@
 | Franchise master | Koykan Standards app, `Koykan - Franchise` folder, Book of Standards documents |
 | Inbox dispatcher | Runs in the cloud on Dom's personal account (from 16.11.2026.): Dom's Gmail, Calendar and Tasks, hand-overs, routine decisions, and Dom's only daily output "Moj dnevni plan" in its chat (17.11.2026.). Mail decisions go straight to the boards through the API ("Traži Domagoj" for requests to owners); the tracker `CEKAMO_ODGOVORE.md` is frozen since 17.11.2026. and there are no tracker items in the bridge. The desktop Inbox dispatcher only carries out the cloud dispatcher's bridge items: Franchise-folder file writes and Compliance agent-key calls |
 | Dashboard (desktop) | code of the boards (koykan-dashboard, koykan-tasks-worker, koykan-boards-worker), deploys, Cowork routines and their prompts; no board data work since 17.11.2026. |
-| Dashboard cleanup (cloud) | from 17.11.2026. (Dom): administration of board data: Dom's board, "Traži Domagoj", control findings on the Stores board, single task changes, the Friday review and owner scorecards; works through the boards API, never code or deploys |
-| Menu engineering | Koykan Recipes, Menu Main, POS item sales |
+| Dashboard cleanup (cloud) | from 17.11.2026. (Dom): administration of board data: Dom's board, "Traži Domagoj", single task changes, the Friday review and owner scorecards (control findings on the Stores board stay with Compliance, Dom 18.11.2026.); works through the boards API, never code or deploys |
+| Menu engineering | Koykan Recipes, Menu Main, POS item sales; all menu engineering (analysis, price and margin, menu structure and changes) and recipes and normatives. Franchise master gets them only when franchise documents change; Advent recipes and normatives go to both (Dom 18.11.2026.) |
 | Koykan scheduler | Koykan Shifts, clock-in kiosk |
-| Compliance | Koykan Compliance, store controls mirror |
+| Compliance | Koykan Compliance, store controls mirror, control findings and their actions on the Stores board (Dom 18.11.2026.) |
 | Marketing | archived 16.11.2026. (Dom): Advent 2026 runs as a project in Koykan Projects (cloud thread Koykan projects); social profiles, content and Meta Ads wait for a new owner, which only Dom names |
 - Never edit another session's repo or folder; send that session a message instead. Shared files come only from koykan-platform and stay byte-identical.
 - Keys only through koykan-platform; never in chat, mail, logs or git.
