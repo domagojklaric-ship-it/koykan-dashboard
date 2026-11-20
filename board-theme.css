@@ -63,3 +63,5 @@ button.pri{ color:#fff }
 .modal{ background:rgba(40,35,25,.35) }
 .opis-pop{ background:#fff; border-color:var(--line); box-shadow:0 8px 30px rgba(40,35,25,.15) }
 .head-scroll::-webkit-scrollbar,.sec::-webkit-scrollbar{ height:8px } .head-scroll::-webkit-scrollbar-thumb,.sec::-webkit-scrollbar-thumb{ background:#d6d2c9; border-radius:4px }
+/* C11 (20.11.2026.): link koji nije http(s) prikazuje se kao tekst */
+.lnk-txt{font-size:11px;color:var(--muted,#8a8f98);word-break:break-all;text-decoration:none;cursor:default}

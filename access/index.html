@@ -2,30 +2,14 @@
 <html lang="hr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://koykan-tasks.koykan.workers.dev https://koykan-boards.koykan.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="../icons/kdash.svg" type="image/svg+xml">
 <link rel="icon" href="../icons/kdash-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="../icons/kdash-180.png">
 <link rel="manifest" href="../icons/kdash.webmanifest">
 <title>Koykan · Access</title>
-<style>
-  :root{--bg:#13161b;--panel:#1a1a25;--panel2:#212732;--line:#2c3340;--text:#e8ebef;--muted:#98a1ac;--accent:#5aa6f0;--bad:#ef6f6f}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:400 13.5px/1.5 Inter,system-ui,sans-serif}
-  .wrap{max-width:1200px;margin:0 auto;padding:20px 18px 80px}
-  h1{font-size:19px;margin:0 0 4px}
-  h2{font-size:15px;margin:26px 0 6px}
-  h3{font-size:13px;margin:16px 0 4px;color:var(--muted)}
-  .muted{color:var(--muted)} .small{font-size:12px}
-  .tablewrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;margin-top:6px}
-  th{text-align:left;font:600 10.5px/1 ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:0 8px 8px}
-  td{padding:8px;border-top:1px solid var(--line);vertical-align:top}
-  tr.muted td{opacity:.6}
-  .err{color:var(--bad)}
-  .sec{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 14px 12px;margin-top:10px}
-  details summary{cursor:pointer;font-weight:600;padding:8px 0}
-</style>
+<link rel="stylesheet" href="index.css">
 </head>
 <body>
 <div class="wrap">
@@ -37,43 +21,6 @@
   <div id="boards"></div>
 </div>
 <script src="../shell.js"></script>
-<script type="module">
-import { mountAccess, renderAccess } from './koykan-access.js';
-const TASKS = 'https://koykan-tasks.koykan.workers.dev';
-const BOARDS = 'https://koykan-boards.koykan.workers.dev';
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-let key = ''; try { key = localStorage.getItem('koykan_key') || ''; } catch (e) {}
-const dash = document.getElementById('dash'), boards = document.getElementById('boards');
-if (!key) {
-  dash.innerHTML = '<p class="muted">Otvori stranicu osobnim Koykan ključem (link s <code>#k=</code> ključem s Koykan Home).</p>';
-} else {
-  mountAccess(dash, { key, base: TASKS });
-  (async () => {
-    try {
-      const r = await fetch(BOARDS + '/api/access', { headers: { authorization: 'Bearer ' + key } });
-      if (!r.ok) { boards.innerHTML = '<p class="muted">Ova stranica je samo za Doma.</p>'; return; }
-      const list = await r.json();
-      let html = (list.extra || []).map((x) => '<h3>' + esc(x.title) + '</h3><div class="tablewrap"><table><thead><tr>' + x.columns.map((c) => '<th>' + esc(c) + '</th>').join('') + '</tr></thead><tbody>' +
-        x.rows.map((row) => '<tr>' + row.map((c) => '<td>' + esc(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>').join('');
-      boards.innerHTML = html;
-      for (const b of list.boards || []) {
-        const det = document.createElement('details'); det.className = 'sec';
-        det.innerHTML = '<summary>Board ' + esc(b) + '</summary><div class="body muted">Učitavam…</div>';
-        boards.appendChild(det);
-        let loaded = false;
-        det.addEventListener('toggle', async () => {
-          if (!det.open || loaded) return; loaded = true;
-          const body = det.querySelector('.body');
-          try {
-            const rr = await fetch(BOARDS + '/api/access?board=' + encodeURIComponent(b), { headers: { authorization: 'Bearer ' + key } });
-            if (!rr.ok) throw new Error('HTTP ' + rr.status);
-            body.className = 'body'; body.innerHTML = renderAccess(await rr.json());
-          } catch (e) { body.innerHTML = '<span class="err">Ne mogu učitati (' + esc(e.message) + ').</span>'; loaded = false; }
-        });
-      }
-    } catch (e) { boards.innerHTML = '<div class="err">Boardovi se ne mogu učitati (' + esc(e.message) + ').</div>'; }
-  })();
-}
-</script>
+<script type="module" src="index.js"></script>
 </body>
 </html>

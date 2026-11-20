@@ -66,14 +66,15 @@
    samo se njegov tekst sakrije i preko njega se ispiše datum s točkama. */
 (function(){
   if(window.__kyDate) return; window.__kyDate=true;
-  var st=document.createElement('style');
-  st.textContent='.kyd-w{position:relative;display:inline-flex;align-items:center;flex:none;max-width:100%;vertical-align:middle}'+
+  /* CSP (B3, 20.11.2026.): stil preko CSSOM-a (adoptedStyleSheets), ne kao <style> element */
+  var kyCss=window.kyCss=window.kyCss||function(id,t){ var w=window.__kyCss=window.__kyCss||{}; if(w[id]||document.getElementById(id)) return; w[id]=1; try{ var sh=new CSSStyleSheet(); sh.replaceSync(t); document.adoptedStyleSheets=document.adoptedStyleSheets.concat([sh]); }catch(e){ var st=document.createElement('style'); st.id=id; st.textContent=t; (document.head||document.documentElement).appendChild(st); } };
+  var cssText='.kyd-w{position:relative;display:inline-flex;align-items:center;flex:none;max-width:100%;vertical-align:middle}'+
     '.kyd-w.kyd-full{display:flex;width:100%}'+
     'input[type=date].kyd::-webkit-datetime-edit{opacity:0}'+
     /* Android Chrome nema datetime-edit: nativni tekst se crtao ispod nase oznake (dva datuma, Dom 19.11.2026.). Boja ostaje citljiva za paint(). */
     'input[type=date].kyd{-webkit-text-fill-color:transparent;caret-color:transparent}'+
     '.kyd-l{position:absolute;display:flex;align-items:center;pointer-events:none;white-space:nowrap;overflow:hidden;z-index:1}';
-  (document.head||document.documentElement).appendChild(st);
+  kyCss('kyd-style', cssText);
   function fmt(v){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||''); return m? m[3]+'.'+m[2]+'.'+m[1]+'.' : ''; }
   function paint(inp){
     var l=inp.__kydL; if(!l) return;
@@ -140,8 +141,7 @@
   function ymd(s){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||'')); return m? new Date(+m[1],+m[2]-1,+m[3]).getTime() : null; }
   function dm(s){ var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||'')); return m? m[3]+'.'+m[2]+'.' : ''; }
   function dlv(s){ s=String(s||''); var i=s.indexOf('|'); if(i<0) return null; var d=s.slice(0,i); return /^\d{4}-\d{2}-\d{2}$/.test(d)? {d:d,t:s.slice(i+1)} : null; }
-  function style(){ if(document.getElementById('csb-style')) return; var st=document.createElement('style'); st.id='csb-style';
-    st.textContent='.crit-strip{margin:0 0 14px;border:1px solid var(--over,#d1453b);border-left:5px solid var(--over,#d1453b);background:var(--panel,#fff);border-radius:12px;padding:10px 14px}'+
+  function style(){ var t='.crit-strip{margin:0 0 14px;border:1px solid var(--over,#d1453b);border-left:5px solid var(--over,#d1453b);background:var(--panel,#fff);border-radius:12px;padding:10px 14px}'+
     '.crit-strip .cs-h{display:flex;align-items:center;gap:10px}'+
     '.crit-strip .cs-t{font-weight:700;color:var(--over,#d1453b);letter-spacing:.02em;text-transform:uppercase;font-size:13px}'+
     '.crit-strip .cs-n{font-weight:700;font-size:12px;color:#fff;background:var(--over,#d1453b);border-radius:999px;padding:1px 8px}'+
@@ -158,7 +158,7 @@
     '.crit-strip .cs-rows{margin:8px -14px -10px;border-top:1px solid var(--line,#e6e3dc);max-height:460px;overflow:auto}'+
     '.crit-strip .cs-rows .task:last-child{border-bottom:0}'+
     '@media (max-width:700px){.crit-strip .cs-r{grid-template-columns:minmax(0,1fr)}.crit-strip .cs-m{white-space:normal}}';
-    document.head.appendChild(st); }
+    (window.kyCss||function(id,t){ var w=window.__kyCss=window.__kyCss||{}; if(w[id]||document.getElementById(id)) return; w[id]=1; try{ var sh=new CSSStyleSheet(); sh.replaceSync(t); document.adoptedStyleSheets=document.adoptedStyleSheets.concat([sh]); }catch(e){ var st=document.createElement('style'); st.id=id; st.textContent=t; (document.head||document.documentElement).appendChild(st); } })('csb-style', t); }
   function go(t){
     var row=document.querySelector('[data-id="'+String(t.id).replace(/"/g,'')+'"]');
     if(row && row.offsetParent){ row.scrollIntoView({block:'center',behavior:'smooth'}); row.classList.add('cs-flash'); setTimeout(function(){ row.classList.remove('cs-flash'); },2200); return; }

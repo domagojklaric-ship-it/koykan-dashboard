@@ -1,0 +1,107 @@
+  /* ---- v7 pojednostavljeno (4.11.2026.): gotovi pogledi, kraći red, bočna ploča ---- */
+  .qadd{ flex:1 1 420px; display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:4px 4px 4px 12px; box-shadow:0 1px 2px rgba(30,25,15,.05) }
+  .qadd:focus-within{ border-color:var(--accent) }
+  .qadd{ min-width:0; box-sizing:border-box; max-width:100% }
+  .qadd input{ flex:1; width:0; min-width:0; border:0; outline:none; background:transparent; font:14px var(--body); color:var(--text); padding:6px 0 }
+  .qadd select{ border:0; background:var(--panel2); border-radius:7px; padding:6px 8px; font:500 12.5px var(--body); color:var(--muted); max-width:150px }
+  .qadd .btn{ padding:7px 12px }
+  .brow .searchbox{ flex:0 1 240px }
+  .views{ display:flex; gap:2px; background:var(--panel2); border-radius:10px; padding:3px; overflow-x:auto; scrollbar-width:none; max-width:100% }
+  .views::-webkit-scrollbar{ display:none }
+  .views button{ flex:none; border:0; background:transparent; border-radius:7px; padding:8px 14px; font:500 13px var(--body); color:var(--muted); cursor:pointer; white-space:nowrap }
+  .views button:hover{ color:var(--text) }
+  .views button.on{ background:#fff; color:var(--text); box-shadow:0 1px 2px rgba(40,35,25,.12) }
+  .btn.ghost{ background:transparent; border-color:transparent; color:var(--muted) } .btn.ghost:hover,.btn.ghost.on{ color:var(--text); border-color:var(--line) }
+  #oldf{ padding:12px 14px; background:var(--panel); border:1px solid var(--line); border-radius:12px }
+  body.scoped .dom-only{ display:none }
+
+  /* red: kvačica, status, naziv, next step, rok, nositelj; ostalo je u bočnoj ploči */
+  .srow .s-icn,.srow .screated,.srow .sproj,.srowhead .hsi{ display:none !important }
+  .srow select.sowner{ cursor:pointer; border:1px solid transparent; border-radius:7px; color:var(--text) }
+  .srow:hover select.sowner{ border-color:var(--line); background-color:var(--panel) }
+  .srow select.sowner:focus{ border-color:var(--accent) }
+  body.scoped .srow select.sowner,body.scoped .srowhead .hso{ display:none }
+  .srow .stitle:hover{ color:var(--accent) }
+  .wpill{ border:1px solid transparent; font-size:10.5px; padding:2px 8px; min-width:0 }
+  .wpill:hover{ filter:brightness(.96); box-shadow:0 0 0 2px rgba(47,111,219,.15) }
+  .wp-none{ border:1px dashed #d6d2c9; background:transparent }
+  .stmenu{ position:fixed; z-index:120; background:#fff; border:1px solid var(--line); border-radius:12px; padding:6px; box-shadow:0 12px 36px rgba(40,35,25,.18); display:flex; flex-direction:column; min-width:230px }
+  .stmenu button{ display:flex; align-items:center; gap:8px; border:0; background:transparent; border-radius:8px; padding:8px 10px; cursor:pointer; text-align:left; font:13px var(--body); color:var(--text) }
+  .stmenu button:hover{ background:var(--panel2) } .stmenu button.cur{ background:#eef3fd }
+  .stmenu b{ font-weight:600; width:70px } .stmenu span{ color:var(--faint); font-size:12px }
+
+  /* bočna ploča */
+  .drw-bg{ position:fixed; inset:0; z-index:100; background:rgba(40,35,25,.25) }
+  .drw{ position:fixed; top:0; right:0; bottom:0; z-index:101; width:min(460px,100%); background:#fff; border-left:1px solid var(--line); box-shadow:-20px 0 60px rgba(40,35,25,.15); padding:18px 22px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; font-family:var(--body); animation:drwIn .16s ease-out }
+  @keyframes drwIn{ from{ transform:translateX(30px); opacity:0 } }
+  .drw-h{ display:flex; align-items:center; justify-content:space-between }
+  .drw-own{ font-size:12.5px; font-weight:600; color:var(--muted); background:var(--panel2); border-radius:6px; padding:3px 8px }
+  .drw-x{ border:0; background:transparent; font-size:16px; color:var(--faint); cursor:pointer; padding:4px 8px; border-radius:6px } .drw-x:hover{ background:var(--panel2); color:var(--text) }
+  .drw-title{ border:0; resize:none; font:600 20px/1.3 var(--body); color:var(--text); padding:6px 0; outline:none; background:transparent }
+  .drw label{ font-size:12px; font-weight:500; color:var(--faint); margin-top:8px }
+  .drw input,.drw select,.drw textarea:not(.drw-title){ width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font:13.5px/1.45 var(--body); color:var(--text); background:#fff }
+  .drw input:focus,.drw select:focus,.drw textarea:focus{ outline:none; border-color:var(--accent) }
+  .drw textarea[data-f="rest"]{ resize:vertical; min-height:120px }
+  .drw input:disabled{ background:var(--panel2); color:var(--faint) }
+  .drw-st{ display:flex; gap:6px; flex-wrap:wrap }
+  .drw-st button{ border:1px solid var(--line); background:#fff; color:var(--muted); border-radius:8px; padding:7px 12px; font:600 12px var(--body); cursor:pointer }
+  .drw-st button.on.wp-act{ color:var(--t-act); background:#fdf0e3; border-color:#f5d2ad } .drw-st button.on.wp-pend{ color:var(--t-pend); background:#e9f0fc; border-color:#c4d6f5 }
+  .drw-st button.on.wp-hold{ color:var(--t-hold); background:#f1efea; border-color:#ddd8cf } .drw-st button.on.wp-done{ color:var(--t-done); background:#e6f5ec; border-color:#b8e0c8 }
+  .drw-2{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px } .drw-2>div{ display:flex; flex-direction:column; min-width:0 }
+  .drw-link{ display:flex; gap:8px } .drw-link .btn{ flex:none; text-decoration:none; padding:8px 12px }
+  .drw-ck{ display:flex !important; align-items:center; gap:8px; color:var(--text) !important; font-size:13px !important; margin-top:6px !important; cursor:pointer }
+  .drw-ck input{ width:auto !important }
+  .drw-ro{ font-size:13.5px; color:var(--t-dlv); padding:4px 0 } .drw-mute{ color:var(--faint); font-size:12.5px }
+  .drw-meta{ font-size:12px; color:var(--faint); margin-top:10px }
+  .drw-f{ position:sticky; bottom:-18px; margin:auto -22px -18px; padding:14px 22px; background:#fff; border-top:1px solid var(--line); display:flex; align-items:center; gap:8px }
+  .drw-f .spacer{ flex:1 } .drw-close,.drw-donebtn{ color:var(--ok) !important }
+  .srow input.d-empty:not(:focus){ color:transparent } .srow:hover input.d-empty:not(:focus){ color:var(--faint) }
+  .sortbox{ display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--faint) }
+  .sortbox select{ border:1px solid var(--line); background:var(--panel); border-radius:8px; padding:6px 8px; font:500 12.5px var(--body); color:var(--text); max-width:190px }
+  .sortdir{ border:1px solid var(--line); background:var(--panel); border-radius:8px; width:30px; height:30px; cursor:pointer; font:600 14px var(--body); color:var(--text) }
+  .srowhead .sorth{ cursor:pointer; user-select:none } .srowhead .sorth:hover{ color:var(--text) } .srowhead .sorth.on{ color:var(--accent) }
+  .empty-v{ padding:28px 16px; text-align:center; color:var(--faint); font-size:13.5px }
+
+  /* 4.11.2026.: kopiranje naziva, bez upisa 14+ d, sažetak projektnih boardova, pregled Tim */
+  .s-copy{ flex:none; width:24px; height:24px; border:0; border-radius:6px; background:transparent; cursor:pointer; color:var(--faint); opacity:0; position:relative; transition:opacity .12s }
+  .s-copy::before{ content:''; position:absolute; inset:0; margin:auto; width:14px; height:14px; background:currentColor; -webkit-mask:var(--ic-copy) center/14px no-repeat; mask:var(--ic-copy) center/14px no-repeat }
+  .srow:hover .s-copy,.s-copy:focus-visible{ opacity:1 } .s-copy:hover{ background:var(--panel2); color:var(--text) }
+  @media (hover:none){ .s-copy{ opacity:.6 } }
+  :root{ --ic-copy:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='12' height='12' rx='2'/><path d='M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1'/></svg>") }
+  .stl14{ display:inline-block; font:500 10.5px/1.35 var(--body); color:#8a6210; background:#fbf1d9; border-radius:5px; padding:1px 6px; margin-left:6px; vertical-align:1px }
+  #ky-side-slot .chip .cc.stl{ color:#8a6210; background:#fbf1d9 }
+  .mx-sum{ display:flex; align-items:center; gap:10px; padding:10px 16px; border-top:1px solid var(--line); color:var(--text); text-decoration:none; font-size:13.5px }
+  .mx-sum:hover{ background:var(--panel2) } .mx-sum b{ font-weight:600; flex:1; min-width:0 } .mx-sum .mx-go{ color:var(--accent); font-size:12.5px }
+  .mx-sum .mx-over{ font-size:11.5px; border-radius:5px; padding:1px 6px }
+  .tim-card{ overflow-x:auto }
+  table.tim{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:720px }
+  table.tim th{ text-align:right; font-weight:500; font-size:12px; color:var(--faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap }
+  table.tim th:first-child,table.tim td.nm{ text-align:left }
+  table.tim td{ text-align:right; padding:9px 14px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums }
+  table.tim td.nm{ font-weight:600 } table.tim td.zero{ color:#c9c5bc } table.tim td.bad{ color:var(--over); font-weight:600 }
+  table.tim tbody tr{ cursor:pointer } table.tim tbody tr:hover{ background:#faf9f6 }
+  .tim-n{ padding:10px 14px; font-size:12px; color:var(--faint) }
+  #ky-toast{ position:fixed; left:50%; top:18px; transform:translate(-50%,-20px); z-index:130; background:#1f1e1b; color:#fff; border-radius:10px; padding:10px 16px; font:500 13px var(--body); opacity:0; pointer-events:none; transition:opacity .2s,transform .2s; max-width:calc(100% - 32px) }
+  #ky-toast.show{ opacity:1; transform:translate(-50%,0) }
+  @media (max-width:900px){
+    .qadd{ flex:1 1 100% } .brow .searchbox{ flex:1 1 100% }
+    .qadd select{ max-width:110px }
+    .vrow .spacer{ display:none }
+    .drw{ padding:14px 16px } .drw-f{ margin:auto -16px -14px; padding:12px 16px }
+  }
+  /* 17.11.2026.: bez deliverablea, Trazi Domagoj pregled, opis na hover */
+  .req-bar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 14px; border-bottom:1px solid var(--line) }
+  .req-bar .seg button.on{ background:rgba(123,45,142,.18); color:#caa3d6 }
+  .req-own{ font:inherit; font-size:12.5px; color:var(--text); background:var(--panel2,#212732); border:1px solid var(--line); border-radius:8px; padding:6px 8px }
+  .req-hint{ font-size:11.5px; color:var(--faint) }
+  .req-wrap{ overflow-x:auto }
+  table.tim.req td, table.tim.req th{ text-align:left; vertical-align:top }
+  table.tim.req td:nth-child(2){ min-width:280px; white-space:normal }
+  table.tim.req td.zero, table.tim.req td.bad{ text-align:left }
+  table.tim.req tr.rep td{ background:rgba(79,208,137,.07) }
+  table.tim.req .req-ns{ font-size:11.5px; color:var(--faint); margin-top:2px }
+  table.tim.req .st-reported{ color:#4fd089; font-weight:600 } table.tim.req .st-returned{ color:#ffb15c; font-weight:600 }
+  table.tim.req .req-act{ white-space:nowrap } table.tim.req .req-act .btn{ padding:4px 8px; font-size:12px }
+  table.tim.req a.req-open{ color:var(--text); text-decoration:none; font-weight:600 } table.tim.req a.req-open:hover{ text-decoration:underline }
+  .ky-tip{ position:fixed; z-index:99990; max-height:280px; overflow:auto; background:var(--panel,#1a1a25); color:var(--text,#e8ebef); border:1px solid var(--line,#2c3340); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.45); padding:10px 12px; font-size:12.5px; line-height:1.45 }
+  .ky-tip-h{ font-weight:700; margin-bottom:6px } .ky-tip-b{ white-space:pre-wrap }

@@ -7,6 +7,7 @@
   if(window.__kyBS || typeof BOARD!=='object' || typeof taskRow!=='function' || typeof update!=='function' || typeof WSTATES==='undefined') return;
   window.__kyBS=true;
   var ADM=!!KY_ADMIN;
+  function isHttp(u){ return /^https?:\/\/[^\s]+$/i.test(String(u||'').trim()); }   /* C11 */
   var ROOT=(document.currentScript&&document.currentScript.src||'').replace(/board-simple\.js(\?.*)?$/,'');
   var css=document.createElement('link'); css.rel='stylesheet'; css.href=ROOT+'board-simple.css?v=2'; document.head.appendChild(css);
   document.body.classList.add('ky-bs'); if(!ADM) document.body.classList.add('ky-nonadm');
@@ -102,17 +103,17 @@
       (ADM?'<label class="bs-ck"><input type="checkbox" data-f="locked"'+(lk?' checked':'')+'> Zaključaj rok (nositelj ga ne može mijenjati)</label>':'')+
       '<label>Deliverable</label>'+(ADM?'<div class="bs-dlv"><input data-f="dlvt" placeholder="što točno mora biti isporučeno"><input type="date" data-f="dlvd"></div>':'<div class="bs-ro">'+(x.t?esc(x.t)+(x.d?' · <b>'+hrDate(x.d)+'</b>':'')+' <span class="bs-mute">postavlja Domagoj</span>':'<span class="bs-mute">nema</span>')+'</div>')+
       '<label>Opis</label><textarea data-f="opis" rows="7" placeholder="bilješke, kontekst, dogovori"></textarea>'+
-      '<label>Link</label><div class="bs-link"><input data-f="link" placeholder="https://...">'+(t.link?'<a class="btn" target="_blank" rel="noopener">Otvori</a>':'')+'</div>'+
+      '<label>Link</label><div class="bs-link"><input data-f="link" placeholder="https://...">'+((t.link&&isHttp(t.link))?'<a class="btn" target="_blank" rel="noopener">Otvori</a>':'')+'</div>'+
       '<div class="bs-2"><div><label>Nositelj</label><select data-f="owner">'+opts(OWNERS.slice(), t.owner||'')+'</select></div><div><label>Grupa</label><select data-f="section">'+opts(secOrder(), t.section||'', secLabel)+'</select></div></div>'+
       '<div class="bs-2">'+(USE_PRIO?'<div><label>Prioritet</label><select data-f="prio">'+opts(['','P1','P2','P3'], t.prio||'')+'</select></div>':'')+'<div><label>Oznake</label><label class="bs-ck"><input type="checkbox" data-f="critical"'+(t.critical?' checked':'')+'> Critical</label></div></div>'+
       (isTop?'<label>Podtask</label><div class="bs-link"><input class="bs-subn" placeholder="naziv podtaska, Enter za dodavanje"><button class="btn bs-subok">Dodaj</button></div>':'')+
       '<div class="bs-meta">'+createdLine(t).replace(/<[^>]+>/g,'').replace(/^upisano/,'Upisano')+'</div>'+
       '<div class="bs-f">'+(done?'<button class="btn bs-reopen">Vrati u otvoreno</button>':(ADM?'<button class="btn bs-close">✓ Zatvori korak</button>':(dw==='done'?'<span class="bs-mute">Javljeno gotovo, čeka Domagoja</span>':'<button class="btn bs-donebtn">✓ Javi da je gotovo</button>')))+
-        ((lk&&!ADM)?'':'<button class="btn ghost bs-del" title="Obriši korak">Obriši</button>')+'<span class="bs-sp"></span><button class="btn ghost bs-cancel">Odustani</button><button class="btn primary bs-save">Spremi</button></div>';
+        ((lk&&!ADM)?'':'<button class="btn ghost bs-del" title="Odbaci korak (uz razlog)">Odbaci</button>')+'<span class="bs-sp"></span><button class="btn ghost bs-cancel">Odustani</button><button class="btn primary bs-save">Spremi</button></div>';
     function f(k){ return d.querySelector('[data-f="'+k+'"]'); }
     f('naziv').value=t.naziv||''; f('note').value=stripKw(t.note); f('due').value=dateVal(t.due); f('sdue').value=dateVal(t.sdue);
     if(f('dlvt')){ f('dlvt').value=x.t; f('dlvd').value=x.d; } f('opis').value=t.opis||''; f('link').value=t.link||'';
-    var la=d.querySelector('.bs-link a'); if(la) la.href=t.link;
+    var la=d.querySelector('.bs-link a'); if(la&&isHttp(t.link)) la.href=t.link;   /* C11: samo http(s) */
     Array.prototype.forEach.call(d.querySelectorAll('.bs-st button'), function(b){ b.addEventListener('click', function(){ dw=(dw===b.getAttribute('data-w'))?'':b.getAttribute('data-w'); Array.prototype.forEach.call(d.querySelectorAll('.bs-st button'), function(y){ y.classList.toggle('on', y.getAttribute('data-w')===dw); }); }); });
     document.body.appendChild(bg); document.body.appendChild(d); document.addEventListener('keydown',drwEsc);
     bg.addEventListener('click',closeDrawer); d.querySelector('.bs-x').addEventListener('click',closeDrawer); d.querySelector('.bs-cancel').addEventListener('click',closeDrawer);
@@ -120,7 +121,7 @@
     if((b=d.querySelector('.bs-close'))) b.addEventListener('click', function(){ closeDrawer(); update(t,{status:'Gotovo'}); banner('Zatvoreno'); });
     if((b=d.querySelector('.bs-reopen'))) b.addEventListener('click', function(){ closeDrawer(); update(t,{status:'Otvoreno'}); });
     if((b=d.querySelector('.bs-donebtn'))) b.addEventListener('click', function(){ dw='done'; save(); banner('Javljeno da je gotovo. Korak zatvara Domagoj.'); });
-    if((b=d.querySelector('.bs-del'))) b.addEventListener('click', function(){ if(confirm('Obrisati korak "'+t.naziv+'"'+(TASKS.some(function(y){ return y.parent===t.id; })?' i njegove podtaskove':'')+'?')){ closeDrawer(); del(t); } });
+    if((b=d.querySelector('.bs-del'))) b.addEventListener('click', function(){ closeDrawer(); del(t); });
     if(isTop){ var sn=d.querySelector('.bs-subn'); var addSub=function(){ var v=sn.value.trim(); if(!v){ sn.focus(); return; } sn.value='';
         var p={action:'add', section:t.section, naziv:v, owner:(t.owner||BOARD.defOwner||'Dom'), status:'Otvoreno', note:'ACTION', parent:t.id, ord:Date.now(), due:''};
         if(MOD.stores||MOD.supplier) p.store=t.store||'';

@@ -1,0 +1,145 @@
+  /* ---- v6 app izgled (3.11.2026.): bočni izbornik, mirniji redovi, bez mono/CAPS labela ---- */
+  :root{ --bg:#f7f6f2; --panel:#ffffff; --panel2:#f2f1ec; --line:#e6e3dc; --text:#1f1e1b; --muted:#5f5c55; --faint:#98948b;
+    --accent:#2f6fdb; --ok:#1f9a5c; --over:#d1453b; --soon:#b7791f; --proj:#a8740f; --mono:'Inter',system-ui,sans-serif;
+    --t-act:#c25e0a; --t-pend:#2f6fdb; --t-hold:#7a7368; --t-done:#1f9a5c; --t-dlv:#8a6210; }
+  body{ font-variant-numeric:tabular-nums; font-size:14px; background:var(--bg); color:var(--text) }
+  input,select,textarea{ color-scheme:light !important }
+
+  /* svijetla tema: tvrdo zadane tamne boje iz starijih slojeva */
+  .btn.add,.setup .btn,.mini.save,.editor .save,.bulkbar .bset,.so-row .so-save,.mxe-ok{ color:#fff !important }
+  .btn:hover{ border-color:#cfcbc2 } .btn.on{ border-color:#cfcbc2; background:var(--panel2) }
+  .card,.grid.solo .card,.mirror,.setup,.addform{ box-shadow:0 1px 2px rgba(30,25,15,.05) }
+  .banner{ background:#fdecea; border-color:#f3c3be; color:var(--over) }
+  .wp-act{ color:var(--t-act); background:#fdf0e3; border-color:#f5d2ad }
+  .wp-pend{ color:var(--t-pend); background:#e9f0fc; border-color:#c4d6f5 }
+  .wp-hold{ color:var(--t-hold); background:#f1efea; border-color:#ddd8cf }
+  .wp-done{ color:var(--t-done); background:#e6f5ec; border-color:#b8e0c8 }
+  .wp-none{ color:var(--faint) }
+  #wait-seg button[data-a="action"].on{ background:#fdf0e3; color:var(--t-act) }
+  #wait-seg button[data-a="pending"].on{ background:#e9f0fc; color:var(--t-pend) }
+  #wait-seg button[data-a="hold"].on{ background:#f1efea; color:var(--t-hold) }
+  #wait-seg button[data-a="done"].on{ background:#e6f5ec; color:var(--t-done) }
+  #win-seg button[data-w="overdue"].on{ background:#fdecea; color:var(--over) }
+  .chip .cc.over,.kasni,.mx-over{ color:var(--over); background:#fdecea; border-color:#f3c3be }
+  .chip .cc.crit,.critb{ color:var(--t-act); background:#fdf0e3; border-color:#f5d2ad }
+  .stale,.rokx{ color:var(--t-act); border-color:#f5d2ad } .stale.hot,.rokx.hot,.srow .s-lock.lon{ color:var(--over) }
+  .rok.over{ background:#fdecea; color:var(--over); border-color:#f3c3be } .rok.soon{ background:#fdf3e1; color:var(--soon); border-color:#efd8a8 }
+  .mx-action{ color:var(--t-act) } .mx-pending{ color:var(--t-pend) } .mx-onhold{ color:var(--t-hold) }
+  .mx-ow{ color:var(--accent); border-color:#c4d6f5 }
+  .mx-bh:hover{ background:var(--panel2) } .mx-r{ border-top-color:var(--line) }
+  .mx-due.over,.mx-sdue.over{ color:var(--over); border-color:#f3c3be }
+  .ge-overlay,.mxe-bg,.so-modal{ background:rgba(40,35,25,.35) }
+  .ge,.mxe,.so-box{ box-shadow:0 20px 60px rgba(40,35,25,.18) }
+  .bulkbar{ box-shadow:0 10px 34px rgba(40,35,25,.15) }
+  .opis-hov{ background:#fff; box-shadow:0 10px 34px rgba(40,35,25,.15) }
+  .ge-table tr.dirty td{ background:#eef3fd }
+  .srow.is-crit{ box-shadow:inset 3px 0 0 var(--over) }
+  .row:hover{ background:var(--panel2) }
+  .wrap{ padding:26px clamp(16px,3vw,36px) 70px; max-width:1500px }
+  .top{ align-items:center; margin-bottom:18px }
+  .title{ font-size:26px }
+  .ring{ width:44px; height:44px } .ring svg{ width:44px; height:44px } .ring .pct{ font-size:11px; font-weight:600 }
+
+  /* labele: normalna slova umjesto terminal stila */
+  .glabel,.srowhead,.fld label,.subhead,.editor label,.bulkbar .blabel,.ge-table thead th,.mxe label,.next .nlabel{
+    font-family:var(--body) !important; text-transform:none !important; letter-spacing:0 !important }
+  .glabel{ font-size:12px; font-weight:500; color:var(--faint) } .glabel.g1,.glabel.g2,.glabel.g3,.glabel.g4{ color:var(--faint) }
+  .fld label,.editor label,.mxe label{ font-size:12px; font-weight:500; color:var(--muted) }
+  .stale,.rokx,.screated{ font-family:var(--body) }
+
+  /* traka i filteri */
+  .bar{ gap:14px; margin-bottom:16px }
+  .brow .searchbox{ padding:9px 12px; font-size:13px; border-radius:9px; background:var(--panel) }
+  .btn{ border-radius:9px; padding:9px 13px; font-size:13px }
+  .fgrid{ gap:10px 22px }
+  .fbox{ flex-direction:row; align-items:center; gap:8px; padding:0; border:0; background:none }
+  .seg{ border:0; gap:2px; background:var(--panel2); border-radius:10px; padding:3px }
+  .seg button{ border:0 !important; border-radius:7px; padding:7px 11px; background:transparent; font-size:12.5px; color:var(--muted) }
+  .seg button:hover{ color:var(--text) }
+  .seg button.on{ background:#fff; color:var(--text); box-shadow:0 1px 2px rgba(40,35,25,.12) }
+  .dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:1px }
+  .d-act{ background:#ffb15c } .d-pend{ background:#7db4ff } .d-hold{ background:#c9c2b6 } .d-done{ background:#4fd089 }
+
+  /* lista taskova */
+  .grid.solo .card{ border-radius:14px; background:var(--panel) }
+  .srowhead{ font-size:12px; font-weight:500; color:var(--faint); padding:10px 22px 10px 16px; gap:8px }
+  .srowhead .hsi{ width:28px }
+  .srowhead .hst,.srow .stitle{ flex:1.7 1 0; min-width:200px }
+  .srowhead .hsn,.srow .s-next{ flex:1.3 1 0; min-width:140px }
+  .srowhead .hsd,.srow .s-ndate,.srow .s-due,.srow input[type=date]{ width:116px }
+  .srow{ padding:8px 16px; gap:8px; transition:background .12s }
+  .srow:hover{ background:#faf9f6 }
+  .srow .sbox{ border-radius:50%; width:18px; height:18px; border-color:#cbc7be }
+  .srow .sbox:hover{ border-color:var(--ok) }
+  .srow .stitle{ font-size:13.5px }
+  .srow .stitle:hover{ text-decoration:none }
+  .srow .s-next,.srow input[type=date]{ background:transparent; border:1px solid transparent; border-radius:7px; font-family:var(--body) }
+  .srow .s-next{ font-size:13px; color:var(--muted) }
+  /* next step je textarea (20.11.2026.): na računalu jedan red kao prije, na mobitelu do 2 reda */
+  .srow textarea.s-next{ resize:none; overflow:hidden; white-space:nowrap; line-height:1.35; height:calc(1.35em + 14px); box-sizing:border-box; display:block }
+  .srow:hover .s-next,.srow:hover input[type=date]{ border-color:var(--line) }
+  .srow .s-next:focus,.srow input[type=date]:focus{ outline:none; border-color:var(--accent); background:var(--panel2); color:var(--text) }
+  .srow input[type=date]{ font-size:12px; color:var(--muted) }
+  .srow input[type=date]::-webkit-calendar-picker-indicator{ opacity:0; cursor:pointer }
+  .srow:hover input[type=date]::-webkit-calendar-picker-indicator{ opacity:.55 }
+  .srow input[type=date].od{ background:transparent; color:var(--over); border-color:transparent; font-weight:600 }
+  .srow:hover input[type=date].od{ border-color:rgba(239,111,111,.4) }
+
+  /* ikone u redu: linijske ikone, vidljive na hover ili kad su uključene */
+  .srow .s-icn{ position:relative; width:28px; height:28px; padding:0; font-size:0; border:0; border-radius:7px; background:transparent; color:var(--faint); opacity:0; transition:opacity .12s,background .12s }
+  .srow:hover .s-icn,.srow .s-icn:focus-visible{ opacity:1 }
+  .srow .s-icn:hover{ background:var(--panel2); color:var(--text) }
+  .srow .s-icn::before{ content:''; position:absolute; inset:0; margin:auto; width:16px; height:16px; background:currentColor; -webkit-mask:var(--ic) center/16px no-repeat; mask:var(--ic) center/16px no-repeat }
+  .srow .s-icn.has,.srow .s-icn.on,.srow .s-lock.lon,.srow .opis-pill[data-opis]:not([data-opis=""]),.srow .s-wait{ opacity:1; border-color:transparent }
+  .srow .s-icn.has,.srow .s-icn.on,.srow .opis-pill[data-opis]:not([data-opis=""]){ color:var(--accent) }
+  .srow .s-crit.on{ color:var(--over) } .srow .s-lock.lon{ color:var(--over) } .srow .s-proj.on{ color:var(--proj); background:transparent }
+  .srow .s-fok{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'><polygon points='12 2.5 15 9 22 9.8 16.8 14.6 18.3 21.5 12 18 5.7 21.5 7.2 14.6 2 9.8 9 9'/></svg>") }
+  .srow .s-fok.on{ color:#ffc83c; opacity:1 } .srow .s-fok-na{ visibility:hidden } .srow .s-fok.fok-lock{ cursor:default; pointer-events:none }
+  .srow .opis-pill{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z'/><path d='M14 3v6h6M8 13h8M8 17h5'/></svg>") }
+  .srow .s-link{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7'/><path d='M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7'/></svg>") }
+  .srow .s-crit{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 21V4'/><path d='M5 4h12l-2.5 4.5L17 13H5'/></svg>") }
+  .srow .s-lock{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V7a4 4 0 0 1 8 0v4'/></svg>") }
+  .srow .s-proj{ --ic:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/></svg>") }
+  .srow .s-wait::before{ -webkit-mask:none; mask:none; width:10px; height:10px; border-radius:50%; background:transparent; border:1.5px solid #c4c0b7 }
+  .srow .s-wait.won-action::before{ background:#ffb15c; border-color:#ffb15c }
+  .srow .s-wait.won-pending::before{ background:#7db4ff; border-color:#7db4ff }
+  .srow .s-wait.won-hold::before{ background:#c9c2b6; border-color:#c9c2b6 }
+  .srow .s-wait.won-done::before{ background:#4fd089; border-color:#4fd089 }
+  body.scoped .srow .s-lock:not(.lon){ visibility:hidden }
+  @media (hover:none){ .srow .s-icn{ opacity:1 } .srow input[type=date]::-webkit-calendar-picker-indicator{ opacity:.55 } }
+  .srow select.sowner{ font-weight:600; color:var(--muted) }
+  .wpill{ font-weight:600; font-size:10px; padding:2px 8px }
+  .srow .sproj{ border:0; background:#fbf1d9; color:var(--proj); padding:2px 8px }
+
+  /* projektni boardovi ispod liste */
+  .mirror{ border-radius:14px }
+  .mx-h{ background:transparent; font-size:14px; padding:14px 16px }
+
+  /* nositelji u bočnom izborniku */
+  #ky-side-slot .filters{ flex-direction:column; gap:2px; margin:0 }
+  #ky-side-slot .filters::before{ content:'Tim'; padding:16px 10px 6px; font:600 11px/1 var(--body); color:var(--faint) }
+  #ky-side-slot .chip{ border:0 !important; border-radius:8px; padding:7px 10px; background:transparent !important; width:100%; font:500 13px/1.3 var(--body); color:var(--muted) !important; opacity:1; text-decoration:none; gap:6px }
+  #ky-side-slot .chip:hover{ background:var(--kys-hover) !important; color:var(--text) !important }
+  #ky-side-slot .chip:nth-child(3){ margin-bottom:6px }
+  #ky-side-slot .chip:nth-child(-n+3)[style*="background"]{ background:var(--kys-on) !important; color:var(--text) !important }
+  #owner-filters[data-solo="1"] .chip:nth-child(n+4)[data-on="true"]{ background:var(--kys-on) !important; color:var(--text) !important }
+  #ky-side-slot .chip .c{ margin-left:auto; font-size:11.5px; color:var(--faint) }
+  #ky-side-slot .chip:nth-child(-n+3) .cc{ margin-left:auto }
+  #ky-side-slot .chip .cc{ border:0; padding:2px 6px; font:600 10.5px/1 var(--body); min-width:18px; text-align:center }
+  #ky-side-foot .btn{ width:100%; text-align:left; background:transparent; border-color:var(--kys-line) }
+  #ky-side-foot .synced{ padding:0 4px 4px; font-size:11px }
+  @media (max-width:900px){
+    .srowhead{ display:none }
+    .srow{ flex-wrap:wrap; padding:8px 12px; gap:6px 8px }
+    /* 20.11.2026. (Dom, Android): kompaktan red, naziv u 2 reda, ikona kopiranja u istom redu, datumi i nositelj zajedno */
+    .srow .stitle{ flex:1 1 calc(100% - 66px); min-width:0; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; line-height:1.35 }
+    .srow .s-copy{ align-self:flex-start }
+    .srow .s-next{ flex:1 1 100% }
+    .srow textarea.s-next{ white-space:pre-wrap; overflow-wrap:anywhere; overflow-y:auto; height:calc(2.7em + 14px) }
+    .srow .s-ndate,.srow .s-due,.srow input[type=date]{ width:98px }
+    .srow select.sowner{ flex:1 1 60px; width:auto; min-width:0; max-width:130px; margin-left:auto }
+    .fbox{ min-width:0; max-width:100% }
+    .seg{ overflow-x:auto; max-width:100%; scrollbar-width:none }
+    .seg::-webkit-scrollbar{ display:none }
+    .seg button{ white-space:nowrap; flex:none }
+  }
