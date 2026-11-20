@@ -31,7 +31,7 @@
     var bs=document.createElement('script'); bs.src=ROOT+'board-simple.js?v=2'; document.body.appendChild(bs); }
   var full=ls('ky_full')==='1';
 
-  var h='<div class="kys-brand"><span class="kys-logo">K</span><span>Koykan</span></div>';
+  var h='<div class="kys-brand"><span class="kys-logo">K</span><span>kDash</span></div>';
   if(cur==='' || ls('koykan_secret')){
     h+='<a class="kys-item'+(cur===''?' on':'')+'" href="'+ROOT+'"><span class="kys-ic kys-ic-tasks"></span><span class="kys-tx">Taskovi</span></a>';
   }
@@ -46,7 +46,7 @@
 
   var side=document.createElement('nav'); side.className='kys'; side.id='ky-side'; side.innerHTML=h;
   var mob=document.createElement('div'); mob.className='kys-mob';
-  mob.innerHTML='<button class="kys-burger" aria-label="Izbornik"><span></span></button><span class="kys-mt">Koykan</span>';
+  mob.innerHTML='<button class="kys-burger" aria-label="Izbornik"><span></span></button><span class="kys-mt">kDash</span>';
   var bg=document.createElement('div'); bg.className='kys-bg';
   function mount(){
     document.body.insertBefore(bg, document.body.firstChild);
