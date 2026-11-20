@@ -9,20 +9,21 @@ function el(id){return document.getElementById(id);}
 function banner(t){var b=el('banner');b.textContent=t;b.style.display='block';setTimeout(function(){b.style.display='none';},2600);}
 function getSecret(){return localStorage.getItem('obveze_secret')||'';}
 
-function fetchRetry_(url,tries){
-  return fetch(url,{method:'GET'}).then(function(r){return r.text();}).then(function(txt){
+/* Sigurnost val 2 (20.11.2026.): kod i parametri idu u tijelu POST-a (Apps Script doPost od verzije 2), ne u adresi */
+function fetchRetry_(url,tries,body){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:body}).then(function(r){return r.text();}).then(function(txt){
     var s=String(txt).trim();
     if(s.charAt(0)==='{'||s.charAt(0)==='[') return JSON.parse(s);
     throw new Error('Google trenutno ne odgovara');
   }).catch(function(e){
-    if(tries>1) return new Promise(function(res){setTimeout(res,1500);}).then(function(){return fetchRetry_(url,tries-1);});
+    if(tries>1) return new Promise(function(res){setTimeout(res,1500);}).then(function(){return fetchRetry_(url,tries-1,body);});
     throw e;
   });
 }
 function api(p){
   p.secret=getSecret();
   var qs=Object.keys(p).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(p[k]);}).join('&');
-  return fetchRetry_(ENDPOINT+'?'+qs, 3);
+  return fetchRetry_(ENDPOINT, 3, qs);
 }
 
 function pad(n){return ('0'+n).slice(-2);}
