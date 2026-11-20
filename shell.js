@@ -70,6 +70,8 @@
   st.textContent='.kyd-w{position:relative;display:inline-flex;align-items:center;flex:none;max-width:100%;vertical-align:middle}'+
     '.kyd-w.kyd-full{display:flex;width:100%}'+
     'input[type=date].kyd::-webkit-datetime-edit{opacity:0}'+
+    /* Android Chrome nema datetime-edit: nativni tekst se crtao ispod nase oznake (dva datuma, Dom 19.11.2026.). Boja ostaje citljiva za paint(). */
+    'input[type=date].kyd{-webkit-text-fill-color:transparent;caret-color:transparent}'+
     '.kyd-l{position:absolute;display:flex;align-items:center;pointer-events:none;white-space:nowrap;overflow:hidden;z-index:1}';
   (document.head||document.documentElement).appendChild(st);
   function fmt(v){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||''); return m? m[3]+'.'+m[2]+'.'+m[1]+'.' : ''; }
