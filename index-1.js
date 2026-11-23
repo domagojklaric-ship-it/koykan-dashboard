@@ -628,6 +628,12 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
 
   /* ===== Traži Domagoj: pregled svih zahtjeva po nositeljima (17.11.2026., zamjenjuje "Duguju mi") ===== */
   var reqMode=false, reqF='all', reqOwner='';
+  /* sortiranje tablice klikom na zaglavlje (Dom 23.11.2026.); bez odabira vrijedi izbornik Sortiraj (Nositelj, Task, Rok, Status) */
+  var reqSort={by:'',dir:1}; try{ var _rs=JSON.parse(localStorage.getItem('ky_req_sort')||'{}'); if(_rs&&_rs.by) reqSort={by:String(_rs.by),dir:_rs.dir===-1?-1:1}; }catch(e){}
+  var REQ_STR={reported:0,returned:1,open:2};
+  function reqActiveSort(){ if(reqSort.by) return reqSort; var g={owner:'owner',title:'title',due:'due',status:'st'}[SORT.by]; return g?{by:g,dir:SORT.dir}:null; }
+  function reqVal(x,by){ var t=x.t,i=x.i; if(by==='owner') return t.owner||null; if(by==='title') return t.title||null; if(by==='due') return i.due||null; if(by==='st') return REQ_STR[i.st]; if(by==='link') return t.proof?0:1; if(by==='late') return i.late; if(by==='rk') return i.rk; return null; }
+  function reqSetSort(by){ reqSort=(reqSort.by===by)?{by:by,dir:-reqSort.dir}:{by:by,dir:1}; try{ localStorage.setItem('ky_req_sort',JSON.stringify(reqSort)); }catch(e){} render(); }
   function reqISO(d){ return d?(d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)):''; }
   function reqInfo(t){ var td=pdTodayISO(), due=reqISO(t.due), late=0;
     if(due&&due<td) late=Math.round((new Date(td+'T12:00:00')-new Date(due+'T12:00:00'))/864e5);
@@ -641,6 +647,8 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     var owners={}; all.forEach(function(x){ owners[x.t.owner]=(owners[x.t.owner]||0)+1; });
     var rows=all.filter(function(x){ if(reqOwner && x.t.owner!==reqOwner) return false; if(searchQ && norm(x.t.title+' '+(x.i.ns||'')+' '+(x.t.owner||'')).indexOf(searchQ)<0) return false; if(reqF==='reported') return x.i.st==='reported'; if(reqF==='esc') return x.i.late>7||x.i.rk>=2; return true; });
     rows.sort(function(a,b){ var ra=a.i.st==='reported'?0:1, rb=b.i.st==='reported'?0:1; if(ra!==rb) return ra-rb; return (b.i.late-a.i.late)||(a.i.due||'9').localeCompare(b.i.due||'9'); });
+    var _ras=reqActiveSort(); if(_ras) rows.sort(function(a,b){ var x=reqVal(a,_ras.by), y=reqVal(b,_ras.by); if(x===null||y===null) return (x===null)-(y===null); var c=(typeof x==='string')?x.localeCompare(y,'hr'):(x-y); return c*_ras.dir; });
+    function rth(k,lbl){ var on=_ras&&_ras.by===k; return '<th class="rsort'+(on?' on':'')+'" data-rs="'+k+'" title="Sortiraj po: '+lbl+'">'+lbl+(on?(_ras.dir===1?' ↑':' ↓'):'')+'</th>'; }
     var STL={open:'otvoreno',reported:'javljeno gotovo',returned:'vraćeno'};
     function fb(k,lbl,n){ return '<button data-rf="'+k+'" class="'+(reqF===k?'on':'')+'">'+lbl+' <span class="cc">'+n+'</span></button>'; }
     var h='<div class="req-bar"><div class="seg">'+fb('all','Sve',all.length)+fb('reported','Javljeno gotovo',nRep)+fb('esc','Eskalacije',nEsc)+'</div>'+
@@ -648,7 +656,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
       '<span class="req-hint">Eskalacija: kasni više od 7 dana ili je rok pomaknut 2+ puta.</span></div>';
     if(!rows.length){ h+='<div class="ge-empty">'+(searchQ?'Ništa ne odgovara pretrazi.':'Nema otvorenih zahtjeva.')+'</div>'; }
     else {
-      h+='<div class="req-wrap"><table class="tim req"><thead><tr><th>Nositelj</th><th>Zahtjev</th><th>Rok</th><th>Status</th><th>Link</th><th>Kasni</th><th>Rok pomaknut</th><th></th></tr></thead><tbody>';
+      h+='<div class="req-wrap"><table class="tim req"><thead><tr>'+rth('owner','Nositelj')+rth('title','Zahtjev')+rth('due','Rok')+rth('st','Status')+rth('link','Link')+rth('late','Kasni')+rth('rk','Rok pomaknut')+'<th></th></tr></thead><tbody>';
       rows.forEach(function(x,ix){ var t=x.t, i=x.i;
         h+='<tr data-ix="'+ix+'"'+(i.st==='reported'?' class="rep"':'')+'><td class="nm">'+escapeHtml(t.owner)+'</td>'+
           '<td><a href="#" class="req-open">'+escapeHtml(t.title)+'</a><div class="req-ns">'+escapeHtml(i.ns)+'</div></td>'+
@@ -662,6 +670,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     var card=document.createElement('div'); card.className='card tim-card req-card'; card.innerHTML=h; grid.className='grid solo'; grid.appendChild(card);
     Array.prototype.forEach.call(card.querySelectorAll('[data-rf]'),function(b){ b.addEventListener('click',function(){ reqF=b.getAttribute('data-rf'); render(); }); });
     var sel=card.querySelector('.req-own'); if(sel) sel.addEventListener('change',function(){ reqOwner=sel.value; render(); });
+    Array.prototype.forEach.call(card.querySelectorAll('th[data-rs]'),function(th){ th.addEventListener('click',function(){ reqSetSort(th.getAttribute('data-rs')); }); });
     Array.prototype.forEach.call(card.querySelectorAll('tr[data-ix]'),function(tr){ var x=rows[Number(tr.getAttribute('data-ix'))], t=x.t;
       tr.querySelector('.req-open').addEventListener('click',function(e){ e.preventDefault(); openDrawer(t,tr); });
       tr.querySelector('.req-ret').addEventListener('click',function(){ returnTask(t,null); });
@@ -692,7 +701,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     var d=by==='next'?t.nextDate:t.due; return d?new Date(d).setHours(0,0,0,0):null; }
   function sortCmp(a,b){ var x=sortVal(a,SORT.by), y=sortVal(b,SORT.by); if(x===null||y===null) return (x===null)-(y===null);
     var c=(typeof x==='string')?x.localeCompare(y,'hr'):(x-y); return c*SORT.dir; }
-  function setSort(by,dir){ if(dir===undefined) dir=(SORT.by===by)?-SORT.dir:1; SORT={by:by,dir:by?dir:1}; try{ localStorage.setItem('ky_sort',JSON.stringify(SORT)); }catch(e){} paintSort(); render(); }
+  function setSort(by,dir){ if(dir===undefined) dir=(SORT.by===by)?-SORT.dir:1; SORT={by:by,dir:by?dir:1}; try{ localStorage.setItem('ky_sort',JSON.stringify(SORT)); }catch(e){} reqSort={by:'',dir:1}; try{ localStorage.removeItem('ky_req_sort'); }catch(e){} paintSort(); render(); }
   function paintSort(){ var s=el('sort-by'), d=el('sort-dir'); if(!s) return; s.value=SORT.by; d.style.visibility=SORT.by?'visible':'hidden'; d.textContent=SORT.dir===1?'↑':'↓'; d.title=SORT.dir===1?'Uzlazno (klik: obrni)':'Silazno (klik: obrni)'; }
   function sortHead(cls,by,lbl){ var on=SORT.by===by; return '<span class="'+cls+' sorth'+(on?' on':'')+'" data-s="'+by+'" title="Sortiraj po: '+lbl+'">'+lbl+(on?(SORT.dir===1?' ↑':' ↓'):'')+'</span>'; }
 

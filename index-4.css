@@ -99,6 +99,7 @@
   .req-hint{ font-size:11.5px; color:var(--faint) }
   .req-wrap{ overflow-x:auto }
   table.tim.req td, table.tim.req th{ text-align:left; vertical-align:top }
+  table.tim.req th.rsort{ cursor:pointer; user-select:none } table.tim.req th.rsort:hover{ color:var(--text) } table.tim.req th.rsort.on{ color:var(--accent) }
   table.tim.req td:nth-child(2){ min-width:280px; white-space:normal }
   table.tim.req td.zero, table.tim.req td.bad{ text-align:left }
   table.tim.req tr.rep td{ background:rgba(79,208,137,.07) }
