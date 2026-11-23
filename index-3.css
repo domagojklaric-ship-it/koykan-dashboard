@@ -133,6 +133,8 @@
     .srow{ flex-wrap:wrap; padding:8px 12px; gap:6px 8px }
     /* 20.11.2026. (Dom, Android): kompaktan red, naziv u 2 reda, ikona kopiranja u istom redu, datumi i nositelj zajedno */
     .srow .stitle{ flex:1 1 calc(100% - 66px); min-width:0; white-space:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden; line-height:1.35 }
+    .srow .sst{ width:auto; align-self:flex-start }
+    .srow .stitle{ flex-basis:calc(100% - 150px) }
     .srow .s-copy{ align-self:flex-start }
     .srow .s-next{ flex:1 1 100% }
     .srow textarea.s-next{ white-space:pre-wrap; overflow-wrap:anywhere; overflow-y:auto; height:calc(2.7em + 14px) }
