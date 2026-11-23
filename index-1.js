@@ -639,14 +639,14 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     var all=TASKS.filter(function(t){ return t.req && !t.done; }).map(function(t){ return {t:t,i:reqInfo(t)}; });
     var nRep=all.filter(function(x){ return x.i.st==='reported'; }).length, nEsc=all.filter(function(x){ return x.i.late>7||x.i.rk>=2; }).length;
     var owners={}; all.forEach(function(x){ owners[x.t.owner]=(owners[x.t.owner]||0)+1; });
-    var rows=all.filter(function(x){ if(reqOwner && x.t.owner!==reqOwner) return false; if(reqF==='reported') return x.i.st==='reported'; if(reqF==='esc') return x.i.late>7||x.i.rk>=2; return true; });
+    var rows=all.filter(function(x){ if(reqOwner && x.t.owner!==reqOwner) return false; if(searchQ && norm(x.t.title+' '+(x.i.ns||'')+' '+(x.t.owner||'')).indexOf(searchQ)<0) return false; if(reqF==='reported') return x.i.st==='reported'; if(reqF==='esc') return x.i.late>7||x.i.rk>=2; return true; });
     rows.sort(function(a,b){ var ra=a.i.st==='reported'?0:1, rb=b.i.st==='reported'?0:1; if(ra!==rb) return ra-rb; return (b.i.late-a.i.late)||(a.i.due||'9').localeCompare(b.i.due||'9'); });
     var STL={open:'otvoreno',reported:'javljeno gotovo',returned:'vraćeno'};
     function fb(k,lbl,n){ return '<button data-rf="'+k+'" class="'+(reqF===k?'on':'')+'">'+lbl+' <span class="cc">'+n+'</span></button>'; }
     var h='<div class="req-bar"><div class="seg">'+fb('all','Sve',all.length)+fb('reported','Javljeno gotovo',nRep)+fb('esc','Eskalacije',nEsc)+'</div>'+
       '<select class="req-own"><option value="">Svi nositelji</option>'+Object.keys(owners).sort(function(a,b){ return a.localeCompare(b,'hr'); }).map(function(o){ return '<option value="'+escapeAttr(o)+'"'+(o===reqOwner?' selected':'')+'>'+escapeHtml(o)+' ('+owners[o]+')</option>'; }).join('')+'</select>'+
       '<span class="req-hint">Eskalacija: kasni više od 7 dana ili je rok pomaknut 2+ puta.</span></div>';
-    if(!rows.length){ h+='<div class="ge-empty">Nema otvorenih zahtjeva.</div>'; }
+    if(!rows.length){ h+='<div class="ge-empty">'+(searchQ?'Ništa ne odgovara pretrazi.':'Nema otvorenih zahtjeva.')+'</div>'; }
     else {
       h+='<div class="req-wrap"><table class="tim req"><thead><tr><th>Nositelj</th><th>Zahtjev</th><th>Rok</th><th>Status</th><th>Link</th><th>Kasni</th><th>Rok pomaknut</th><th></th></tr></thead><tbody>';
       rows.forEach(function(x,ix){ var t=x.t, i=x.i;
