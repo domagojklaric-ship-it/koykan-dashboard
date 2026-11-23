@@ -602,6 +602,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
   var VIEWS={ today:{w:'tilltoday',a:'notdone',d:'all'}, week:{w:'week',a:'notdone',d:'all'}, wait:{w:'all',a:'waiting',d:'all'}, done:{w:'all',a:'done',d:'all'}, req:{w:'all',a:'all',d:'all'}, tim:{w:'all',a:'all',d:'all'}, all:{w:'all',a:'all',d:'all'} };
   var WHINT={action:'radi se na tome',pending:'čeka nekog drugog',hold:'pauzirano',done:'gotovo, Domagoj zatvara','':'bez statusa'}, WDOT={action:'d-act',pending:'d-pend',hold:'d-hold',done:'d-done','':'d-none'};
   function setView(v){ var c=VIEWS[v]; if(!c) return; winFilter=c.w; waitFilter=c.a; timMode=(v==='tim'); reqMode=(v==='req');
+    if(v==='done' && !isScoped()){ Object.keys(ownerOn).forEach(function(x){ ownerOn[x]=true; }); buildOwnerFilters(); }   /* 23.11.2026. (Dom): Javljeno gotovo uvijek za sve nositelje, kao Traži Domagoj; prije je ostajao samo Dom pa je pogled bio prazan */
     [['win-seg','w',c.w],['wait-seg','a',c.a]].forEach(function(s){ Array.prototype.forEach.call(el(s[0]).children,function(b){ b.classList.toggle('on', b.dataset[s[1]]===s[2]); }); });
     Array.prototype.forEach.call(el('views').children,function(b){ b.classList.toggle('on', b.dataset.v===v); });
     render(); }
