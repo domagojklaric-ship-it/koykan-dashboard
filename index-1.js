@@ -545,16 +545,16 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
       '<ul style="margin:0 0 6px;padding-left:18px">'+
       '<li><b>Što je to.</b> Zahtjev koji je Domagoj tražio od tebe (mail, sastanak, poruka). Ima ljubičastu značku "Traži Domagoj".</li>'+
       '<li><b>Tko ga zatvara.</b> Samo Domagoj. Kvačica ga ne zatvara.</li>'+
-      '<li><b>Kad je gotovo.</b> Klikni kvačicu ili "Javi da je gotovo". Dokaz ne treba (komentar ili link možeš dodati ako želiš). Zahtjev tada čeka Domagoja, koji ga zatvara.</li>'+
+      '<li><b>Kad je gotovo.</b> Otvori zadatak i označi DONE (kvačica ili gumb "Označi DONE"). Fotografija, link ili dokaz ne trebaju; komentar možeš dodati ako želiš. Zahtjev tada čeka Domagoja, koji ga zatvara.</li>'+
       '<li><b>Novi rok.</b> Promijeni rok i upiši razlog. Razlog ostaje u povijesti zahtjeva.</li>'+
-      '<li><b>"vraćeno: ..."</b> znači da je Domagoj zahtjev vratio s komentarom. Ispravi što piše i ponovno javi da je gotovo.</li>'+
+      '<li><b>"vraćeno: ..."</b> znači da je Domagoj zahtjev vratio s komentarom. Ispravi što piše i ponovno označi DONE.</li>'+
       '<li><b>Podsjetnik.</b> Svaki ponedjeljak u 7.00 dobiješ mail s otvorenim zahtjevima, s adrese projekti@koykan.com.</li></ul>'+
       '<hr style="border:0;border-top:1px solid var(--line,#2c3340);margin:12px 0"><b>English (PEP)</b>'+
       '<ul style="margin:6px 0 0;padding-left:18px">'+
       '<li><b>What it is.</b> A request Domagoj made to you. It has a purple "Traži Domagoj" badge. Only he closes it; the checkbox does not.</li>'+
-      '<li><b>When done.</b> Click the checkbox or "Javi da je gotovo" (report done). No proof needed (you may add a comment or link). The request then waits for Domagoj, who closes it.</li>'+
+      '<li><b>When done.</b> Open the task and mark it DONE (the checkbox or the "Označi DONE" button). No photo, link or proof needed; you may add a comment. The request then waits for Domagoj, who closes it.</li>'+
       '<li><b>New due date.</b> Change the date and give a reason. The reason stays in the request history.</li>'+
-      '<li><b>"vraćeno: ..."</b> means Domagoj returned it with a comment. Fix it and report done again.</li>'+
+      '<li><b>"vraćeno: ..."</b> means Domagoj returned it with a comment. Fix it and mark it DONE again.</li>'+
       '<li><b>Reminder.</b> Every Monday at 7.00 you get an email with your open requests from projekti@koykan.com.</li></ul></div>';
     function close(){ if(bg.parentNode) bg.parentNode.removeChild(bg); document.removeEventListener('keydown',esc); }
     function esc(e){ if(e.key==='Escape') close(); }
@@ -565,12 +565,12 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
   }
   document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('[data-treqhelp]'); if(a){ e.preventDefault(); e.stopPropagation(); openTreqHelp(); } },true);
   /* 18.11.2026. (Dom): gotovo se javlja jednim klikom, dokaz ne treba; u ploči se može dodati komentar ili link (nije obavezno) */
-  function reportDone(t,row,ask){ var v=''; if(ask){ v=prompt('Javi da je gotovo. Komentar ili link (nije obavezno):',''); if(v===null) return; v=v.trim(); } if(row) busy(row,true);
+  function reportDone(t,row,ask){ var v=''; if(ask){ v=prompt('Označi DONE. Komentar (nije obavezno):',''); if(v===null) return; v=v.trim(); } if(row) busy(row,true);
     var q={action:'report',taskId:t.id}; if(v){ if(v.indexOf('https://')===0 && v.indexOf(' ')<0) q.proof=v; else q.text=v; }
-    api(q).then(function(res){ if(row) busy(row,false); if(!res||res.error){ banner('Nije javljeno: '+((res&&res.error)||'?')); return; } banner(''); toast('Javljeno gotovo. Zatvara Domagoj.'); load(); }).catch(function(e){ if(row) busy(row,false); banner('Greška: '+e); }); }
+    api(q).then(function(res){ if(row) busy(row,false); if(!res||res.error){ banner('Nije označeno DONE: '+((res&&res.error)||'?')); return; } banner(''); toast('Označeno DONE. Zatvara Domagoj.'); load(); }).catch(function(e){ if(row) busy(row,false); banner('Greška: '+e); }); }
   function returnTask(t,row){ var c=prompt('Vrati nositelju. Što fali?',''); if(c===null) return; c=c.trim(); if(!c){ toast('Vraćanje traži komentar.'); return; } if(row) busy(row,true);
     api({action:'return',taskId:t.id,comment:c}).then(function(res){ if(row) busy(row,false); if(!res||res.error){ banner('Nije vraćeno: '+((res&&res.error)||'?')); return; } banner(''); toast('Vraćeno: '+t.owner); load(); }).catch(function(e){ if(row) busy(row,false); banner('Greška: '+e); }); }
-  function toggle(t,row){ var nd=!t.done; if(nd&&isScoped()&&t.req){ if(t.wait!=='done'){ reportDone(t,row,false); } else toast('Javljeno gotovo, čeka Domagoja.'); return; } if(nd&&isScoped()&&t.locked){ if(t.wait!=='done'){ setWait(t,row,'done'); toast('Zaključani task: javljeno da je gotovo. Zatvara ga Domagoj.'); } return; } busy(row,true);
+  function toggle(t,row){ var nd=!t.done; if(nd&&isScoped()&&t.req){ if(t.wait!=='done'){ reportDone(t,row,false); } else toast('Označeno DONE, čeka Domagoja.'); return; } if(nd&&isScoped()&&t.locked){ if(t.wait!=='done'){ setWait(t,row,'done'); toast('Zaključani task: javljeno da je gotovo. Zatvara ga Domagoj.'); } return; } busy(row,true);
     api({action:'complete',taskId:t.id,done:nd}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu promijeniti task: '+((res&&res.error)||'?')); return; }
       banner(''); t.done=nd; t.status=nd?'completed':'needsAction'; if(!loadCompleted && nd){ TASKS=TASKS.filter(function(x){return x.id!==t.id;}); } render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
@@ -592,7 +592,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
 
   function toggleWait(t,row,anchor){ statusMenu(t,row,anchor||row); }   /* c5: status samo s popisa (izbornik), ne kruženjem */
-  function setWait(t,row,nw){ if(isScoped()&&t.req&&nw==='done'&&t.wait!=='done'){ reportDone(t,row,false); return; } if(isScoped()&&t.req&&t.wait==='done'){ toast('Javljeno gotovo, vraća ga samo Domagoj.'); return; } var prev={wait:t.wait, notes:t.notes}; t.wait=nw; paintWait(row,nw); api({action:'update',taskId:t.id,step_status:WLBL[nw]||''}).then(function(res){ if(!res||res.error){ t.wait=prev.wait; t.notes=prev.notes; paintWait(row,prev.wait); banner('Nije spremljeno: '+((res&&(res.message||res.error))||'?')); } else { if(res.notes!==undefined) t.notes=res.notes||''; banner(''); render(); } }).catch(function(err){ t.wait=prev.wait; paintWait(row,prev.wait); banner('Greska: '+err); }); }
+  function setWait(t,row,nw){ if(isScoped()&&t.req&&nw==='done'&&t.wait!=='done'){ reportDone(t,row,false); return; } if(isScoped()&&t.req&&t.wait==='done'){ toast('Označeno DONE, vraća ga samo Domagoj.'); return; } var prev={wait:t.wait, notes:t.notes}; t.wait=nw; paintWait(row,nw); api({action:'update',taskId:t.id,step_status:WLBL[nw]||''}).then(function(res){ if(!res||res.error){ t.wait=prev.wait; t.notes=prev.notes; paintWait(row,prev.wait); banner('Nije spremljeno: '+((res&&(res.message||res.error))||'?')); } else { if(res.notes!==undefined) t.notes=res.notes||''; banner(''); render(); } }).catch(function(err){ t.wait=prev.wait; paintWait(row,prev.wait); banner('Greska: '+err); }); }
 
   function _d10(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
   function _stampStatus(rest){ var ls=String(rest||'').split('\n').filter(function(l){ return !/^\s*STATUS:\s*\d{4}-\d{2}-\d{2}\s*$/i.test(l); }); return ('STATUS: '+_d10()+'\n'+ls.join('\n')).replace(/\n+$/,''); }
@@ -733,7 +733,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
       (t.created?'<div class="drw-meta">Upisano '+fmtD(new Date(t.created).getTime())+'</div>':'')+
       (t.req?'<div class="drw-meta"><span class="treq">Traži Domagoj</span><a class="treq-how" data-treqhelp="1" href="#">Kako radi?</a>'+(t.proof?' Link: <a target="_blank" rel="noopener" href="'+escapeAttr(t.proof)+'">otvori</a>':'')+'</div>':'')+
       (adm&&t.owner!=='Dom'&&t.owner!=='Private'?'<label class="drw-ck"><input type="checkbox" data-f="treq"'+(t.req?' checked':'')+'> Traži Domagoj (nositelj ne zatvara, javlja gotovo jednim klikom)</label>':'')+
-      '<div class="drw-f">'+(t.req&&!adm?(t.wait==='done'?'<span class="drw-mute">Javljeno gotovo, čeka Domagoja</span>':'<button class="btn drw-repbtn">✓ Javi da je gotovo</button>'):'')+(t.req&&adm?'<button class="btn drw-retbtn">↩ Vrati s komentarom</button>':'')+((t.req&&!adm)?'':(adm||!t.locked)?'<button class="btn drw-close" title="Zatvara task (makne ga s boarda)">✓ Zatvori task</button>':(t.wait==='done'?'<span class="drw-mute">Javljeno gotovo, čeka Domagoja</span>':'<button class="btn drw-donebtn">✓ Javi da je gotovo</button>'))+'<span class="spacer"></span><button class="btn drw-cancel">Odustani</button><button class="btn add drw-save">Spremi</button></div>';
+      '<div class="drw-f">'+(t.req&&!adm?(t.wait==='done'?'<span class="drw-mute">Označeno DONE, čeka Domagoja</span>':'<button class="btn drw-repbtn">✓ Označi DONE</button>'):'')+(t.req&&adm?'<button class="btn drw-retbtn">↩ Vrati s komentarom</button>':'')+((t.req&&!adm)?'':(adm||!t.locked)?'<button class="btn drw-close" title="Zatvara task (makne ga s boarda)">✓ Zatvori task</button>':(t.wait==='done'?'<span class="drw-mute">Označeno DONE, čeka Domagoja</span>':'<button class="btn drw-donebtn">✓ Označi DONE</button>'))+'<span class="spacer"></span><button class="btn drw-cancel">Odustani</button><button class="btn add drw-save">Spremi</button></div>';
     function f(k){ return d.querySelector('[data-f="'+k+'"]'); }
     f('title').value=t.title; f('nx').value=base; f('due').value=dateInputVal(t.due); if(f('nd')) f('nd').value=dateInputVal(t.nextDate);
     f('rest').value=bodyOf(t.rest); f('rest').parentNode.insertBefore(histBox(t.rest), f('rest').nextSibling); f('link').value=t.link||'';
