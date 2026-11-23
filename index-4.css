@@ -27,6 +27,9 @@
   .wp-none{ border:1px dashed #d6d2c9; background:transparent }
   .stmenu{ position:fixed; z-index:120; background:#fff; border:1px solid var(--line); border-radius:12px; padding:6px; box-shadow:0 12px 36px rgba(40,35,25,.18); display:flex; flex-direction:column; min-width:230px }
   .stmenu button{ display:flex; align-items:center; gap:8px; border:0; background:transparent; border-radius:8px; padding:8px 10px; cursor:pointer; text-align:left; font:13px var(--body); color:var(--text) }
+  .d-none{ background:transparent; box-shadow:inset 0 0 0 1px #c9c2b6 }
+  .hist-ro{ margin-top:6px; padding:6px 8px; border-left:2px solid var(--line); font-size:12px; color:var(--faint); white-space:pre-wrap }
+  .hist-ro .hist-t{ font-weight:600; margin-bottom:2px }
   .stmenu button:hover{ background:var(--panel2) } .stmenu button.cur{ background:#eef3fd }
   .stmenu b{ font-weight:600; width:70px } .stmenu span{ color:var(--faint); font-size:12px }
 

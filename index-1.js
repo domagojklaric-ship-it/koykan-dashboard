@@ -65,7 +65,16 @@
   /* FOKUS (D.K. 14.11.2026): red "FOKUS" ili "FOKUS: <ime>" u notes projekta (A_) = fokus projekt te osobe, jedan po osobi; ostaje u rest, pa ga buildNotes ne gubi */
   function fokusOf(rest,owner){ var m=String(rest||'').match(/^[ \t]*FOKUS[ \t]*(?::[ \t]*(.+?))?[ \t]*$/im); return m? (m[1]||owner||'') : ''; }
   function setFokusLine(rest,on){ var L=String(rest||'').split('\n').filter(function(l){ return !/^[ \t]*FOKUS[ \t]*(:.*)?$/i.test(l); }); if(on) L.unshift('FOKUS'); return L.join('\n').replace(/^\n+/,''); }
-  function buildNotes(text,date,rest,critical,link){ var out=[]; if(critical) out.push('CRITICAL'); var has=(text||date); if(has) out.push('NEXT STEP: '+(text||'')+(date?' - '+fmtFull(date):'')); if(link) out.push('LINK: '+link); if(rest) out.push(rest); return out.join('\n'); }
+  /* c5 (Dom 23.11.2026., standard 18): status je polje step_status s popisa, nikad tekst. Riječ na početku teksta next stepa se ne šalje. */
+  function stripSlot(s){ return String(s||'').replace(/^\s*(ACTION|PENDING|ON HOLD|DONE)(?:\s*[-\u2013\u2014|:]+\s*|\s*$)/i,''); }
+  var WFROM={'ACTION':'action','PENDING':'pending','ON HOLD':'hold','DONE':'done'};
+  /* povijest (redovi "- D.M. ...") se samo dopisuje: u uređivanju opisa se ne prikazuje u polju i uvijek se vraća cijela */
+  var HIST_RE=/^- \d{1,2}\.\d{1,2}\.(?:\d{4}\.)?\s/;
+  function histOf(rest){ return String(rest||'').split('\n').filter(function(l){ return HIST_RE.test(l); }); }
+  function bodyOf(rest){ return String(rest||'').split('\n').filter(function(l){ return !HIST_RE.test(l); }).join('\n').replace(/\s+$/,''); }
+  function keepHist(oldRest,text){ var oh=histOf(oldRest), nb=[], nh=[]; String(text||'').split('\n').forEach(function(l){ (HIST_RE.test(l)?nh:nb).push(l); }); var hs=oh.concat(nh.filter(function(l){ return oh.indexOf(l)<0; })); var b=nb.join('\n').replace(/\s+$/,''); return b+(b&&hs.length?'\n':'')+hs.join('\n'); }
+  function histBox(rest){ var h=histOf(rest); var d=document.createElement('div'); d.className='hist-ro'; if(!h.length){ d.style.display='none'; return d; } var t=document.createElement('div'); t.className='hist-t'; t.textContent='Povijest (samo dopisivanje)'; d.appendChild(t); h.forEach(function(l){ var x=document.createElement('div'); x.textContent=l; d.appendChild(x); }); return d; }
+  function buildNotes(text,date,rest,critical,link){ var out=[]; if(critical) out.push('CRITICAL'); text=stripSlot(text); var has=(text||date); if(has) out.push('NEXT STEP: '+(text||'')+(date?' - '+fmtFull(date):'')); if(link) out.push('LINK: '+link); if(rest) out.push(rest); return out.join('\n'); }
 
   /* parametri i kod idu u tijelu POST zahtjeva, ne u adresi (4.11.2026.); text/plain da preglednik ne radi CORS preflight */
   function fetchRetry_(url, tries, wait, body){
@@ -100,7 +109,8 @@
       RAW=res.tasks||[]; document.body.classList.toggle('scoped', (res.scope||'full')!=='full');
       try{ localStorage.setItem('ky_full', (res.scope||'full')==='full'?'1':'0'); }catch(e){}
       TASKS=(res.tasks||[]).map(function(t){ var o=ownerOf(t.title); var pj=stripProj(o.clean); var n=parseNext(t.notes||'');
-        var wait = waitOf(n.text||'');
+        var wait = (t.step_status!==undefined) ? (WFROM[t.step_status]||'') : waitOf(n.text||'');   /* c5: polje; stari Worker: riječ */
+        n.text = stripSlot(n.text);
         return { id:t.id, prefix:o.prefix, owner:o.owner, title:pj.title, isProject:pj.isProject, status:t.status, done:t.status==='completed', wait:wait,
                  due:t.due?new Date(t.due):null, notes:t.notes||'', nextDate:n.date, nextText:n.text, rest:n.rest, critical:n.critical, fokus:fokusOf(n.rest,o.owner), link:n.link, locked:!!t.locked, created:t.created||null, src:t.src||'', dlv:'', req:!!t.req, proof:t.proof||'' }; });
       autoFlip(); buildOwnerFilters(); render(); kyDefaults(); kyOpenRoute();
@@ -215,11 +225,11 @@
     var grid=el('grid'); grid.innerHTML=''; if(timMode){ renderTim(grid); updateProg(); return; } if(reqMode){ renderReq(grid); updateProg(); return; }
     var items=visibleTasks(); if(!isScoped()){ var _kb=document.createElement('div'); _kb.className='kybar'; var _kh=false; if(waitFilter==='done'){ var _dn=items.filter(function(x){return !x.done && x.wait==='done';}); if(_dn.length){ _kh=true; var _b1=document.createElement('button'); _b1.className='btn'; _b1.textContent='Zatvori sve prikazane DONE ('+_dn.length+')'; _b1.addEventListener('click',function(){ closeDoneBulk(_dn); }); _kb.appendChild(_b1); } } if(_kh) grid.appendChild(_kb); } grid.className='grid'; var _on=Object.keys(ownerOn).filter(function(k){return ownerOn[k];}); if(true){ grid.className='grid solo'; var _c=document.createElement('div'); _c.className='card'; var _l=document.createElement('div'); _l.className='list'; items.sort(function(a,b){ if(a.done!==b.done)return a.done?1:-1; if(a.critical!==b.critical)return a.critical?-1:1; var da=sortDate(a), db=sortDate(b); if(da===Infinity)da=8e15; if(db===Infinity)db=8e15; return da-db; }); 
   var _saveAll=function(t,row,f){ var nx=('nx' in f)?f.nx:t.nextText, nd=('nd' in f)?f.nd:t.nextDate, rest=('rest' in f)?f.rest:t.rest, crit=('crit' in f)?f.crit:t.critical, link=('link' in f)?f.link:t.link; var notes=buildNotes(nx,nd,rest,crit,link); if(typeof busy==='function')busy(row,true); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(typeof busy==='function')busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti: '+((res&&res.error)||'?')); load(); return; } t.nextText=nx; t.nextDate=nd; t.rest=rest; t.critical=crit; t.link=link; t.notes=notes; render(); }).catch(function(e){ banner('Greska: '+e); load(); }); };
- if(!window._soInit){ window._soInit=true; var mw=document.createElement('div'); mw.className='so-modal'; mw.innerHTML='<div class="so-box"><div class="so-hd"><b>Opis</b><button class="so-x" aria-label="Zatvori">\u2715</button></div><textarea class="so-ta" placeholder="Unesi opis\u2026"></textarea><div class="so-row"><button class="so-cancel">Zatvori</button><button class="so-save">Spremi</button></div></div>'; document.body.appendChild(mw); window._soMW=mw; var cl=function(){ mw.classList.remove('show'); }; mw.querySelector('.so-x').addEventListener('click',cl); mw.querySelector('.so-cancel').addEventListener('click',cl); mw.addEventListener('click',function(e){ if(e.target===mw) cl(); }); mw.querySelector('.so-save').addEventListener('click',function(){ var c=window._soCur; if(c){ _saveAll(c.t,c.row,{rest:mw.querySelector('.so-ta').value.trim()}); } cl(); }); }
- var openOpis=function(t,row){ window._soCur={t:t,row:row}; window._soMW.querySelector('.so-ta').value=t.rest||''; window._soMW.classList.add('show'); setTimeout(function(){window._soMW.querySelector('.so-ta').focus();},30); };
- var soloRow=function(t){ var row=document.createElement('div'); row.__kyT=t; row.className='srow'+(t.done?' is-done':'')+(t.critical?' is-crit':''); var lnk=t.link||''; if(lnk && !/^https?:\/\//i.test(lnk)) lnk='https://'+lnk; var _t0=today0().getTime(); var _ndO=(!t.done&&t.nextDate&&new Date(new Date(t.nextDate).setHours(0,0,0,0)).getTime()<_t0)?' od':''; var _duO=(!t.done&&t.due&&new Date(new Date(t.due).setHours(0,0,0,0)).getTime()<_t0)?' od':''; row.innerHTML='<span class="sbox" title="gotovo">'+(t.done?'\u2713':'')+'</span><div class="stitle">'+(t.req?'<span class="treq" title="Traži Domagoj: zatvara samo Domagoj, nositelj javlja gotovo jednim klikom">Traži Domagoj</span>':'')+waitBadge(t)+(t.link?('<a class="slink" href="'+escapeAttr(lnk)+'" target="_blank" rel="noopener" title="Otvori link">\u2197</a> '):'')+escapeHtml(t.title)+(t.isProject?' <span class="sproj">projekt</span>':'')+rokBadge(t)+stale14Badge(t)+createdLine(t)+'</div><button class="s-copy" title="Kopiraj naziv" aria-label="Kopiraj naziv"></button><textarea class="s-next" rows="1" placeholder="next step\u2026">'+escapeHtml(stripKw(t.nextText))+'</textarea>'+'<input type="date" class="s-ndate'+_ndO+(t.nextDate?'':' d-empty')+'" value="'+escapeAttr(dateInputVal(t.nextDate))+'" title="Datum next stepa">'+'<input type="date" class="s-due'+_duO+(t.locked?' due-lock':'')+(t.due?'':' d-empty')+'" value="'+escapeAttr(dateInputVal(t.due))+'" title="'+(t.locked?'Rok zaklju\u010dao Domagoj':'Rok zavrsetka taska')+'"'+((t.locked&&isScoped())?' disabled':'')+'><button class="icon opis-pill s-icn'+((t.rest&&t.rest.trim())?' has':'')+'" data-opis="'+escapeAttr(t.rest||'')+'" title="Opis (klik za uredi, hover za pregled)">\u270E</button><button class="icon s-icn s-link'+(t.link?' on':'')+'" title="Link">\uD83D\uDD17</button><button class="icon s-icn s-wait'+(t.wait?' won-'+t.wait:'')+'" title="Status (klik cikliraj)">'+(t.wait==='done'?'\u2705':(t.wait==='action'?'\uD83D\uDFE0':(t.wait==='pending'?'\uD83D\uDD35':(t.wait==='hold'?'\u23F8':'\u25CB'))))+'</button><button class="icon s-icn s-crit'+(t.critical?' on':'')+'" title="Critical">\u2691</button>'+(t.isProject&&!t.done&&t.owner!=='Private'&&(!isScoped()||t.fokus)?'<button class="icon s-icn s-fok'+(t.fokus?' on':'')+(isScoped()?' fok-lock':'')+'"'+(isScoped()?' disabled':'')+' title="'+(isScoped()?'Fokus određuje Domagoj':'Fokus projekt, jedan po osobi')+'">\u2605</button>':'<button class="icon s-icn s-fok s-fok-na" tabindex="-1" aria-hidden="true"></button>')+'<button class="icon s-icn s-lock'+(t.locked?' lon':'')+'" title="'+(t.locked?(isScoped()?'Rok zaklju\u010dao Domagoj':'Rok zaklju\u010dan \u2014 klik za otklju\u010davanje'):(isScoped()?'':'Zaklju\u010daj rok'))+'">'+(t.locked?'\uD83D\uDD10':'\u25CB')+'</button><button class="icon s-icn s-proj'+(t.isProject?' on':'')+'" title="'+(t.isProject?'Projekt \u2014 klik da vise nije':'Oznaci kao projekt')+'">'+(t.isProject?'\u25A3':'\u25A2')+'</button><select class="sowner s-own" title="Nositelj — promjena prebacuje task">'+ownerOpts(t.prefix)+'</select>'; row.querySelector('.sbox').addEventListener('click',function(){ toggle(t,row); }); row.querySelector('.s-copy').addEventListener('click',function(e){ e.stopPropagation(); copyText(t.title); });
+ if(!window._soInit){ window._soInit=true; var mw=document.createElement('div'); mw.className='so-modal'; mw.innerHTML='<div class="so-box"><div class="so-hd"><b>Opis</b><button class="so-x" aria-label="Zatvori">\u2715</button></div><textarea class="so-ta" placeholder="Unesi opis\u2026"></textarea><div class="so-hist"></div><div class="so-row"><button class="so-cancel">Zatvori</button><button class="so-save">Spremi</button></div></div>'; document.body.appendChild(mw); window._soMW=mw; var cl=function(){ mw.classList.remove('show'); }; mw.querySelector('.so-x').addEventListener('click',cl); mw.querySelector('.so-cancel').addEventListener('click',cl); mw.addEventListener('click',function(e){ if(e.target===mw) cl(); }); mw.querySelector('.so-save').addEventListener('click',function(){ var c=window._soCur; if(c){ _saveAll(c.t,c.row,{rest:keepHist(c.t.rest,mw.querySelector('.so-ta').value.trim())}); } cl(); }); }
+ var openOpis=function(t,row){ window._soCur={t:t,row:row}; window._soMW.querySelector('.so-ta').value=bodyOf(t.rest); var _sh=window._soMW.querySelector('.so-hist'); _sh.innerHTML=''; _sh.appendChild(histBox(t.rest)); window._soMW.classList.add('show'); setTimeout(function(){window._soMW.querySelector('.so-ta').focus();},30); };
+ var soloRow=function(t){ var row=document.createElement('div'); row.__kyT=t; row.className='srow'+(t.done?' is-done':'')+(t.critical?' is-crit':''); var lnk=t.link||''; if(lnk && !/^https?:\/\//i.test(lnk)) lnk='https://'+lnk; var _t0=today0().getTime(); var _ndO=(!t.done&&t.nextDate&&new Date(new Date(t.nextDate).setHours(0,0,0,0)).getTime()<_t0)?' od':''; var _duO=(!t.done&&t.due&&new Date(new Date(t.due).setHours(0,0,0,0)).getTime()<_t0)?' od':''; row.innerHTML='<span class="sbox" title="gotovo">'+(t.done?'\u2713':'')+'</span><div class="stitle">'+(t.req?'<span class="treq" title="Traži Domagoj: zatvara samo Domagoj, nositelj javlja gotovo jednim klikom">Traži Domagoj</span>':'')+waitBadge(t)+(t.link?('<a class="slink" href="'+escapeAttr(lnk)+'" target="_blank" rel="noopener" title="Otvori link">\u2197</a> '):'')+escapeHtml(t.title)+(t.isProject?' <span class="sproj">projekt</span>':'')+rokBadge(t)+stale14Badge(t)+createdLine(t)+'</div><button class="s-copy" title="Kopiraj naziv" aria-label="Kopiraj naziv"></button><textarea class="s-next" rows="1" placeholder="next step\u2026">'+escapeHtml(t.nextText||'')+'</textarea>'+'<input type="date" class="s-ndate'+_ndO+(t.nextDate?'':' d-empty')+'" value="'+escapeAttr(dateInputVal(t.nextDate))+'" title="Datum next stepa">'+'<input type="date" class="s-due'+_duO+(t.locked?' due-lock':'')+(t.due?'':' d-empty')+'" value="'+escapeAttr(dateInputVal(t.due))+'" title="'+(t.locked?'Rok zaklju\u010dao Domagoj':'Rok zavrsetka taska')+'"'+((t.locked&&isScoped())?' disabled':'')+'><button class="icon opis-pill s-icn'+((t.rest&&t.rest.trim())?' has':'')+'" data-opis="'+escapeAttr(t.rest||'')+'" title="Opis (klik za uredi, hover za pregled)">\u270E</button><button class="icon s-icn s-link'+(t.link?' on':'')+'" title="Link">\uD83D\uDD17</button><button class="icon s-icn s-wait'+(t.wait?' won-'+t.wait:'')+'" title="Status (klik: odaberi s popisa)">'+(t.wait==='done'?'\u2705':(t.wait==='action'?'\uD83D\uDFE0':(t.wait==='pending'?'\uD83D\uDD35':(t.wait==='hold'?'\u23F8':'\u25CB'))))+'</button><button class="icon s-icn s-crit'+(t.critical?' on':'')+'" title="Critical">\u2691</button>'+(t.isProject&&!t.done&&t.owner!=='Private'&&(!isScoped()||t.fokus)?'<button class="icon s-icn s-fok'+(t.fokus?' on':'')+(isScoped()?' fok-lock':'')+'"'+(isScoped()?' disabled':'')+' title="'+(isScoped()?'Fokus određuje Domagoj':'Fokus projekt, jedan po osobi')+'">\u2605</button>':'<button class="icon s-icn s-fok s-fok-na" tabindex="-1" aria-hidden="true"></button>')+'<button class="icon s-icn s-lock'+(t.locked?' lon':'')+'" title="'+(t.locked?(isScoped()?'Rok zaklju\u010dao Domagoj':'Rok zaklju\u010dan \u2014 klik za otklju\u010davanje'):(isScoped()?'':'Zaklju\u010daj rok'))+'">'+(t.locked?'\uD83D\uDD10':'\u25CB')+'</button><button class="icon s-icn s-proj'+(t.isProject?' on':'')+'" title="'+(t.isProject?'Projekt \u2014 klik da vise nije':'Oznaci kao projekt')+'">'+(t.isProject?'\u25A3':'\u25A2')+'</button><select class="sowner s-own" title="Nositelj — promjena prebacuje task">'+ownerOpts(t.prefix)+'</select>'; row.querySelector('.sbox').addEventListener('click',function(){ toggle(t,row); }); row.querySelector('.s-copy').addEventListener('click',function(e){ e.stopPropagation(); copyText(t.title); });
     var _ow=row.querySelector('.s-own'); if(_ow){ _ow.addEventListener('click',function(e){ e.stopPropagation(); }); _ow.addEventListener('change',function(){ var _p=this.value; if(_p===t.prefix) return; if(!_p) return; saveTask(t,row,t.title,t.due,t.nextText||'',t.nextDate,_p,t.link); toast('Task prebačen na '+(MAP[_p]||_p)); }); }
-    var _pj=row.querySelector('.s-proj'); if(_pj) _pj.addEventListener('click',function(e){ e.stopPropagation(); t.isProject=!t.isProject; saveTask(t,row,t.title,t.due,t.nextText||'',t.nextDate,t.prefix,t.link); }); row.querySelector('.s-next').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); this.blur(); } }); /* mobilni (20.11.2026.): next step u 2 reda, i dalje jedan red teksta */ row.querySelector('.s-next').addEventListener('change',function(){ var v=withKw(t.wait,this.value.replace(/\s*\n\s*/g,' ').trim()); if(v!==(t.nextText||'')){ t.wait=waitOf(v); paintWait(row,t.wait); t.rest=_stampStatus(t.rest); _saveAll(t,row,{nx:v}); } }); row.querySelector('.s-ndate')?.addEventListener('change',function(){ _saveAll(t,row,{nd:this.value?fromInput(this.value):null}); }); row.querySelector('.s-due').addEventListener('change',function(){
+    var _pj=row.querySelector('.s-proj'); if(_pj) _pj.addEventListener('click',function(e){ e.stopPropagation(); t.isProject=!t.isProject; saveTask(t,row,t.title,t.due,t.nextText||'',t.nextDate,t.prefix,t.link); }); row.querySelector('.s-next').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); this.blur(); } }); /* mobilni (20.11.2026.): next step u 2 reda, i dalje jedan red teksta */ row.querySelector('.s-next').addEventListener('change',function(){ var v=stripSlot(this.value.replace(/\s*\n\s*/g,' ').trim()); if(v!==(t.nextText||'')){ t.rest=_stampStatus(t.rest); _saveAll(t,row,{nx:v}); } }); row.querySelector('.s-ndate')?.addEventListener('change',function(){ _saveAll(t,row,{nd:this.value?fromInput(this.value):null}); }); row.querySelector('.s-due').addEventListener('change',function(){
       var dd = this.value ? fromInput(this.value) : null;
       var _od = t.due, _or = t.rest, _rsn='';
       if(t.req && isScoped() && String(_od||'')!==String(dd||'')){ _rsn=(prompt('Za novi rok upiši razlog (zašto trebaš više vremena):','')||'').trim(); if(!_rsn){ this.value=dateInputVal(_od); return; } }
@@ -233,7 +243,7 @@
         banner(''); el('synced').textContent = 'sync '+new Date().toLocaleTimeString();
       }).catch(function(e){ t.due=_od; t.rest=_or; render(); banner('Rok nije spremljen: '+e); });
     });
-    row.querySelector('.opis-pill').addEventListener('click',function(){ openOpis(t,row); }); row.querySelector('.s-link').addEventListener('click',function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ _saveAll(t,row,{link:v.trim()}); } }); row.querySelector('.s-crit').addEventListener('click',function(){ _saveAll(t,row,{crit:!t.critical}); }); var _fk=row.querySelector('.s-fok:not(.s-fok-na)'); if(_fk) _fk.addEventListener('click',function(e){ e.stopPropagation(); toggleFokus(t,row); }); var sl_=row.querySelector('.s-lock'); if(sl_) sl_.addEventListener('click',function(e){ e.stopPropagation(); toggleLock(t,row); }); row.querySelector('.s-wait').addEventListener('click',function(){ toggleWait(t,row); }); var wpS_=row.querySelector('.wpill'); if(wpS_) wpS_.addEventListener('click',function(e){ e.stopPropagation(); statusMenu(t,row,wpS_); }); var la=row.querySelector('.slink'); if(la) la.addEventListener('click',function(e){ e.stopPropagation(); }); var _wrap=document.createElement('div'); _wrap.className='solo-wrap'; _wrap.appendChild(row); var _st=row.querySelector('.stitle'); if(_st){ _st.addEventListener('click',function(e){ if(e.target.closest('.slink'))return; e.stopPropagation(); openDrawer(t,row); }); } return _wrap; };
+    row.querySelector('.opis-pill').addEventListener('click',function(){ openOpis(t,row); }); row.querySelector('.s-link').addEventListener('click',function(){ var v=prompt('Zalijepi link (Google Drive doc). Ostavi prazno za brisanje:', t.link||''); if(v!==null){ _saveAll(t,row,{link:v.trim()}); } }); row.querySelector('.s-crit').addEventListener('click',function(){ _saveAll(t,row,{crit:!t.critical}); }); var _fk=row.querySelector('.s-fok:not(.s-fok-na)'); if(_fk) _fk.addEventListener('click',function(e){ e.stopPropagation(); toggleFokus(t,row); }); var sl_=row.querySelector('.s-lock'); if(sl_) sl_.addEventListener('click',function(e){ e.stopPropagation(); toggleLock(t,row); }); row.querySelector('.s-wait').addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row,e.currentTarget); }); var wpS_=row.querySelector('.wpill'); if(wpS_) wpS_.addEventListener('click',function(e){ e.stopPropagation(); statusMenu(t,row,wpS_); }); var la=row.querySelector('.slink'); if(la) la.addEventListener('click',function(e){ e.stopPropagation(); }); var _wrap=document.createElement('div'); _wrap.className='solo-wrap'; _wrap.appendChild(row); var _st=row.querySelector('.stitle'); if(_st){ _st.addEventListener('click',function(e){ if(e.target.closest('.slink'))return; e.stopPropagation(); openDrawer(t,row); }); } return _wrap; };
  var sh=document.createElement('div'); sh.className='srowhead'; try{ fillCritStrip(soloRow); }catch(e){} if(SORT.by) items.sort(sortCmp); sh.innerHTML='<span class="hsbox"></span>'+sortHead('hst','title','Task')+'<span class="hsn">Next step</span>'+sortHead('hsd','next','Next step do')+sortHead('hsd','due','Rok')+sortHead('hso','owner','Nositelj'); Array.prototype.forEach.call(sh.querySelectorAll('[data-s]'),function(h){ h.addEventListener('click',function(){ setSort(h.getAttribute('data-s')); }); }); _c.appendChild(sh);
  if(typeFilter==='req'&&!items.length){ var _e0=document.createElement('div'); _e0.className='ge-empty'; _e0.textContent='Nema otvorenih zahtjeva.'; _c.appendChild(_e0); grid.appendChild(_c); updateProg(); return; } items.forEach(function(t){ _l.appendChild(soloRow(t)); }); if(!items.length){ var _e=document.createElement('div'); _e.className='empty-v'; _e.textContent=searchQ?'Ništa ne odgovara pretrazi.':'Ovdje trenutno nema ničega.'; _l.appendChild(_e); } _c.appendChild(_l); grid.appendChild(_c); updateProg(); return; }
     if(groupMode==='owner_next'){ renderOwnerNested(grid, items, 'nextDate'); updateProg(); return; }
@@ -280,8 +290,6 @@
     c=c.filter(function(x){ return !isNaN(x); });
     return c.length? Math.min.apply(null,c) : Infinity; }
 
-  function stripKw(s){ return String(s||'').replace(/^\s*(action|pending|on hold|done)\b\s*[-–—|:]*\s*/i,''); }
-  function withKw(w,txt){ if(waitOf(txt)) return txt; var kw=WLBL[w]||''; return kw?(txt?kw+' - '+txt:kw):txt; }
   function waitOf(txt){ var n=String(txt||'').replace(/^[\s\-\u2013\u2014|:]+/,''); if(/^done\b/i.test(n)) return 'done'; if(/^action\b/i.test(n)) return 'action'; if(/^pending\b/i.test(n)) return 'pending'; if(/^on hold\b/i.test(n)) return 'hold'; return ''; }
   function paintWait(row,w){ if(!row) return;
     var p=row.querySelector('.wpill'); if(p){ p.className='wpill '+(WCLS[w]||'wp-none'); p.textContent=WLBL[w]||'status'; }
@@ -305,7 +313,7 @@
     var critp='<span class="pill crit-pill'+(t.critical?' crit-on':'')+'">'+(t.critical?'critical ✓':'critical')+'</span>';
     var lhref=t.link||''; if(lhref && !/^https?:\/\//i.test(lhref)) lhref='https://'+lhref;
     var linkp=t.link?'<a class="pill link-pill" href="'+escapeAttr(lhref)+'" target="_blank" rel="noopener">↗ otvori</a>':'';
-    var waitp='<span class="pill wait-pill'+(t.wait?' w-on-'+t.wait:'')+'" title="Klik: ACTION \u2192 PENDING \u2192 nista">'+(t.wait==='action'?'\uD83D\uDFE0 ACTION':(t.wait==='pending'?'\uD83D\uDD35 PENDING':'status'))+'</span>';
+    var waitp='<span class="pill wait-pill'+(t.wait?' w-on-'+t.wait:'')+'" title="Klik: odaberi status s popisa">'+(t.wait==='action'?'\uD83D\uDFE0 ACTION':(t.wait==='pending'?'\uD83D\uDD35 PENDING':'status'))+'</span>';
     row.innerHTML='<span class="selbox"></span><span class="box"><svg viewBox="0 0 12 12"><path d="M2.5 6.2 5 8.6l4.4-5" fill="none" stroke="#0d1014" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'+
       '<span class="tbody"><span class="tt">'+waitBadge(t)+escapeHtml(t.title)+'</span>'+nextHtml+'<span class="tags">'+rok+rnudges+ochip+opis+uredi+projp+fokp+critp+waitp+linkp+'</span></span>'+
       '<button class="priv-btn">'+btnLbl+'</button>';
@@ -317,9 +325,9 @@
 
     var nin=row.querySelector('.ntext-in');
     if(nin){ nin.addEventListener('click',function(e){ e.stopPropagation(); });
-      nin.addEventListener('change',function(){ var v=this.value.trim(); if(v===(t.nextText||'')) return;
+      nin.addEventListener('change',function(){ var v=stripSlot(this.value.trim()); if(v===(t.nextText||'')) return;
         var notes=buildNotes(v, t.nextDate, t.rest, t.critical, t.link);
-        busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti next step'); load(); return; } banner(''); t.nextText=v; t.notes=notes; t.wait=waitOf(v); paintWait(row,t.wait); }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }); }
+        busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti next step'); load(); return; } banner(''); t.nextText=v; t.notes=(res&&res.notes)||notes; }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }); }
 
     // opis (uvijek), otklopiv + editabilan
     var op=row.querySelector('.opis-pill');
@@ -333,7 +341,7 @@
     row.querySelector('.projekt-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleProject(t,row); });
     row.querySelector('.crit-pill').addEventListener('click',function(e){ e.stopPropagation(); toggleCritical(t,row); });
     
-    var wp_=row.querySelector('.wpill'); if(wp_) wp_.addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row); });
+    var wp_=row.querySelector('.wpill'); if(wp_) wp_.addEventListener('click',function(e){ e.stopPropagation(); toggleWait(t,row,e.currentTarget); });
     row.addEventListener('click',function(e){ if(e.target.closest('.box')) toggle(t,row); });
     row.querySelector('.priv-btn').addEventListener('click',function(e){ e.stopPropagation(); rename(t,row,toPriv?'Private':'Dom'); });
     return row;
@@ -353,14 +361,14 @@
     function showEdit(){
       wrap.innerHTML='';
       var box=document.createElement('div'); box.className='nedit';
-      var ta=document.createElement('textarea'); ta.value=t.rest||''; box.appendChild(ta);
+      var ta=document.createElement('textarea'); ta.value=bodyOf(t.rest); box.appendChild(ta); box.appendChild(histBox(t.rest));
       var btns=document.createElement('div'); btns.className='nbtns';
       var sv=document.createElement('button'); sv.className='mini save'; sv.textContent='Spremi';
       var cn=document.createElement('button'); cn.className='mini cancel'; cn.textContent='Odustani';
       btns.appendChild(sv); btns.appendChild(cn); box.appendChild(btns); wrap.appendChild(box);
       ta.focus();
       cn.addEventListener('click',function(e){ e.stopPropagation(); showRead(); });
-      sv.addEventListener('click',function(e){ e.stopPropagation(); saveDesc(t,row,ta.value, showRead); });
+      sv.addEventListener('click',function(e){ e.stopPropagation(); saveDesc(t,row,keepHist(t.rest,ta.value), showRead); });
     }
     showRead();
     wrap.addEventListener('click',function(e){ e.stopPropagation(); });
@@ -398,7 +406,7 @@
   }
   function saveDesc(t,row,newRest,after){
     var notes=buildNotes(t.nextText,t.nextDate,newRest,t.critical,t.link);
-    busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti opis: '+((res&&res.error)||'?')); return; }
+    busy(row,true); api({action:'update', taskId:t.id, notes:notes}).then(function(res){ busy(row,false); if(!res||res.error){ banner('Ne mogu spremiti opis: '+((res&&(res.message||res.error))||'?')); return; }
       banner(''); t.rest=newRest; t.notes=notes; if(after) after(); else render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); });
   }
@@ -583,8 +591,8 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
       banner(''); t.critical=nc; t.notes=notes; render();
     }).catch(function(err){ busy(row,false); banner('Greška: '+err); }); }
 
-  function toggleWait(t,row){ var order={'':'action','action':'pending','pending':'hold','hold':'done','done':''}; setWait(t,row,order[t.wait||'']||''); }
-  function setWait(t,row,nw){ if(isScoped()&&t.req&&nw==='done'&&t.wait!=='done'){ reportDone(t,row,false); return; } if(isScoped()&&t.req&&t.wait==='done'){ toast('Javljeno gotovo, vraća ga samo Domagoj.'); return; } var base=(t.nextText||'').replace(/^\s*(action|pending|on hold|done)\b\s*[-\u2013\u2014|:]*\s*/i,''); var kw=nw==='action'?'ACTION':(nw==='pending'?'PENDING':(nw==='hold'?'ON HOLD':(nw==='done'?'DONE':''))); var ntext=kw?(base?(kw+' - '+base):kw):base; var notes=buildNotes(ntext,t.nextDate,t.rest,t.critical,t.link); var prev={nextText:t.nextText, wait:t.wait, notes:t.notes}; t.nextText=ntext; t.wait=nw; t.notes=notes; function paint(w,txt){ paintWait(row,w); var ni=row.querySelector('.ntext-in'); if(ni) ni.value=txt; var sn=row.querySelector('.s-next'); if(sn) sn.value=stripKw(txt); } paint(nw,ntext); api({action:'update',taskId:t.id,notes:notes}).then(function(res){ if(!res||res.error){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Nije spremljeno: '+((res&&res.error)||'?')); } else { banner(''); render(); } }).catch(function(err){ t.nextText=prev.nextText; t.wait=prev.wait; t.notes=prev.notes; paint(prev.wait,prev.nextText); banner('Greska: '+err); }); }
+  function toggleWait(t,row,anchor){ statusMenu(t,row,anchor||row); }   /* c5: status samo s popisa (izbornik), ne kruženjem */
+  function setWait(t,row,nw){ if(isScoped()&&t.req&&nw==='done'&&t.wait!=='done'){ reportDone(t,row,false); return; } if(isScoped()&&t.req&&t.wait==='done'){ toast('Javljeno gotovo, vraća ga samo Domagoj.'); return; } var prev={wait:t.wait, notes:t.notes}; t.wait=nw; paintWait(row,nw); api({action:'update',taskId:t.id,step_status:WLBL[nw]||''}).then(function(res){ if(!res||res.error){ t.wait=prev.wait; t.notes=prev.notes; paintWait(row,prev.wait); banner('Nije spremljeno: '+((res&&(res.message||res.error))||'?')); } else { if(res.notes!==undefined) t.notes=res.notes||''; banner(''); render(); } }).catch(function(err){ t.wait=prev.wait; paintWait(row,prev.wait); banner('Greska: '+err); }); }
 
   function _d10(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
   function _stampStatus(rest){ var ls=String(rest||'').split('\n').filter(function(l){ return !/^\s*STATUS:\s*\d{4}-\d{2}-\d{2}\s*$/i.test(l); }); return ('STATUS: '+_d10()+'\n'+ls.join('\n')).replace(/\n+$/,''); }
@@ -592,7 +600,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
   function _stampRok(rest,st,no){ return ('ROK: '+_d10()+' '+_fmtD(st)+' -> '+_fmtD(no)+'\n'+String(rest||'')).replace(/\n+$/,''); }
   /* ---- v7 pojednostavljeno (4.11.2026.): gotovi pogledi, status iz izbornika, bočna ploča, brzi unos ---- */
   var VIEWS={ today:{w:'tilltoday',a:'notdone',d:'all'}, week:{w:'week',a:'notdone',d:'all'}, wait:{w:'all',a:'waiting',d:'all'}, done:{w:'all',a:'done',d:'all'}, req:{w:'all',a:'all',d:'all'}, tim:{w:'all',a:'all',d:'all'}, all:{w:'all',a:'all',d:'all'} };
-  var WHINT={action:'radi se na tome',pending:'čeka nekog drugog',hold:'pauzirano',done:'gotovo, Domagoj zatvara'}, WDOT={action:'d-act',pending:'d-pend',hold:'d-hold',done:'d-done'};
+  var WHINT={action:'radi se na tome',pending:'čeka nekog drugog',hold:'pauzirano',done:'gotovo, Domagoj zatvara','':'bez statusa'}, WDOT={action:'d-act',pending:'d-pend',hold:'d-hold',done:'d-done','':'d-none'};
   function setView(v){ var c=VIEWS[v]; if(!c) return; winFilter=c.w; waitFilter=c.a; timMode=(v==='tim'); reqMode=(v==='req');
     [['win-seg','w',c.w],['wait-seg','a',c.a]].forEach(function(s){ Array.prototype.forEach.call(el(s[0]).children,function(b){ b.classList.toggle('on', b.dataset[s[1]]===s[2]); }); });
     Array.prototype.forEach.call(el('views').children,function(b){ b.classList.toggle('on', b.dataset.v===v); });
@@ -692,9 +700,9 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
 
   function closeMenu(){ var m=document.querySelector('.stmenu'); if(m) m.remove(); document.removeEventListener('click',closeMenu); }
   function statusMenu(t,row,anchor){ closeMenu(); var m=document.createElement('div'); m.className='stmenu';
-    ['action','pending','hold','done'].forEach(function(w){ var b=document.createElement('button'); b.className=(t.wait===w?'cur':'');
-      b.innerHTML='<i class="dot '+WDOT[w]+'"></i><b>'+WLBL[w]+'</b><span>'+WHINT[w]+'</span>';
-      b.addEventListener('click',function(e){ e.stopPropagation(); closeMenu(); if(t.wait!==w) setWait(t,row,w); }); m.appendChild(b); });
+    ['action','pending','hold','done',''].forEach(function(w){ var b=document.createElement('button'); b.className=((t.wait||'')===w?'cur':'');
+      b.innerHTML='<i class="dot '+WDOT[w]+'"></i><b>'+(WLBL[w]||'—')+'</b><span>'+WHINT[w]+'</span>';
+      b.addEventListener('click',function(e){ e.stopPropagation(); closeMenu(); if((t.wait||'')!==w) setWait(t,row,w); }); m.appendChild(b); });
     document.body.appendChild(m); var r=anchor.getBoundingClientRect(); var top=r.bottom+4; if(top+m.offsetHeight>window.innerHeight-8) top=r.top-m.offsetHeight-4;
     m.style.left=Math.max(8,Math.min(r.left,window.innerWidth-m.offsetWidth-8))+'px'; m.style.top=top+'px';
     setTimeout(function(){ document.addEventListener('click',closeMenu); },0); }
@@ -702,7 +710,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
   function closeDrawer(){ var d=document.querySelector('.drw'), b=document.querySelector('.drw-bg'); if(d) d.remove(); if(b) b.remove(); document.removeEventListener('keydown',drwEsc); }
   function drwEsc(e){ if(e.key==='Escape') closeDrawer(); }
   function openDrawer(t,row){ closeDrawer(); var adm=!isScoped(), lockDue=t.locked&&!adm, dw=t.wait||'';
-    var base=stripKw(t.nextText);
+    var base=t.nextText||'';
     var bg=document.createElement('div'); bg.className='drw-bg'; var d=document.createElement('aside'); d.className='drw';
     d.innerHTML='<div class="drw-h"><span class="drw-own">'+escapeHtml(t.owner)+'</span><button class="drw-x" aria-label="Zatvori">✕</button></div>'+
       '<textarea class="drw-title" rows="2" data-f="title"></textarea>'+
@@ -719,7 +727,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
       '<div class="drw-f">'+(t.req&&!adm?(t.wait==='done'?'<span class="drw-mute">Javljeno gotovo, čeka Domagoja</span>':'<button class="btn drw-repbtn">✓ Javi da je gotovo</button>'):'')+(t.req&&adm?'<button class="btn drw-retbtn">↩ Vrati s komentarom</button>':'')+((t.req&&!adm)?'':(adm||!t.locked)?'<button class="btn drw-close" title="Zatvara task (makne ga s boarda)">✓ Zatvori task</button>':(t.wait==='done'?'<span class="drw-mute">Javljeno gotovo, čeka Domagoja</span>':'<button class="btn drw-donebtn">✓ Javi da je gotovo</button>'))+'<span class="spacer"></span><button class="btn drw-cancel">Odustani</button><button class="btn add drw-save">Spremi</button></div>';
     function f(k){ return d.querySelector('[data-f="'+k+'"]'); }
     f('title').value=t.title; f('nx').value=base; f('due').value=dateInputVal(t.due); if(f('nd')) f('nd').value=dateInputVal(t.nextDate);
-    f('rest').value=t.rest||''; f('link').value=t.link||'';
+    f('rest').value=bodyOf(t.rest); f('rest').parentNode.insertBefore(histBox(t.rest), f('rest').nextSibling); f('link').value=t.link||'';
     var la=d.querySelector('.drw-link a'); if(la){ var lh=t.link; if(!/^https?:\/\//i.test(lh)) lh='https://'+lh; la.href=lh; }
     Array.prototype.forEach.call(d.querySelectorAll('.drw-st button'),function(b){ b.addEventListener('click',function(){ dw=(dw===b.dataset.w)?'':b.dataset.w; Array.prototype.forEach.call(d.querySelectorAll('.drw-st button'),function(y){ y.classList.toggle('on',y.dataset.w===dw); }); }); });
     document.body.appendChild(bg); document.body.appendChild(d); document.addEventListener('keydown',drwEsc);
@@ -731,28 +739,28 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     d.querySelector('.drw-save').addEventListener('click',save);
     function save(){
       var title=f('title').value.replace(/\s+/g,' ').trim(); if(!title){ f('title').focus(); return; }
-      var nx=withKw(dw,f('nx').value.trim());
+      var nx=stripSlot(f('nx').value.trim()), stCh=(dw||'')!==(t.wait||'');
       var nd=f('nd')?fromInput(f('nd').value):t.nextDate, due=lockDue?t.due:fromInput(f('due').value);
-      var rest=f('rest').value.replace(/\s+$/,''), link=f('link').value.trim(), crit=f('crit').checked;
+      var rest=keepHist(t.rest,f('rest').value.replace(/\s+$/,'')), link=f('link').value.trim(), crit=f('crit').checked;
       var px=adm?f('owner').value||t.prefix:t.prefix, proj=adm?f('proj').checked:t.isProject, lock=adm?f('lock').checked:t.locked;
       var nxCh=nx!==(t.nextText||''), dueCh=!lockDue && dateInputVal(due)!==dateInputVal(t.due);
-      if(nxCh) rest=_stampStatus(rest); if(dueCh) rest=_stampRok(rest,t.due,due);
+      if(nxCh||stCh) rest=_stampStatus(rest); if(dueCh) rest=_stampRok(rest,t.due,due);
       var notesCh=nxCh||dueCh||dateInputVal(nd)!==dateInputVal(t.nextDate)||rest!==(t.rest||'')||crit!==!!t.critical||link!==(t.link||'');
       var notes=notesCh?buildNotes(nx,nd,rest,crit,link):t.notes, nt=makeTitle(px,title,proj);
       var calls=[], p={action:'update',taskId:t.id};
-      if(nt!==makeTitle(t.prefix,t.title,t.isProject)) p.title=nt; if(notesCh) p.notes=notes; if(dueCh) p.due=due?toISODate(due):'';
+      if(nt!==makeTitle(t.prefix,t.title,t.isProject)) p.title=nt; if(notesCh) p.notes=notes; if(dueCh) p.due=due?toISODate(due):''; if(stCh) p.step_status=WLBL[dw]||'';
       if(dueCh&&t.req&&!adm){ var _r=(prompt('Za novi rok upiši razlog (zašto trebaš više vremena):','')||'').trim(); if(!_r) return; p.reason=_r; }
       
-      if(p.title||p.notes||dueCh) calls.push(p);
+      if(p.title||p.notes||dueCh||stCh) calls.push(p);
       if(adm&&f('treq')&&f('treq').checked!==!!t.req) calls.push({action:'trazi',taskId:t.id,on:f('treq').checked});
       if(lock!==!!t.locked) calls.push({action:'lock',taskId:t.id,locked:lock});
       if(!calls.length){ closeDrawer(); return; }
       var sb=d.querySelector('.drw-save'); sb.disabled=true; sb.textContent='Spremam...';
       (function step(i){ if(i>=calls.length){ var oc=(px!==t.prefix);
-          t.title=title; t.prefix=px; t.owner=MAP[px]||px; t.isProject=proj; t.nextText=nx; t.wait=waitOf(nx); t.nextDate=nd; t.due=due; t.rest=rest; t.critical=crit; t.link=link; t.notes=notes; t.locked=lock;
+          t.title=title; t.prefix=px; t.owner=MAP[px]||px; t.isProject=proj; t.nextText=nx; t.wait=dw||''; t.nextDate=nd; t.due=due; t.rest=rest; t.critical=crit; t.link=link; t.notes=notes; t.locked=lock;
           if(adm&&f('treq')) t.req=f('treq').checked;
           closeDrawer(); if(oc) buildOwnerFilters(); render(); toast(oc?'Spremljeno, task prebačen na '+t.owner:'Spremljeno'); return; }
-        api(calls[i]).then(function(res){ if(!res||res.error){ sb.disabled=false; sb.textContent='Spremi'; banner('Nije spremljeno: '+((res&&res.error)||'?')); load(); return; } step(i+1); })
+        api(calls[i]).then(function(res){ if(!res||res.error){ sb.disabled=false; sb.textContent='Spremi'; banner('Nije spremljeno: '+((res&&(res.message||res.error))||'?')); load(); return; } step(i+1); })
           .catch(function(e){ sb.disabled=false; sb.textContent='Spremi'; banner('Greška: '+e); }); })(0);
     }
     setTimeout(function(){ f('nx').focus(); },30);
@@ -765,7 +773,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
     var px=isScoped()?scopedPrefix():(el('q-owner').value||'Dom');
     var due=nextWorkday((isScoped()||px==='Dom'||px==='Private')?0:1); // svoj task: rok danas; tuđi: sljedeći radni dan
     inp.disabled=true;
-    api({action:'add', title:makeTitle(px,naziv,false), notes:buildNotes('ACTION',null,'',false), due:toISODate(due)}).then(function(res){ inp.disabled=false;
+    api({action:'add', title:makeTitle(px,naziv,false), step_status:'ACTION', due:toISODate(due)}).then(function(res){ inp.disabled=false;
       if(!res||res.error){ banner('Ne mogu dodati: '+((res&&res.error)||'?')); return; }
       inp.value=''; inp.focus(); toast('Dodano za '+(MAP[px]||px||'tebe')+', rok '+fmtFull(due)); load();
     }).catch(function(e){ inp.disabled=false; banner('Greška: '+e); }); }
@@ -784,7 +792,7 @@ function pdTodayISO(){ var x=new Date(); return x.getFullYear()+'-'+('0'+(x.getM
   function addTask(){
     var naziv=el('a-title').value.trim(); if(!naziv){ banner('Upiši naziv taska.'); return; }
     var px=el('a-owner').value; var dueDate=fromInput(el('a-due').value); var ntext=el('a-ntext').value.trim(); var ndate=fromInput(el('a-ndate').value);
-    var params={action:'add', title:makeTitle(px,naziv,false)}; var notes=buildNotes(ntext,ndate,'',false); if(notes) params.notes=notes; if(dueDate) params.due=toISODate(dueDate);
+    var params={action:'add', title:makeTitle(px,naziv,false), step_status:'ACTION'}; var notes=buildNotes(ntext,ndate,'',false); if(notes) params.notes=notes; if(dueDate) params.due=toISODate(dueDate);
     api(params).then(function(res){ if(!res||res.error){ banner('Ne mogu dodati: '+((res&&res.error)||'?')); return; }
       banner(''); el('addform').classList.remove('open'); el('a-title').value=''; el('a-due').value=''; el('a-ntext').value=''; el('a-ndate').value=''; load();
     }).catch(function(err){ banner('Greška: '+err); });
