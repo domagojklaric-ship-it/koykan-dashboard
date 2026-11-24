@@ -15,8 +15,9 @@ export const ROLE_TEXT = {
   editor: 'edits content (own items where the app says so)',
   viewer: 'reads only',
   store: 'store tablet, only the store screens',
+  hr: 'HR: sees everything like admin, changes only employees and absences',
 };
-const ROLE_ORDER = ['admin', 'area', 'manager', 'editor', 'viewer', 'store'];
+const ROLE_ORDER = ['admin', 'hr', 'area', 'manager', 'editor', 'viewer', 'store'];
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 /** "2026-11-16T12:01:00Z" -> "16.11.2026." (Dom's date format). */

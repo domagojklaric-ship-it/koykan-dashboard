@@ -475,7 +475,7 @@ function mxWire(box){
 var _mxRender0=render; render=function(){ _mxRender0.apply(this, arguments); try{ mxRender(); mxLoad(false); }catch(e){} };
 /* ===== Mirror editor: puno uređivanje taska s projektnog boarda ===== */
 var MX_OWNERS={kcep:['Dom','Boro','Tamara','Sandra','Edin','Andrej','DE savjetnik','BDO','Xela','Neodređeno'],zabica:['Davor','Silva','Ankica','AnaT','Nataša','Lucija','Dom','Neodređeno'],cm:['Dom','Tom','Lucija','Stefan','Sandra','Neodređeno'],menu:['Nino','Davor','AnaT','Ankica','Nataša','Silva','Tamara','Dom','Neodređeno'],bbt:['Dom','Davor','Nino','AnaT','Ankica','Nataša','Martina'],gastro:['Dom','Davor','Antonio','Sandi','Nino','Silva','Neodređeno'],stores:['Davor','Nino','Silva','AnaT','Ankica','Nataša','Dom','PEP tim','Neodređeno'],procurement:['Dom','Nino','Nataša','Neodređeno']};
-var MX_STORES=['Arena (Zagreb)','Tkalčićeva (Zagreb)','City Center One (Split)','Supernova (Zadar)','PEP (München)','Eurovea (Bratislava)','Aupark (Bratislava)','Máj Národní (Prag)'];
+var MX_STORES=['Arena (Zagreb)','Tkalčićeva (Zagreb)','City Center One (Split)','Supernova (Zadar)','PEP (München)','Eurovea (Bratislava)','Máj Národní (Prag)'];   // Aupark zatvoren 15.11.2026. (stores.json closed): nije u izborniku, postojeća vrijednost ostaje (mxEdit je dodaje na vrh)
 function mxEdit(x){
   var own=(MX_OWNERS[x.board]||[]).slice(); if(x.owner && own.indexOf(x.owner)<0) own.unshift(x.owner);
   var sel=function(arr,cur){ return arr.map(function(o){ return '<option'+(o===cur?' selected':'')+'>'+mxEsc(o)+'</option>'; }).join(''); };

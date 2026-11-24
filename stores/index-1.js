@@ -402,9 +402,12 @@
     renderAll();
   }
 /* ===== Modul Poslovnice: poslovnica (polje store), trošak, matrica ===== */
+/* Zatvoreni lokali (koykan-platform stores.json "closed"; Aupark 15.11.2026.): nema ih u izbornicima ni za nove upise; postojeći zadaci ostaju vidljivi (storeOrder ih dodaje iz TASKS, red zadržava svoju vrijednost). */
+var CLOSED_STORES=['Aupark (Bratislava)'];
+function openStores(a){ return a.filter(function(s){ return CLOSED_STORES.indexOf(s)<0; }); }
 var DEFAULT_STORES=BOARD.stores||[];
-var STORES=DEFAULT_STORES.slice(), fStore='all';
-CFG_HOOKS.push(function(){ var st=null; try{ var j=JSON.parse(CFG.note||'{}'); if(j&&Array.isArray(j.stores)&&j.stores.length) st=j.stores; }catch(e){} STORES=(st||DEFAULT_STORES).slice(); fillStoreSelects(); });
+var STORES=openStores(DEFAULT_STORES), fStore='all';
+CFG_HOOKS.push(function(){ var st=null; try{ var j=JSON.parse(CFG.note||'{}'); if(j&&Array.isArray(j.stores)&&j.stores.length) st=j.stores; }catch(e){} STORES=openStores(st||DEFAULT_STORES); fillStoreSelects(); });
 function storeOrder(){ var o=STORES.slice(); TASKS.forEach(function(t){ var s=t.store||''; if(o.indexOf(s)<0) o.push(s); }); return o; }
 function storeLabel(s){ return s||'Bez poslovnice'; }
 function costOf(t){ var v=parseFloat(String(t.cost||'').replace(/\s/g,'').replace(',','.')); return isNaN(v)?0:v; }
