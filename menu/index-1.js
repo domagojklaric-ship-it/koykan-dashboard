@@ -59,7 +59,7 @@
     api({action:'list'}).then(function(res){
       if(res && res.error==='auth'){ el('setup-err').textContent='Pogrešan kod.'; return; }
       if(res && res.ok){ lsSet(BOARD.skey, SECRET); el('setup').classList.add('hide'); el('app').classList.remove('hide'); TASKS=splitCfg(res.tasks||[]); renderAll(); }
-      else { el('setup-err').textContent='Greška: '+((res&&res.error)||'?'); }
+      else { el('setup-err').textContent=((res&&res.message)||('Greška: '+((res&&res.error)||'?'))); }
     }).catch(function(e){ el('setup-err').textContent='Greška veze: '+e; });
   });
   el('setup-secret').addEventListener('keydown', function(e){ if(e.key==='Enter') el('setup-go').click(); });
@@ -73,7 +73,7 @@
     api({action:'list'}).then(function(res){
       if(res && res.error==='auth'){ showSetup('Kod više ne vrijedi, unesi ponovno.'); return; }
       if(res && res.ok){ TASKS=splitCfg(res.tasks||[]); renderAll(); banner('Osvježeno'); }
-      else { banner('Greška: '+((res&&res.error)||'?')); }
+      else { banner(((res&&res.message)||('Greška: '+((res&&res.error)||'?')))); }
     }).catch(function(e){ banner('Greška veze: '+e); });
   }
   el('refresh').addEventListener('click', load);
