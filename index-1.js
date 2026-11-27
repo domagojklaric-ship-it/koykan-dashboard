@@ -21,8 +21,8 @@
 
   var MAP={'Dom':'Dom','AnaT':'Ana Trusk','Silva':'Silva','Ankica':'Ankica','Nataša':'Nataša','Natasa':'Nataša','Nino':'Nino','WEINNOV8':'we:innov8 (IT)','Private':'Private'};
   var OWNER_ORDER=['CRITICAL','Dom','Private','Ana Trusk','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','we:innov8 (IT)','RECC','Bez oznake'];
-  var ADD_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
-  var OWNER_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Lucija','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
+  var ADD_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
+  var OWNER_PREFIXES=['Dom','Private','AnaT','Ankica','Davor','Nataša','Nino','Silva','Stefan','Tamara','WEINNOV8'];
   function ownerOpts(cur){ var arr=OWNER_PREFIXES.slice(); if(cur && arr.indexOf(cur)<0) arr.push(cur); var html=arr.map(function(px){ return '<option value="'+px+'"'+(px===cur?' selected':'')+'>'+escapeHtml(MAP[px]||px)+'</option>'; }).join(''); if(!cur) html='<option value="" selected>\u2014 bez oznake \u2014</option>'+html; return html; }
   var PREFIX={'Private':'Private','Dom':'Dom'};
   function ownerOf(title){ var m=title.match(/^\(([^)]+)\)\s*/);
@@ -105,6 +105,7 @@
     var params={action:'tasks'}; if(loadCompleted) params.all='true';
     api(params).then(function(res){
       el('loading').style.display='none';
+      if(res&&res.error==='moved'){ banner(res.message||'Ovaj osobni board je ugašen.'); return; } /* Dom 27.11.2026.: Lucijin board ugašen, poruka kaže gdje su taskovi */
       if(!res||res.error){ banner('Greška: '+((res&&res.error)||'nema odgovora')); if(res&&(res.error==='unauthorized'||res.error==='no_access'||res.error==='no_owner')){ /* koykan_key dijele i projektni boardovi na istoj adresi: ne brišem ga kad je valjan, a samo nema pristup */ if(res.error==='unauthorized'){ if(getSecret()) clearSecret(); else clearKey(); } showSetup(); if(res.error!=='unauthorized') banner('Ovaj ključ nema pristup dashboardu. Javi se Domu.'); } return; }
       RAW=res.tasks||[]; document.body.classList.toggle('scoped', (res.scope||'full')!=='full');
       try{ localStorage.setItem('ky_full', (res.scope||'full')==='full'?'1':'0'); }catch(e){}

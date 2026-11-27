@@ -13,7 +13,6 @@
     {key:'kcep', name:'KCEP restructure', skey:'kcep_secret', personal:true},
     {key:'menu', name:'Menu CZ', skey:'menu_secret'},
     {key:'procurement', name:'Sourcing', skey:'procurement_secret'},
-    {key:'hr', name:'HR Global', skey:'hr_secret'},
     {key:'cm', name:'CM insolvencija', skey:'cm_secret'},
     {key:'explore', name:'Keep exploring', skey:'explore_secret'}
   ];
